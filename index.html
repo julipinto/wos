@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>tools · whiteout survival</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..900;1,9..144,400..900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* === Design tokens (matched to slush) === */
+    :root {
+      --bg: #0b0e16;
+      --surface: rgba(255, 255, 255, 0.035);
+      --surface-hover: rgba(255, 255, 255, 0.055);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(147, 212, 255, 0.4);
+      --text: rgba(255, 255, 255, 0.92);
+      --text-mid: rgba(255, 255, 255, 0.62);
+      --text-dim: rgba(255, 255, 255, 0.38);
+      --accent: #93d4ff;
+      --font-display: 'Fraunces', serif;
+      --font-mono: 'DM Mono', monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      background-image:
+        radial-gradient(ellipse 70% 50% at 50% -10%, rgba(147, 212, 255, 0.10), transparent 60%),
+        radial-gradient(ellipse 60% 40% at 90% 100%, rgba(196, 132, 252, 0.06), transparent 60%),
+        radial-gradient(ellipse 50% 35% at 10% 80%, rgba(110, 231, 168, 0.04), transparent 60%);
+      color: var(--text);
+      font-family: var(--font-mono);
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 64px 24px 96px;
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 640px;
+    }
+
+    /* === Hero === */
+    .hero {
+      text-align: center;
+      padding: 16px 0 64px;
+    }
+
+    .hero-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 24px;
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .hero-tag::before,
+    .hero-tag::after {
+      content: "";
+      width: 22px;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-weight: 800;
+      font-size: clamp(64px, 16vw, 104px);
+      line-height: 0.92;
+      margin: 0 0 22px;
+      letter-spacing: -0.035em;
+      background: linear-gradient(180deg, #ffffff 20%, #93d4ff 130%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-family: var(--font-mono);
+      color: var(--text-mid);
+      font-size: 13px;
+      line-height: 1.7;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+
+    /* === Tool card === */
+    .tools {
+      display: grid;
+      gap: 14px;
+    }
+
+    .tool-card {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      padding: 22px 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: inherit;
+      text-decoration: none;
+      transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tool-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 240px 120px at 0% 50%, rgba(147, 212, 255, 0.08), transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+
+    .tool-card:hover {
+      background: var(--surface-hover);
+      border-color: var(--border-accent);
+      transform: translateY(-2px);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.35);
+    }
+    .tool-card:hover::before { opacity: 1; }
+
+    .tool-visual {
+      flex-shrink: 0;
+      width: 104px;
+      height: 48px;
+    }
+    .tool-visual svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    /* Subtle continuous bob on jars; outer <g> positions in SVG, inner <g> animates via CSS */
+    @keyframes t-bob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-2.5px); }
+    }
+    .t-bob {
+      animation: t-bob 2.8s ease-in-out infinite;
+      transform-origin: center;
+      transform-box: fill-box;
+    }
+
+    .tool-body { flex: 1; min-width: 0; }
+
+    .tool-name {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-weight: 700;
+      font-size: 22px;
+      line-height: 1.15;
+      margin: 0 0 6px;
+      letter-spacing: -0.01em;
+    }
+
+    .tool-desc {
+      font-family: var(--font-mono);
+      color: var(--text-mid);
+      font-size: 12px;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .tool-arrow {
+      flex-shrink: 0;
+      color: var(--text-dim);
+      transition: color 0.25s ease, transform 0.25s ease;
+    }
+    .tool-card:hover .tool-arrow {
+      color: var(--accent);
+      transform: translateX(4px);
+    }
+
+    /* === Ghost card (more coming) === */
+    .tool-card.is-ghost {
+      background: transparent;
+      border-style: dashed;
+      border-color: rgba(255, 255, 255, 0.07);
+      cursor: default;
+    }
+    .tool-card.is-ghost:hover {
+      transform: none;
+      background: transparent;
+      border-color: rgba(255, 255, 255, 0.07);
+      box-shadow: none;
+    }
+    .tool-card.is-ghost::before { display: none; }
+    .tool-card.is-ghost .tool-name { color: var(--text-mid); }
+    .tool-card.is-ghost .tool-desc { color: var(--text-dim); }
+
+    /* === Footer === */
+    .foot {
+      margin-top: 56px;
+      text-align: center;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+    }
+
+    /* === Responsive === */
+    @media (max-width: 540px) {
+      body { padding: 44px 18px 72px; }
+      .hero { padding: 8px 0 48px; }
+      .hero-tag { font-size: 10px; letter-spacing: 4px; }
+      .hero-sub { font-size: 12px; }
+      .tool-card {
+        padding: 18px;
+        gap: 16px;
+      }
+      .tool-visual {
+        width: 82px;
+        height: 40px;
+      }
+      .tool-name { font-size: 19px; }
+      .tool-desc { font-size: 11px; }
+    }
+
+    @media (max-width: 380px) {
+      .tool-visual { width: 68px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <header class="hero">
+      <div class="hero-tag">whiteout survival</div>
+      <h1 class="hero-title">tools</h1>
+      <p class="hero-sub">Small calculators and solvers for the parts of the game that get tedious by hand.</p>
+    </header>
+
+    <section class="tools">
+
+      <a href="slush.html" class="tool-card">
+        <div class="tool-visual" aria-hidden="true">
+          <svg viewBox="0 0 132 60" xmlns="http://www.w3.org/2000/svg">
+            <!-- Red jar -->
+            <g transform="translate(2, 5)">
+              <g class="t-bob" style="animation-delay: 0s;">
+                <rect x="10" y="2" width="20" height="7" rx="1.5" fill="#2a2f4a"/>
+                <rect x="10" y="2" width="20" height="2" fill="rgba(255,255,255,0.18)"/>
+                <rect x="10" y="7" width="20" height="2" fill="rgba(0,0,0,0.25)"/>
+                <rect x="12" y="9" width="16" height="3" fill="#a83333"/>
+                <path d="M 5 16 Q 5 12 10 12 L 30 12 Q 35 12 35 16 L 35 46 Q 35 50 31 50 L 9 50 Q 5 50 5 46 Z" fill="#ef4444"/>
+                <path d="M 5 16 Q 5 12 10 12 L 30 12 Q 35 12 35 16 L 35 18 L 5 18 Z" fill="rgba(0,0,0,0.18)"/>
+                <ellipse cx="13" cy="30" rx="2.5" ry="11" fill="rgba(255,255,255,0.3)"/>
+                <ellipse cx="13" cy="30" rx="1" ry="9" fill="rgba(255,255,255,0.4)"/>
+                <rect x="9" y="28" width="22" height="10" fill="rgba(255,255,255,0.08)"/>
+                <rect x="9" y="28" width="22" height="1" fill="rgba(255,255,255,0.15)"/>
+                <rect x="9" y="37" width="22" height="1" fill="rgba(0,0,0,0.15)"/>
+                <path d="M 5 44 L 35 44 L 35 46 Q 35 50 31 50 L 9 50 Q 5 50 5 46 Z" fill="rgba(0,0,0,0.2)"/>
+              </g>
+            </g>
+            <!-- Blue jar -->
+            <g transform="translate(46, 5)">
+              <g class="t-bob" style="animation-delay: 0.3s;">
+                <rect x="10" y="2" width="20" height="7" rx="1.5" fill="#2a2f4a"/>
+                <rect x="10" y="2" width="20" height="2" fill="rgba(255,255,255,0.18)"/>
+                <rect x="10" y="7" width="20" height="2" fill="rgba(0,0,0,0.25)"/>
+                <rect x="12" y="9" width="16" height="3" fill="#3a78c4"/>
+                <path d="M 5 16 Q 5 12 10 12 L 30 12 Q 35 12 35 16 L 35 46 Q 35 50 31 50 L 9 50 Q 5 50 5 46 Z" fill="#60a5fa"/>
+                <path d="M 5 16 Q 5 12 10 12 L 30 12 Q 35 12 35 16 L 35 18 L 5 18 Z" fill="rgba(0,0,0,0.18)"/>
+                <ellipse cx="13" cy="30" rx="2.5" ry="11" fill="rgba(255,255,255,0.3)"/>
+                <ellipse cx="13" cy="30" rx="1" ry="9" fill="rgba(255,255,255,0.4)"/>
+                <rect x="9" y="28" width="22" height="10" fill="rgba(255,255,255,0.08)"/>
+                <rect x="9" y="28" width="22" height="1" fill="rgba(255,255,255,0.15)"/>
+                <rect x="9" y="37" width="22" height="1" fill="rgba(0,0,0,0.15)"/>
+                <path d="M 5 44 L 35 44 L 35 46 Q 35 50 31 50 L 9 50 Q 5 50 5 46 Z" fill="rgba(0,0,0,0.2)"/>
+              </g>
+            </g>
+            <!-- Green jar -->
+            <g transform="translate(90, 5)">
+              <g class="t-bob" style="animation-delay: 0.6s;">
+                <rect x="10" y="2" width="20" height="7" rx="1.5" fill="#2a2f4a"/>
+                <rect x="10" y="2" width="20" height="2" fill="rgba(255,255,255,0.18)"/>
+                <rect x="10" y="7" width="20" height="2" fill="rgba(0,0,0,0.25)"/>
+                <rect x="12" y="9" width="16" height="3" fill="#2c8a4f"/>
+                <path d="M 5 16 Q 5 12 10 12 L 30 12 Q 35 12 35 16 L 35 46 Q 35 50 31 50 L 9 50 Q 5 50 5 46 Z" fill="#4ade80"/>
+                <path d="M 5 16 Q 5 12 10 12 L 30 12 Q 35 12 35 16 L 35 18 L 5 18 Z" fill="rgba(0,0,0,0.18)"/>
+                <ellipse cx="13" cy="30" rx="2.5" ry="11" fill="rgba(255,255,255,0.3)"/>
+                <ellipse cx="13" cy="30" rx="1" ry="9" fill="rgba(255,255,255,0.4)"/>
+                <rect x="9" y="28" width="22" height="10" fill="rgba(255,255,255,0.08)"/>
+                <rect x="9" y="28" width="22" height="1" fill="rgba(255,255,255,0.15)"/>
+                <rect x="9" y="37" width="22" height="1" fill="rgba(0,0,0,0.15)"/>
+                <path d="M 5 44 L 35 44 L 35 46 Q 35 50 31 50 L 9 50 Q 5 50 5 46 Z" fill="rgba(0,0,0,0.2)"/>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <div class="tool-body">
+          <h2 class="tool-name">slush station</h2>
+          <p class="tool-desc">Solver for the in-game event. Tracks per-slot feedback and suggests your next pick.</p>
+        </div>
+        <svg class="tool-arrow" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M5 10 H14 M10 6 L14 10 L10 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+
+      <div class="tool-card is-ghost">
+        <div class="tool-visual" aria-hidden="true">
+          <svg viewBox="0 0 132 60" xmlns="http://www.w3.org/2000/svg">
+            <!-- Three empty slots -->
+            <g transform="translate(2, 5)" opacity="0.35">
+              <rect x="11" y="3" width="18" height="6" rx="1.5" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1" stroke-dasharray="2 2"/>
+              <path d="M 5 16 Q 5 11 10 11 L 30 11 Q 35 11 35 16 L 35 46 Q 35 50 31 50 L 9 50 Q 5 50 5 46 Z"
+                    fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.18)" stroke-width="1" stroke-dasharray="3 3"/>
+            </g>
+            <g transform="translate(46, 5)" opacity="0.35">
+              <rect x="11" y="3" width="18" height="6" rx="1.5" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1" stroke-dasharray="2 2"/>
+              <path d="M 5 16 Q 5 11 10 11 L 30 11 Q 35 11 35 16 L 35 46 Q 35 50 31 50 L 9 50 Q 5 50 5 46 Z"
+                    fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.18)" stroke-width="1" stroke-dasharray="3 3"/>
+            </g>
+            <g transform="translate(90, 5)" opacity="0.35">
+              <rect x="11" y="3" width="18" height="6" rx="1.5" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1" stroke-dasharray="2 2"/>
+              <path d="M 5 16 Q 5 11 10 11 L 30 11 Q 35 11 35 16 L 35 46 Q 35 50 31 50 L 9 50 Q 5 50 5 46 Z"
+                    fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.18)" stroke-width="1" stroke-dasharray="3 3"/>
+            </g>
+          </svg>
+        </div>
+        <div class="tool-body">
+          <h2 class="tool-name">more cooking</h2>
+          <p class="tool-desc">Stay frosty — more tools on the way.</p>
+        </div>
+      </div>
+
+    </section>
+
+    <footer class="foot">made for the team</footer>
+
+  </div>
+</body>
+</html>
