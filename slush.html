@@ -149,6 +149,23 @@
     text-transform: uppercase;
   }
   .panel-bar .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent-glow); display: inline-block; margin-right: 6px; vertical-align: middle; }
+  .panel-close {
+    width: 26px;
+    height: 26px;
+    border: 0;
+    background: transparent;
+    color: var(--ink-mute);
+    cursor: pointer;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 7px;
+    transition: background .15s ease, color .15s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .panel-close:hover { background: rgba(255,255,255,0.06); color: var(--ink); }
+  .panel-close svg { width: 12px; height: 12px; }
 
   /* Palette */
   .palette {
@@ -166,6 +183,7 @@
     -webkit-tap-highlight-color: transparent;
     transition: transform .15s ease, filter .15s ease;
     flex-shrink: 0;
+    position: relative;
   }
   .jar svg { width: 100%; height: 100%; display: block; pointer-events: none; }
   .jar:hover:not(.locked) { transform: translateY(-2px); }
@@ -174,12 +192,69 @@
     filter: drop-shadow(0 0 10px var(--accent-glow));
   }
   .jar.active::after { content: ""; }
-  .jar.disabled {
+  .jar.depleted {
     opacity: 0.25;
     filter: saturate(0.4) brightness(0.7);
     cursor: not-allowed;
   }
-  .jar.disabled:hover { transform: none; }
+  .jar.depleted:hover { transform: none; }
+  /* Blocked: same color was marked ✗ at the next slot in a past round.
+     More visible than depleted (carries learned info), with a red ✕ on top. */
+  .jar.blocked {
+    opacity: 0.55;
+    filter: saturate(0.55);
+    cursor: not-allowed;
+  }
+  .jar.blocked:hover { transform: none; }
+  .jar.blocked .block-x {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .jar.blocked .block-x svg {
+    width: 55%;
+    height: 55%;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,0.55));
+    pointer-events: none;
+  }
+
+  /* Snackbar (bottom-anchored toast) */
+  .snack {
+    position: fixed;
+    left: 50%;
+    bottom: 28px;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(17, 21, 31, 0.94);
+    border: 1px solid var(--line-2);
+    color: var(--ink);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    padding: 11px 20px;
+    border-radius: 999px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease, transform .25s ease;
+    z-index: 1000;
+    white-space: nowrap;
+    max-width: calc(100vw - 36px);
+  }
+  .snack.open {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .snack .snack-x {
+    color: var(--no);
+    margin-right: 8px;
+    font-weight: 700;
+  }
 
   /* Won indicator — shown in place of the current row when all positions are confirmed */
   .won-indicator {
@@ -244,13 +319,57 @@
     border-radius: 11px;
     background: rgba(255,255,255,0.025);
   }
+  .inv-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+  .inv-grip {
+    width: 22px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-mute);
+    cursor: grab;
+    flex-shrink: 0;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    transition: color .15s ease;
+    border-radius: 6px;
+  }
+  .inv-grip:hover { color: var(--ink); }
+  .inv-grip:active { cursor: grabbing; }
+  .inv-grip svg {
+    width: 10px;
+    height: 16px;
+    pointer-events: none;
+  }
   .inv-jar {
     width: 30px;
     height: 38px;
-    cursor: default;
+    cursor: grab;
     flex-shrink: 0;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
   }
+  .inv-jar:active { cursor: grabbing; }
   .inv-jar:hover { transform: none; }
+  .inv-row.dragging {
+    opacity: 0.75;
+    background: rgba(255,255,255,0.06);
+    border-color: var(--accent-glow);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    position: relative;
+    z-index: 10;
+  }
+  .inv-row.dragging .inv-grip { cursor: grabbing; color: var(--accent); }
+  .inv-row.dragging .inv-jar { cursor: grabbing; }
   .inv-controls {
     display: flex;
     align-items: center;
@@ -386,7 +505,7 @@
     height: var(--jar-cur-h);
   }
   .fb {
-    width: 18px; height: 18px;
+    width: 30px; height: 30px;
     border-radius: 50%;
     border: 1px solid rgba(255,255,255,0.15);
     background: transparent;
@@ -395,11 +514,12 @@
     align-items: center;
     justify-content: center;
     color: var(--ink-mute);
-    font-size: 11px;
+    font-size: 15px;
     font-weight: 700;
     transition: all .15s;
     padding: 0;
     -webkit-tap-highlight-color: transparent;
+    flex-shrink: 0;
   }
   .fb.ok {
     background: rgba(110,231,168,0.18);
@@ -880,7 +1000,7 @@
     .panel { padding: 18px; margin-bottom: 18px; border-radius: 18px; }
     header { margin-bottom: 28px; }
     .slots { gap: 10px; }
-    .fb { width: 22px; height: 22px; font-size: 13px; }
+    .fb { width: 28px; height: 28px; font-size: 14px; }
     .palette { gap: 8px; padding: 8px 0; }
     .ibtn { width: 40px; height: 40px; border-radius: 11px; }
     .ibtn svg { width: 18px; height: 18px; }
@@ -977,7 +1097,14 @@
   </header>
 
   <section class="panel settings" id="settings">
-    <div class="panel-bar"><span><span class="dot"></span>Inventory</span></div>
+    <div class="panel-bar">
+      <span><span class="dot"></span>Inventory</span>
+      <button class="panel-close" id="settings-close" aria-label="Close inventory">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+          <path d="M4 4 L12 12 M12 4 L4 12"/>
+        </svg>
+      </button>
+    </div>
     <div class="inv-grid" id="inv-grid"></div>
     <div class="add-color-row">
       <button class="add-color-btn" id="add-color-btn">
@@ -1119,6 +1246,29 @@
     return -1;
   }
 
+  // Returns Set of colors that were marked ✗ at slot `idx` in any past round.
+  // Used to block re-trying those at that slot.
+  function blockedAtSlot(idx) {
+    const blocked = new Set();
+    for (const round of state.rounds) {
+      if (round.feedback[idx] === false) {
+        blocked.add(round.guess[idx]);
+      }
+    }
+    return blocked;
+  }
+
+  // Snackbar
+  let _snackTimer = null;
+  function showSnack(msg) {
+    const el = document.getElementById('snack');
+    if (!el) return;
+    el.innerHTML = `<span class="snack-x">✕</span>${msg}`;
+    el.classList.add('open');
+    clearTimeout(_snackTimer);
+    _snackTimer = setTimeout(() => el.classList.remove('open'), 2400);
+  }
+
   // ---------- Inventory helpers ----------
   function inventoryCounts() {
     const m = new Map();
@@ -1139,6 +1289,127 @@
       if (placed) m.set(placed, (m.get(placed) || 0) - 1);
     }
     return m;
+  }
+
+  // Apply a new color order to the inventory, preserving counts.
+  // Does NOT clear rounds (multiset is unchanged).
+  function setInventoryOrder(orderedHexes) {
+    const counts = inventoryCounts();
+    const newInv = [];
+    for (const h of orderedHexes) {
+      const c = counts.get(h) || 0;
+      for (let i = 0; i < c; i++) newInv.push(h);
+    }
+    state.inventory = newInv;
+    render();
+  }
+
+  // Reorder `row` in `grid` to be before `beforeNode` (or at the end if null),
+  // animating the rows that get displaced via FLIP.
+  // The dragged row itself isn't animated — the user is moving it, so a snap is expected.
+  function reorderWithFLIP(grid, row, beforeNode) {
+    // Skip no-ops
+    if (row.nextElementSibling === beforeNode && beforeNode !== row) return;
+
+    const others = [...grid.querySelectorAll('.inv-row:not(.dragging)')];
+    // FIRST: snapshot current vertical positions (handles mid-animation correctly)
+    const firstTops = new Map();
+    for (const r of others) firstTops.set(r, r.getBoundingClientRect().top);
+
+    // LAST: commit the DOM reorder
+    if (beforeNode) grid.insertBefore(row, beforeNode);
+    else grid.appendChild(row);
+
+    // INVERT + PLAY
+    for (const r of others) {
+      const firstTop = firstTops.get(r);
+      const lastTop = r.getBoundingClientRect().top;
+      const dy = firstTop - lastTop;
+      if (Math.abs(dy) < 0.5) continue;
+      // Invert: jump to old visual position without animation
+      r.style.transition = 'none';
+      r.style.transform = `translateY(${dy}px)`;
+      r.offsetHeight; // force reflow so the next state actually animates
+      // Play: animate back to natural position
+      r.style.transition = 'transform .22s cubic-bezier(.2,.6,.3,1)';
+      r.style.transform = '';
+    }
+  }
+
+  // Drag-to-reorder on a single inventory row.
+  // Both .inv-grip and .inv-jar work as drag handles. Live DOM reordering with
+  // FLIP animation; committed on release. Pointer-cancel restores via render().
+  function attachDragReorder(row) {
+    const handles = [
+      row.querySelector('.inv-grip'),
+      row.querySelector('.inv-jar'),
+    ].filter(Boolean);
+    if (handles.length === 0) return;
+
+    let startY = 0;
+    let dragging = false;
+    let pointerId = null;
+    let activeHandle = null;
+    const grid = row.parentElement;
+
+    function onMove(e) {
+      if (!dragging) {
+        if (Math.abs(e.clientY - startY) < 6) return;
+        dragging = true;
+        row.classList.add('dragging');
+      }
+      e.preventDefault();
+      const others = [...grid.querySelectorAll('.inv-row:not(.dragging)')];
+      const target = others.find(r => {
+        const rect = r.getBoundingClientRect();
+        return e.clientY >= rect.top && e.clientY <= rect.bottom;
+      });
+      if (target) {
+        const rect = target.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        const beforeNode = e.clientY < midY ? target : target.nextSibling;
+        reorderWithFLIP(grid, row, beforeNode);
+      }
+    }
+
+    function finalize(commit) {
+      if (activeHandle) {
+        activeHandle.removeEventListener('pointermove', onMove);
+        activeHandle.removeEventListener('pointerup', onUp);
+        activeHandle.removeEventListener('pointercancel', onCancel);
+        if (pointerId !== null) {
+          try { activeHandle.releasePointerCapture(pointerId); } catch (_) {}
+        }
+        activeHandle = null;
+      }
+      const wasDragging = dragging;
+      row.classList.remove('dragging');
+      dragging = false;
+      pointerId = null;
+      if (wasDragging) {
+        if (commit) {
+          const newOrder = [...grid.children].map(r => r.dataset.hex);
+          setInventoryOrder(newOrder);
+        } else {
+          render();
+        }
+      }
+    }
+    function onUp()     { finalize(true); }
+    function onCancel() { finalize(false); }
+
+    function onDown(e) {
+      if (activeHandle) return; // already engaged from another handle
+      startY = e.clientY;
+      pointerId = e.pointerId;
+      activeHandle = e.currentTarget;
+      try { activeHandle.setPointerCapture(pointerId); } catch (_) {}
+      activeHandle.addEventListener('pointermove', onMove);
+      activeHandle.addEventListener('pointerup', onUp);
+      activeHandle.addEventListener('pointercancel', onCancel);
+    }
+
+    for (const h of handles) h.addEventListener('pointerdown', onDown);
   }
 
   // ---------- Color helpers ----------
@@ -1287,24 +1558,50 @@
     el.innerHTML = '';
     const totals = inventoryCounts();
     const remaining = remainingCounts();
+    const nextSlot = firstEmptySlot();
+    const blockedAtNext = nextSlot >= 0 ? blockedAtSlot(nextSlot) : new Set();
+
     for (const hex of uniqueColors()) {
       const total = totals.get(hex) || 0;
       const rem = remaining.get(hex) || 0;
-      const slotAvailable = firstEmptySlot() !== -1;
+
+      // Determine state for this color.
+      // Priority: depleted (stock 0 or no slot left) > blocked (✗ here before) > available
+      let stateClass = '';
+      let onClickAction = null;
+      if (rem === 0) {
+        stateClass = 'depleted';
+        onClickAction = () => showSnack('all used up');
+      } else if (nextSlot === -1) {
+        // Row is full / all slots locked; nothing can be placed regardless.
+        stateClass = 'depleted';
+        onClickAction = () => showSnack('row is full');
+      } else if (blockedAtNext.has(hex)) {
+        stateClass = 'blocked';
+        onClickAction = () => showSnack(`marked wrong at slot ${nextSlot + 1} before`);
+      }
+
       const jar = document.createElement('div');
-      let cls = 'jar';
-      if (rem === 0 || !slotAvailable) cls += ' disabled';
-      jar.className = cls;
+      jar.className = 'jar' + (stateClass ? ' ' + stateClass : '');
+
       let badge = '';
       if (total > 1) {
         const badgeCls = rem === 0 ? 'depleted' : (rem === total ? 'full' : '');
         badge = `<div class="count-badge ${badgeCls}">${rem}/${total}</div>`;
       }
-      jar.innerHTML = jarSVG(hex) + badge;
+      // Red ✕ overlay for blocked state
+      const blockX = stateClass === 'blocked'
+        ? `<div class="block-x"><svg viewBox="-8 -8 16 16" xmlns="http://www.w3.org/2000/svg">
+             <line x1="-5" y1="-5" x2="5" y2="5" stroke="${'#ff8a8a'}" stroke-width="2.4" stroke-linecap="round"/>
+             <line x1="5" y1="-5" x2="-5" y2="5" stroke="${'#ff8a8a'}" stroke-width="2.4" stroke-linecap="round"/>
+           </svg></div>`
+        : '';
+      jar.innerHTML = jarSVG(hex) + blockX + badge;
+
       jar.onclick = () => {
-        if (rem === 0) return; // out of stock
+        if (onClickAction) { onClickAction(); return; }
         const slot = firstEmptySlot();
-        if (slot === -1) return; // no empty unlocked slot
+        if (slot === -1) return;
         state.currentGuess[slot] = hex;
         renderPalette();
         renderRounds();
@@ -1555,13 +1852,32 @@
     grid.innerHTML = '';
     const counts = inventoryCounts();
     const uniques = uniqueColors();
-    for (const hex of uniques) {
+    uniques.forEach((hex, idx) => {
       const count = counts.get(hex);
       const row = document.createElement('div');
       row.className = 'inv-row';
+      row.dataset.hex = hex;
+
+      // Left side: drag grip + jar preview
+      const left = document.createElement('div');
+      left.className = 'inv-left';
+
+      const grip = document.createElement('div');
+      grip.className = 'inv-grip';
+      grip.setAttribute('aria-label', 'drag to reorder');
+      grip.innerHTML = `<svg viewBox="0 0 10 16" fill="currentColor" aria-hidden="true">
+        <circle cx="2" cy="3" r="1.2"/><circle cx="8" cy="3" r="1.2"/>
+        <circle cx="2" cy="8" r="1.2"/><circle cx="8" cy="8" r="1.2"/>
+        <circle cx="2" cy="13" r="1.2"/><circle cx="8" cy="13" r="1.2"/>
+      </svg>`;
+
       const jar = document.createElement('div');
       jar.className = 'jar inv-jar';
       jar.innerHTML = jarSVG(hex);
+
+      left.appendChild(grip);
+      left.appendChild(jar);
+
       const controls = document.createElement('div');
       controls.className = 'inv-controls';
       const minus = document.createElement('button');
@@ -1570,9 +1886,9 @@
       minus.disabled = state.inventory.length <= MIN_JARS;
       minus.onclick = () => {
         if (state.inventory.length <= MIN_JARS) return;
-        const idx = state.inventory.indexOf(hex);
-        if (idx >= 0) {
-          state.inventory.splice(idx, 1);
+        const i = state.inventory.indexOf(hex);
+        if (i >= 0) {
+          state.inventory.splice(i, 1);
           state.rounds = [];
           initCurrent();
           render();
@@ -1595,10 +1911,12 @@
       controls.appendChild(minus);
       controls.appendChild(num);
       controls.appendChild(plus);
-      row.appendChild(jar);
+
+      row.appendChild(left);
       row.appendChild(controls);
       grid.appendChild(row);
-    }
+      attachDragReorder(row);
+    });
 
     const total = document.getElementById('inv-total');
     total.innerHTML = `total<b>${state.inventory.length}</b>${state.inventory.length === 1 ? 'jar' : 'jars'}`;
@@ -1641,6 +1959,9 @@
   // ---------- Events ----------
   document.getElementById('settings-btn').onclick = () => {
     document.getElementById('settings').classList.toggle('open');
+  };
+  document.getElementById('settings-close').onclick = () => {
+    document.getElementById('settings').classList.remove('open');
   };
 
   document.getElementById('reset-btn').onclick = () => {
@@ -1939,5 +2260,6 @@
   // Init
   render();
 </script>
+<div id="snack" class="snack" role="status" aria-live="polite"></div>
 </body>
 </html>
