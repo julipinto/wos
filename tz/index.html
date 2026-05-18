@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>time tool · whiteout survival</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..900;1,9..144,400..900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* === Design tokens (style-guide) === */
+    :root {
+      --bg: #0b0e16;
+      --bg-soft: #11151f;
+      --surface: rgba(255, 255, 255, 0.035);
+      --surface-hover: rgba(255, 255, 255, 0.055);
+      --surface-strong: rgba(255, 255, 255, 0.07);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.12);
+      --border-accent: rgba(147, 212, 255, 0.4);
+      --text: rgba(255, 255, 255, 0.92);
+      --text-mid: rgba(255, 255, 255, 0.62);
+      --text-dim: rgba(255, 255, 255, 0.38);
+      --accent: #93d4ff;
+      --accent-glow: rgba(147, 212, 255, 0.18);
+      --ok: #6ee7a8;
+      --no: #ff8a8a;
+      --font-display: 'Fraunces', serif;
+      --font-mono: 'DM Mono', monospace;
+      --r-card: 20px;
+      --r-pill: 999px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      background-image:
+        radial-gradient(ellipse 70% 50% at 50% -10%, rgba(147, 212, 255, 0.10), transparent 60%),
+        radial-gradient(ellipse 60% 40% at 90% 100%, rgba(196, 132, 252, 0.06), transparent 60%),
+        radial-gradient(ellipse 50% 35% at 10% 80%, rgba(110, 231, 168, 0.04), transparent 60%);
+      color: var(--text);
+      font-family: var(--font-mono);
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 18px 80px;
+    }
+
+    .wrap { width: 100%; max-width: 640px; }
+
+    /* === Hero === */
+    .hero { text-align: center; padding: 8px 0 32px; position: relative; }
+    .hero-back {
+      position: absolute;
+      top: 8px;
+      left: 0;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      transition: color .2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .hero-back:hover { color: var(--accent); }
+    .hero-back svg { width: 12px; height: 12px; }
+
+    .hero-tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 14px;
+    }
+    .hero-title {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-weight: 800;
+      font-size: clamp(40px, 11vw, 64px);
+      line-height: 0.95;
+      margin: 0 0 14px;
+      letter-spacing: -0.03em;
+      background: linear-gradient(180deg, #ffffff 20%, #93d4ff 130%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      font-family: var(--font-mono);
+      color: var(--text-mid);
+      font-size: 12px;
+      line-height: 1.6;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+
+    /* === Slider === */
+    .slider-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-card);
+      padding: 18px 16px 12px;
+      margin-bottom: 18px;
+    }
+    .slider-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      gap: 8px;
+    }
+    .mode-tag {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: var(--r-pill);
+      border: 1px solid var(--border);
+    }
+    .mode-tag.live {
+      background: rgba(110, 231, 168, 0.08);
+      border-color: rgba(110, 231, 168, 0.3);
+      color: var(--ok);
+    }
+    .mode-tag.live::before {
+      content: "";
+      display: inline-block;
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--ok);
+      box-shadow: 0 0 6px var(--ok);
+      margin-right: 6px;
+      vertical-align: middle;
+      animation: pulse-dot 1.6s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .mode-tag.manual {
+      background: rgba(147, 212, 255, 0.08);
+      border-color: rgba(147, 212, 255, 0.3);
+      color: var(--accent);
+    }
+
+    .reset-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-mid);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 6px 12px;
+      border-radius: var(--r-pill);
+      cursor: pointer;
+      transition: all .15s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .reset-btn:hover {
+      border-color: var(--border-accent);
+      color: var(--text);
+      background: var(--accent-glow);
+    }
+    .reset-btn:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+    .reset-btn:disabled:hover {
+      border-color: var(--border);
+      background: transparent;
+      color: var(--text-mid);
+    }
+
+    .slider-track {
+      position: relative;
+      height: 70px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0.05));
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin: 0 8px;
+      touch-action: pan-y;
+    }
+
+    /* UTC anchor — the focal point of the slider card */
+    .utc-anchor {
+      text-align: center;
+      padding: 18px 0 14px;
+    }
+    .utc-anchor-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 2px;
+      padding-left: 0.4em; /* compensate for letter-spacing on the last char */
+    }
+    .utc-anchor-time {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-weight: 800;
+      font-size: clamp(46px, 13vw, 64px);
+      line-height: 1;
+      letter-spacing: -0.03em;
+      background: linear-gradient(180deg, #ffffff 25%, #93d4ff 130%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* UTC divider inside the sorted zones list */
+    .zone-divider {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 4px 12px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+    .zone-divider::before,
+    .zone-divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+    }
+    .zone-divider::before {
+      background: linear-gradient(90deg, transparent, var(--border-accent));
+    }
+    .zone-divider::after {
+      background: linear-gradient(90deg, var(--border-accent), transparent);
+    }
+
+    /* Hour ticks underneath the track */
+    .tick-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0 0;
+      margin: 0 8px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+    }
+    .tick-row span {
+      display: inline-block;
+      transform: translateX(-50%);
+      position: relative;
+      left: 0;
+    }
+    .tick-row span:first-child { transform: translateX(0); }
+    .tick-row span:last-child { transform: translateX(-100%); }
+
+    .tick {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: rgba(255,255,255,0.04);
+      pointer-events: none;
+    }
+    .tick.major { background: rgba(255,255,255,0.08); }
+
+    .now-line {
+      position: absolute;
+      top: 6px;
+      bottom: 6px;
+      width: 0;
+      border-left: 1px dashed rgba(255,255,255,0.22);
+      pointer-events: none;
+    }
+    .now-line::before {
+      content: "now";
+      position: absolute;
+      top: -16px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--font-mono);
+      font-size: 8px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      white-space: nowrap;
+    }
+
+    /* Pins — colored vertical lines + dot at top, with a wide invisible hit area */
+    .pin {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 36px;
+      margin-left: -18px;
+      cursor: grab;
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+    .pin:active { cursor: grabbing; }
+    .pin-line {
+      position: absolute;
+      left: 50%;
+      top: 18px;
+      bottom: 4px;
+      width: 2px;
+      margin-left: -1px;
+      background: var(--c);
+      border-radius: 1px;
+      box-shadow: 0 0 8px var(--c);
+      pointer-events: none;
+    }
+    .pin-head {
+      position: absolute;
+      left: 50%;
+      top: 6px;
+      width: 10px;
+      height: 10px;
+      margin-left: -5px;
+      border-radius: 50%;
+      background: var(--c);
+      box-shadow: 0 0 12px var(--c), 0 1px 3px rgba(0,0,0,0.5);
+      pointer-events: none;
+      transition: transform .15s ease;
+    }
+    .pin.dragging .pin-head { transform: scale(1.3); }
+    .pin.dragging .pin-line { width: 3px; margin-left: -1.5px; }
+
+    /* === Zone list === */
+    .zones {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .zone-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      transition: background .2s ease, border-color .2s ease;
+    }
+
+    .zone-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      box-shadow: 0 0 8px currentColor;
+    }
+
+    .zone-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .zone-name {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text);
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .zone-loc {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .zone-time {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-weight: 700;
+      font-size: 22px;
+      letter-spacing: -0.01em;
+      flex-shrink: 0;
+      color: var(--text);
+    }
+    .zone-time .day-tag {
+      font-family: var(--font-mono);
+      font-style: normal;
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      color: var(--text-dim);
+      margin-left: 4px;
+      vertical-align: middle;
+      font-weight: 500;
+    }
+
+    .zone-remove {
+      width: 28px;
+      height: 28px;
+      border: 0;
+      background: transparent;
+      color: var(--text-dim);
+      cursor: pointer;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 7px;
+      transition: background .15s ease, color .15s ease;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .zone-remove:hover { background: rgba(255,138,138,0.10); color: var(--no); }
+    .zone-remove svg { width: 12px; height: 12px; pointer-events: none; }
+    .zone-remove.hidden { visibility: hidden; pointer-events: none; }
+
+    /* === Actions === */
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      flex: 1;
+      min-width: 130px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 14px 16px;
+      border-radius: var(--r-pill);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      transition: all .15s ease;
+      -webkit-tap-highlight-color: transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn:hover {
+      border-color: var(--border-accent);
+      background: var(--accent-glow);
+    }
+    .btn svg { width: 13px; height: 13px; pointer-events: none; }
+
+    /* === Picker modal === */
+    .picker-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(11, 14, 22, 0.6);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 100;
+    }
+    .picker-overlay.open { display: flex; }
+    .picker-modal {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--r-card);
+      padding: 22px;
+      max-width: 420px;
+      width: 100%;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .picker-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .picker-title {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-weight: 700;
+      font-size: 22px;
+      margin: 0;
+      letter-spacing: -0.01em;
+    }
+    .picker-close {
+      width: 28px;
+      height: 28px;
+      border: 0;
+      background: transparent;
+      color: var(--text-mid);
+      cursor: pointer;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 7px;
+      transition: background .15s ease, color .15s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .picker-close:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+    .picker-close svg { width: 13px; height: 13px; pointer-events: none; }
+
+    .picker-search {
+      width: 100%;
+      background: rgba(0,0,0,0.2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      outline: none;
+      margin-bottom: 14px;
+      transition: border-color .15s ease;
+    }
+    .picker-search:focus { border-color: var(--border-accent); }
+    .picker-search::placeholder { color: var(--text-dim); }
+
+    .picker-list {
+      flex: 1;
+      overflow-y: auto;
+      margin: 0 -22px;
+      padding: 0 22px;
+    }
+    .picker-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background .15s ease;
+      gap: 10px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .picker-item:hover { background: var(--surface-hover); }
+    .picker-item.in-use { opacity: 0.35; cursor: default; }
+    .picker-item.in-use:hover { background: transparent; }
+    .picker-item-label {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .picker-item-name {
+      font-size: 13px;
+      color: var(--text);
+      letter-spacing: 0.03em;
+    }
+    .picker-item-loc {
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 0.06em;
+    }
+    .picker-item-offset {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }
+    .picker-empty {
+      padding: 28px 12px;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    /* === Snackbar === */
+    .snack {
+      position: fixed;
+      left: 50%;
+      bottom: 28px;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(17, 21, 31, 0.94);
+      border: 1px solid var(--border-strong);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      padding: 11px 20px;
+      border-radius: var(--r-pill);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.45);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease, transform .25s ease;
+      z-index: 1000;
+      white-space: nowrap;
+      max-width: calc(100vw - 36px);
+    }
+    .snack.open {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .snack .icon {
+      color: var(--ok);
+      margin-right: 8px;
+      font-weight: 700;
+    }
+
+    /* === Responsive bumps === */
+    @media (min-width: 640px) {
+      body { padding: 56px 24px 96px; }
+      .slider-card { padding: 22px 20px 16px; }
+      .slider-track { height: 80px; }
+      .zone-time { font-size: 26px; }
+    }
+    @media (max-width: 380px) {
+      .zone-time { font-size: 20px; }
+      .pin { width: 30px; margin-left: -15px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <header class="hero">
+      <a href="index.html" class="hero-back">
+        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="7 3 4 6 7 9"/>
+        </svg>
+        all tools
+      </a>
+      <div class="hero-tag">whiteout survival</div>
+      <h1 class="hero-title">time tool</h1>
+      <p class="hero-sub">Drag any pin to align all timezones. Your time, theirs, UTC — all in sync.</p>
+    </header>
+
+    <main>
+      <div class="slider-card">
+        <div class="slider-info">
+          <span class="mode-tag live" id="mode-tag">live</span>
+          <button class="reset-btn" id="reset-btn" disabled>reset to now</button>
+        </div>
+        <div class="utc-anchor">
+          <div class="utc-anchor-label">utc</div>
+          <div class="utc-anchor-time utc-time-display">00:00</div>
+        </div>
+        <div class="slider-track" id="slider-track"></div>
+        <div class="tick-row" id="tick-row"></div>
+      </div>
+
+      <div class="zones" id="zones"></div>
+
+      <div class="actions">
+        <button class="btn" id="add-zone">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+            <path d="M7 3 V11 M3 7 H11"/>
+          </svg>
+          add timezone
+        </button>
+        <button class="btn" id="copy-btn">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="3" width="8" height="8" rx="1.5"/>
+            <path d="M5 3 V2 a1 1 0 0 1 1 -1 h6 a1 1 0 0 1 1 1 v8 a1 1 0 0 1 -1 1 h-1"/>
+          </svg>
+          copy as text
+        </button>
+      </div>
+    </main>
+  </div>
+
+  <!-- Timezone picker -->
+  <div class="picker-overlay" id="picker">
+    <div class="picker-modal">
+      <div class="picker-header">
+        <h2 class="picker-title">add timezone</h2>
+        <button class="picker-close" id="picker-close" aria-label="Close">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+            <path d="M4 4 L12 12 M12 4 L4 12"/>
+          </svg>
+        </button>
+      </div>
+      <input class="picker-search" id="picker-search" type="text" placeholder="search city or abbreviation…" autocomplete="off">
+      <div class="picker-list" id="picker-list"></div>
+    </div>
+  </div>
+
+  <div id="snack" class="snack" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+
+// === Helpers ===
+
+const PIN_COLORS = ['#fb923c', '#4ade80', '#c084fc', '#f472b6', '#facc15', '#22d3ee', '#a3e635', '#fb7185'];
+
+function mod(a, n) { return ((a % n) + n) % n; }
+function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+function pad2(n) { return String(n).padStart(2, '0'); }
+
+function nowUtcMinutes() {
+  const d = new Date();
+  return d.getUTCHours() * 60 + d.getUTCMinutes();
+}
+
+// Compute current offset (in minutes) of an IANA timezone from UTC.
+// Positive = ahead of UTC. Uses Intl, so it handles DST automatically.
+function offsetMinutes(iana, atDate = new Date()) {
+  const fmt = new Intl.DateTimeFormat('en-US', {
+    timeZone: iana,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour12: false
+  });
+  const parts = Object.fromEntries(fmt.formatToParts(atDate).map(p => [p.type, p.value]));
+  // Hour can be "24" in some locales for midnight; normalize.
+  const h = +parts.hour === 24 ? 0 : +parts.hour;
+  const asUtcMs = Date.UTC(+parts.year, +parts.month - 1, +parts.day, h, +parts.minute, +parts.second);
+  return Math.round((asUtcMs - atDate.getTime()) / 60000);
+}
+
+function formatTime(min) {
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return `${pad2(h)}:${pad2(m)}`;
+}
+
+function formatOffset(min) {
+  const sign = min >= 0 ? '+' : '-';
+  const abs = Math.abs(min);
+  const h = Math.floor(abs / 60);
+  const m = abs % 60;
+  return `UTC${sign}${pad2(h)}${m ? ':' + pad2(m) : ''}`;
+}
+
+// How many days off from UTC's day at this baseUtcMin + offset (-1, 0, or +1 typically)
+function dayOffsetFor(baseUtcMin, offsetMin) {
+  return Math.floor((baseUtcMin + offsetMin) / 1440);
+}
+
+// === Curated timezone catalog ===
+// Each entry: { id, name, loc, iana }
+const CATALOG = [
+  { id: 'America/Sao_Paulo',    name: 'BRT',   loc: 'São Paulo, Brazil',     iana: 'America/Sao_Paulo' },
+  { id: 'America/New_York',     name: 'ET',    loc: 'New York, USA',         iana: 'America/New_York' },
+  { id: 'America/Chicago',      name: 'CT',    loc: 'Chicago, USA',          iana: 'America/Chicago' },
+  { id: 'America/Denver',       name: 'MT',    loc: 'Denver, USA',           iana: 'America/Denver' },
+  { id: 'America/Los_Angeles',  name: 'PT',    loc: 'Los Angeles, USA',      iana: 'America/Los_Angeles' },
+  { id: 'America/Mexico_City',  name: 'CST',   loc: 'Mexico City, Mexico',   iana: 'America/Mexico_City' },
+  { id: 'America/Argentina/Buenos_Aires', name: 'ART', loc: 'Buenos Aires, Argentina', iana: 'America/Argentina/Buenos_Aires' },
+  { id: 'America/Santiago',     name: 'CLT',   loc: 'Santiago, Chile',       iana: 'America/Santiago' },
+  { id: 'America/Bogota',       name: 'COT',   loc: 'Bogotá, Colombia',      iana: 'America/Bogota' },
+  { id: 'America/Anchorage',    name: 'AKT',   loc: 'Anchorage, USA',        iana: 'America/Anchorage' },
+  { id: 'Pacific/Honolulu',     name: 'HST',   loc: 'Honolulu, USA',         iana: 'Pacific/Honolulu' },
+  { id: 'Europe/London',        name: 'GMT',   loc: 'London, UK',            iana: 'Europe/London' },
+  { id: 'Europe/Paris',         name: 'CET',   loc: 'Paris, France',         iana: 'Europe/Paris' },
+  { id: 'Europe/Berlin',        name: 'CET',   loc: 'Berlin, Germany',       iana: 'Europe/Berlin' },
+  { id: 'Europe/Madrid',        name: 'CET',   loc: 'Madrid, Spain',         iana: 'Europe/Madrid' },
+  { id: 'Europe/Rome',          name: 'CET',   loc: 'Rome, Italy',           iana: 'Europe/Rome' },
+  { id: 'Europe/Moscow',        name: 'MSK',   loc: 'Moscow, Russia',        iana: 'Europe/Moscow' },
+  { id: 'Europe/Istanbul',      name: 'TRT',   loc: 'Istanbul, Turkey',      iana: 'Europe/Istanbul' },
+  { id: 'Europe/Athens',        name: 'EET',   loc: 'Athens, Greece',        iana: 'Europe/Athens' },
+  { id: 'Africa/Cairo',         name: 'EET',   loc: 'Cairo, Egypt',          iana: 'Africa/Cairo' },
+  { id: 'Africa/Johannesburg',  name: 'SAST',  loc: 'Johannesburg, S. Africa', iana: 'Africa/Johannesburg' },
+  { id: 'Africa/Lagos',         name: 'WAT',   loc: 'Lagos, Nigeria',        iana: 'Africa/Lagos' },
+  { id: 'Asia/Dubai',           name: 'GST',   loc: 'Dubai, UAE',            iana: 'Asia/Dubai' },
+  { id: 'Asia/Tehran',          name: 'IRST',  loc: 'Tehran, Iran',          iana: 'Asia/Tehran' },
+  { id: 'Asia/Karachi',         name: 'PKT',   loc: 'Karachi, Pakistan',     iana: 'Asia/Karachi' },
+  { id: 'Asia/Kolkata',         name: 'IST',   loc: 'India',                 iana: 'Asia/Kolkata' },
+  { id: 'Asia/Bangkok',         name: 'ICT',   loc: 'Bangkok, Thailand',     iana: 'Asia/Bangkok' },
+  { id: 'Asia/Singapore',       name: 'SGT',   loc: 'Singapore',             iana: 'Asia/Singapore' },
+  { id: 'Asia/Shanghai',        name: 'CST',   loc: 'China',                 iana: 'Asia/Shanghai' },
+  { id: 'Asia/Hong_Kong',       name: 'HKT',   loc: 'Hong Kong',             iana: 'Asia/Hong_Kong' },
+  { id: 'Asia/Manila',          name: 'PHT',   loc: 'Manila, Philippines',   iana: 'Asia/Manila' },
+  { id: 'Asia/Taipei',          name: 'TST',   loc: 'Taipei, Taiwan',        iana: 'Asia/Taipei' },
+  { id: 'Asia/Seoul',           name: 'KST',   loc: 'Seoul, S. Korea',       iana: 'Asia/Seoul' },
+  { id: 'Asia/Tokyo',           name: 'JST',   loc: 'Tokyo, Japan',          iana: 'Asia/Tokyo' },
+  { id: 'Australia/Perth',      name: 'AWST',  loc: 'Perth, Australia',      iana: 'Australia/Perth' },
+  { id: 'Australia/Sydney',     name: 'AEDT',  loc: 'Sydney, Australia',     iana: 'Australia/Sydney' },
+  { id: 'Pacific/Auckland',     name: 'NZDT',  loc: 'Auckland, NZ',          iana: 'Pacific/Auckland' },
+];
+
+// === State ===
+const STORAGE_KEY = 'tz-zones-v1';
+
+const UTC_ZONE = { id: 'utc', name: 'UTC', loc: 'Coordinated Universal Time', iana: null, offsetMin: 0, color: '#93d4ff', removable: false };
+
+function loadUserZones() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const ids = JSON.parse(raw);
+    if (!Array.isArray(ids)) return null;
+    return ids.map((id, idx) => {
+      const cat = CATALOG.find(c => c.id === id);
+      if (!cat) return null;
+      return makeZone(cat, idx);
+    }).filter(Boolean);
+  } catch (_) { return null; }
+}
+
+function saveUserZones() {
+  try {
+    const ids = state.zones.filter(z => z.removable).map(z => z.id);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+  } catch (_) {}
+}
+
+function makeZone(catEntry, colorIdx) {
+  return {
+    id: catEntry.id,
+    name: catEntry.name,
+    loc: catEntry.loc,
+    iana: catEntry.iana,
+    offsetMin: offsetMinutes(catEntry.iana),
+    color: PIN_COLORS[colorIdx % PIN_COLORS.length],
+    removable: true,
+  };
+}
+
+function assignColors() {
+  // UTC keeps its color; user zones cycle through PIN_COLORS in order
+  let i = 0;
+  for (const z of state.zones) {
+    if (z.removable) {
+      z.color = PIN_COLORS[i % PIN_COLORS.length];
+      i++;
+    }
+  }
+}
+
+const state = {
+  baseUtcMin: nowUtcMinutes(),
+  isManual: false,
+  zones: [UTC_ZONE, ...(loadUserZones() || [
+    makeZone(CATALOG.find(c => c.id === 'America/Sao_Paulo'), 0),
+    makeZone(CATALOG.find(c => c.id === 'America/New_York'), 1),
+  ])],
+};
+
+// === Rendering ===
+
+function renderSlider() {
+  const track = document.getElementById('slider-track');
+  track.innerHTML = '';
+
+  // Hour ticks
+  for (let h = 1; h < 24; h++) {
+    const t = document.createElement('div');
+    t.className = 'tick' + (h % 6 === 0 ? ' major' : '');
+    t.style.left = (h / 24 * 100) + '%';
+    track.appendChild(t);
+  }
+
+  // Now line (only if manual — otherwise UTC pin == now)
+  if (state.isManual) {
+    const now = document.createElement('div');
+    now.className = 'now-line';
+    now.id = 'now-line';
+    now.style.left = (nowUtcMinutes() / 1440 * 100) + '%';
+    track.appendChild(now);
+  }
+
+  // Pins
+  for (const zone of state.zones) {
+    const localMin = mod(state.baseUtcMin + zone.offsetMin, 1440);
+    const pin = document.createElement('div');
+    pin.className = 'pin';
+    pin.dataset.zoneId = zone.id;
+    pin.style.left = (localMin / 1440 * 100) + '%';
+    pin.style.setProperty('--c', zone.color);
+    pin.innerHTML = '<div class="pin-head"></div><div class="pin-line"></div>';
+    pin.setAttribute('aria-label', `${zone.name} at ${formatTime(localMin)}`);
+    attachPinDrag(pin, zone);
+    track.appendChild(pin);
+  }
+
+  // Tick labels
+  const ticks = document.getElementById('tick-row');
+  ticks.innerHTML = '';
+  for (const h of [0, 6, 12, 18, 24]) {
+    const s = document.createElement('span');
+    s.textContent = pad2(h);
+    ticks.appendChild(s);
+  }
+}
+
+function renderZones() {
+  const list = document.getElementById('zones');
+  list.innerHTML = '';
+
+  // Sort all zones by current local time (ascending 0–23h). UTC sits in this
+  // sequence as a divider so the user sees where the reference time falls
+  // relative to the others.
+  const sorted = [...state.zones].sort((a, b) => {
+    const aLocal = mod(state.baseUtcMin + a.offsetMin, 1440);
+    const bLocal = mod(state.baseUtcMin + b.offsetMin, 1440);
+    return aLocal - bLocal;
+  });
+
+  for (const zone of sorted) {
+    if (zone.id === 'utc') {
+      // UTC divider — simplified format, anchor color
+      const div = document.createElement('div');
+      div.className = 'zone-divider';
+      div.innerHTML = `<span>utc · <span class="utc-time-display">${formatTime(state.baseUtcMin)}</span></span>`;
+      list.appendChild(div);
+      continue;
+    }
+
+    const row = document.createElement('div');
+    row.className = 'zone-row';
+    row.dataset.zoneId = zone.id;
+
+    const dot = document.createElement('div');
+    dot.className = 'zone-dot';
+    dot.style.background = zone.color;
+    dot.style.color = zone.color;
+
+    const info = document.createElement('div');
+    info.className = 'zone-info';
+    const name = document.createElement('div');
+    name.className = 'zone-name';
+    name.textContent = `${zone.name} · ${formatOffset(zone.offsetMin)}`;
+    const loc = document.createElement('div');
+    loc.className = 'zone-loc';
+    loc.textContent = zone.loc;
+    info.appendChild(name);
+    info.appendChild(loc);
+
+    const time = document.createElement('div');
+    time.className = 'zone-time';
+    const localMin = mod(state.baseUtcMin + zone.offsetMin, 1440);
+    const dayOff = dayOffsetFor(state.baseUtcMin, zone.offsetMin);
+    time.innerHTML = formatTime(localMin) + (dayOff !== 0 ? `<span class="day-tag">${dayOff > 0 ? '+1d' : '-1d'}</span>` : '');
+
+    const remove = document.createElement('button');
+    remove.className = 'zone-remove';
+    remove.setAttribute('aria-label', `Remove ${zone.name}`);
+    remove.innerHTML = `<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+      <path d="M4 4 L10 10 M10 4 L4 10"/>
+    </svg>`;
+    remove.onclick = () => removeZone(zone.id);
+
+    row.appendChild(dot);
+    row.appendChild(info);
+    row.appendChild(time);
+    row.appendChild(remove);
+    list.appendChild(row);
+  }
+}
+
+function renderModeTag() {
+  const tag = document.getElementById('mode-tag');
+  const btn = document.getElementById('reset-btn');
+  if (state.isManual) {
+    tag.textContent = 'manual';
+    tag.className = 'mode-tag manual';
+    btn.disabled = false;
+  } else {
+    tag.textContent = 'live';
+    tag.className = 'mode-tag live';
+    btn.disabled = true;
+  }
+}
+
+function render() {
+  renderSlider();
+  renderZones();
+  renderModeTag();
+}
+
+// === Live updates ===
+let liveTimer = null;
+function startLiveUpdates() {
+  stopLiveUpdates();
+  liveTimer = setInterval(() => {
+    if (!state.isManual) {
+      state.baseUtcMin = nowUtcMinutes();
+      render();
+    }
+  }, 15000);
+}
+function stopLiveUpdates() {
+  if (liveTimer) clearInterval(liveTimer);
+  liveTimer = null;
+}
+
+// === Slider pin drag ===
+// Important: the slider DOM is rebuilt on each render(). To avoid the pin being
+// destroyed mid-drag, drag handlers update positions in place and only call
+// render() at the end of the drag (and not at all during smooth movement).
+function attachPinDrag(pin, zone) {
+  let startX = 0;
+  let dragging = false;
+  let pointerId = null;
+  const track = document.getElementById('slider-track');
+
+  function updatePositions() {
+    // In-place update during drag: move pin elements, refresh zone-time text,
+    // and update both UTC displays (anchor in card + divider in list).
+    // Does NOT reorder the list — that happens once at the end of the drag.
+    const utcText = formatTime(state.baseUtcMin);
+    for (const el of document.querySelectorAll('.utc-time-display')) {
+      el.textContent = utcText;
+    }
+    for (const z of state.zones) {
+      if (z.id === 'utc') continue;
+      const localMin = mod(state.baseUtcMin + z.offsetMin, 1440);
+      const p = track.querySelector(`.pin[data-zone-id="${z.id}"]`);
+      if (p) p.style.left = (localMin / 1440 * 100) + '%';
+      const t = document.querySelector(`.zone-row[data-zone-id="${z.id}"] .zone-time`);
+      if (t) {
+        const dayOff = dayOffsetFor(state.baseUtcMin, z.offsetMin);
+        t.innerHTML = formatTime(localMin) + (dayOff !== 0 ? `<span class="day-tag">${dayOff > 0 ? '+1d' : '-1d'}</span>` : '');
+      }
+    }
+    // UTC pin position also updates (it equals baseUtcMin since offset = 0)
+    const utcPin = track.querySelector('.pin[data-zone-id="utc"]');
+    if (utcPin) utcPin.style.left = (state.baseUtcMin / 1440 * 100) + '%';
+  }
+
+  function onMove(e) {
+    if (e.pointerId !== pointerId) return;
+    if (!dragging) {
+      if (Math.abs(e.clientX - startX) < 4) return;
+      dragging = true;
+      pin.classList.add('dragging');
+      if (!state.isManual) {
+        state.isManual = true;
+        // Show the now-line by re-rendering the slider once (before this point
+        // there's no now-line element). Subsequent moves just update positions.
+        const had = !!document.getElementById('now-line');
+        if (!had) {
+          const now = document.createElement('div');
+          now.className = 'now-line';
+          now.id = 'now-line';
+          now.style.left = (nowUtcMinutes() / 1440 * 100) + '%';
+          track.appendChild(now);
+        }
+        renderModeTag();
+      }
+    }
+    e.preventDefault();
+    const rect = track.getBoundingClientRect();
+    const x = clamp(e.clientX - rect.left, 0, rect.width);
+    const localMin = Math.round(x / rect.width * 1440);
+    state.baseUtcMin = mod(localMin - zone.offsetMin, 1440);
+    updatePositions();
+  }
+
+  function finalize() {
+    if (pointerId === null) return;
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
+    document.removeEventListener('pointercancel', onCancel);
+    pin.classList.remove('dragging');
+    const wasDragging = dragging;
+    dragging = false;
+    pointerId = null;
+    if (wasDragging) render(); // re-sort the zone list now that the time settled
+  }
+  function onUp(e)     { if (e.pointerId === pointerId) finalize(); }
+  function onCancel(e) { if (e.pointerId === pointerId) finalize(); }
+
+  pin.addEventListener('pointerdown', (e) => {
+    if (pointerId !== null) return;
+    startX = e.clientX;
+    pointerId = e.pointerId;
+    document.addEventListener('pointermove', onMove, { passive: false });
+    document.addEventListener('pointerup', onUp);
+    document.addEventListener('pointercancel', onCancel);
+  });
+}
+
+// === Reset to now ===
+document.getElementById('reset-btn').onclick = () => {
+  state.isManual = false;
+  state.baseUtcMin = nowUtcMinutes();
+  render();
+};
+
+// === Add / remove zones ===
+function addZone(catEntry) {
+  if (state.zones.some(z => z.id === catEntry.id)) return; // duplicate guard
+  const colorIdx = state.zones.filter(z => z.removable).length;
+  state.zones.push(makeZone(catEntry, colorIdx));
+  assignColors();
+  saveUserZones();
+  render();
+}
+
+function removeZone(id) {
+  if (id === 'utc') return;
+  state.zones = state.zones.filter(z => z.id !== id);
+  assignColors();
+  saveUserZones();
+  render();
+}
+
+// === Picker ===
+const picker = document.getElementById('picker');
+const pickerList = document.getElementById('picker-list');
+const pickerSearch = document.getElementById('picker-search');
+
+function openPicker() {
+  pickerSearch.value = '';
+  renderPicker('');
+  picker.classList.add('open');
+  // Slight delay so the keyboard doesn't pop up before the modal animates
+  setTimeout(() => pickerSearch.focus(), 50);
+}
+function closePicker() {
+  picker.classList.remove('open');
+}
+
+function renderPicker(filter) {
+  pickerList.innerHTML = '';
+  const usedIds = new Set(state.zones.map(z => z.id));
+  const q = filter.trim().toLowerCase();
+  const matches = CATALOG.filter(c => {
+    if (!q) return true;
+    return c.name.toLowerCase().includes(q)
+        || c.loc.toLowerCase().includes(q)
+        || c.iana.toLowerCase().includes(q);
+  });
+  if (matches.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'picker-empty';
+    empty.textContent = 'nothing matches';
+    pickerList.appendChild(empty);
+    return;
+  }
+  for (const c of matches) {
+    const item = document.createElement('div');
+    const inUse = usedIds.has(c.id);
+    item.className = 'picker-item' + (inUse ? ' in-use' : '');
+    const off = offsetMinutes(c.iana);
+    item.innerHTML = `
+      <div class="picker-item-label">
+        <span class="picker-item-name">${c.name} · ${c.loc}</span>
+        <span class="picker-item-loc">${c.iana}</span>
+      </div>
+      <span class="picker-item-offset">${formatOffset(off)}</span>
+    `;
+    if (!inUse) {
+      item.onclick = () => {
+        addZone(c);
+        closePicker();
+      };
+    }
+    pickerList.appendChild(item);
+  }
+}
+
+document.getElementById('add-zone').onclick = openPicker;
+document.getElementById('picker-close').onclick = closePicker;
+picker.addEventListener('click', (e) => {
+  if (e.target === picker) closePicker();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && picker.classList.contains('open')) closePicker();
+});
+pickerSearch.addEventListener('input', (e) => renderPicker(e.target.value));
+
+// === Copy as text ===
+let _snackTimer = null;
+function showSnack(msg, kind = 'ok') {
+  const el = document.getElementById('snack');
+  const iconColor = kind === 'ok' ? 'var(--ok)' : 'var(--no)';
+  const icon = kind === 'ok' ? '✓' : '✕';
+  el.innerHTML = `<span class="icon" style="color:${iconColor}">${icon}</span>${msg}`;
+  el.classList.add('open');
+  clearTimeout(_snackTimer);
+  _snackTimer = setTimeout(() => el.classList.remove('open'), 2400);
+}
+
+// Try modern Clipboard API first (HTTPS / secure context only), then fall
+// back to the legacy execCommand('copy') which works in file:// and older
+// browsers. iOS Safari needs a small dance with contentEditable + selection
+// range for the selection to register in the textarea.
+async function copyText(text) {
+  // Modern API
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (_) { /* fall through */ }
+
+  // Legacy fallback
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;padding:0;border:0;outline:0;opacity:0;font-size:16px;';
+    document.body.appendChild(ta);
+
+    const isIOS = /ipad|iphone|ipod/i.test(navigator.userAgent);
+    if (isIOS) {
+      ta.contentEditable = 'true';
+      const range = document.createRange();
+      range.selectNodeContents(ta);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      ta.setSelectionRange(0, 999999);
+    } else {
+      ta.focus();
+      ta.select();
+    }
+
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch (_) {
+    return false;
+  }
+}
+
+document.getElementById('copy-btn').onclick = async () => {
+  const lines = state.zones.map(z => {
+    const localMin = mod(state.baseUtcMin + z.offsetMin, 1440);
+    const dayOff = dayOffsetFor(state.baseUtcMin, z.offsetMin);
+    const dayTag = dayOff > 0 ? ' (+1d)' : dayOff < 0 ? ' (-1d)' : '';
+    return `${z.name}: ${formatTime(localMin)}${dayTag}`;
+  });
+  const text = lines.join(' · ');
+  const ok = await copyText(text);
+  if (ok) showSnack('copied to clipboard');
+  else showSnack('copy failed', 'no');
+};
+
+// === Init ===
+render();
+startLiveUpdates();
+
+// Re-sync offsets daily-ish in case a DST boundary happened while page was open
+setInterval(() => {
+  for (const z of state.zones) {
+    if (z.iana) z.offsetMin = offsetMinutes(z.iana);
+  }
+}, 60 * 60 * 1000); // every hour
+
+</script>
+</body>
+</html>
