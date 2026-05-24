@@ -460,75 +460,59 @@ Restrained playfulness is fine in empty states and ghost cards — `"more cookin
 
 ## File structure
 
-Each tool is one self-contained HTML file at the repo root. No build step, no bundler.
+The project is now a SvelteKit app. See `README.md` for the full layout. Key paths for design-system work:
 
 ```
-/
-├── index.html          (menu / landing)
-├── slush.html          (slush solver)
-├── [next-tool].html
-├── STYLE_GUIDE.md      (this file)
-└── README.md
+src/lib/
+├── styles/
+│   ├── tokens.css        ← all CSS custom properties (source of truth for the tokens above)
+│   ├── reset.css         ← body atmosphere + box-sizing + form resets
+│   ├── typography.css    ← .hero, .hero-tag, .hero-title, .hero-sub, .eyebrow
+│   └── animations.css    ← shared keyframes (t-bob, pop)
+├── components/           ← reusable Svelte primitives (Button, Modal, Card, Snackbar, Jar, Tutorial, …)
+├── i18n/                 ← messages/*.json + runes store
+└── utils/                ← drag (no setPointerCapture), flip, storage, format, copy
+src/routes/
+├── +layout.svelte        ← imports styles/app.css, mounts <Snackbar> and <LocaleSwitcher>
+├── +page.svelte          ← landing
+├── slush/+page.svelte
+└── tz/+page.svelte
 ```
 
-Inside each HTML file:
-- CSS in a single `<style>` tag in `<head>`
-- JS in `<script>` tags before `</body>`
-- Only external dep is Google Fonts (via `<link>`)
-- Skills like persistence go through `localStorage` (always wrap in try/catch for incognito mode)
+Tokens are imported once at `src/lib/styles/app.css`; everything else reads `var(--token)`. Don't hardcode the same colors/radii/durations in component CSS.
 
-### Starter template
+Persistence still uses `localStorage`, wrapped in `src/lib/utils/storage.ts` for try/catch + SSR safety.
 
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>tool name · whiteout survival</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..900;1,9..144,400..900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <style>
-    /* paste design tokens (:root block) */
-    /* paste body background */
-    /* tool-specific styles */
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <header class="hero">
-      <div class="hero-tag">whiteout survival</div>
-      <h1 class="hero-title">tool name</h1>
-      <p class="hero-sub">One sentence.</p>
-    </header>
-    <main>
-      <!-- tool content -->
-    </main>
-  </div>
-  <script>
-    // tool logic
-  </script>
-</body>
-</html>
+### Starter template for a new tool
+
+1. Create the route: `src/routes/<name>/+page.svelte`.
+2. Use the `i18n` runes store for strings — add keys to all 5 `messages/*.json` files.
+3. Reuse design-system components: `Modal`, `Snackbar` (via the singleton store), `Tutorial`, `Card`, `Button`, `Jar`, etc.
+4. Pure algorithms in `src/lib/tools/<name>/`; their UI components in `src/lib/tools/<name>/components/`.
+5. Persistence through `src/lib/utils/storage.ts`.
+6. If you need pointer drag, use `attachDrag` from `src/lib/utils/drag.ts` — **do not call `setPointerCapture`** (see the comment in that file).
+
+```svelte
+<script lang="ts">
+  import { i18n } from '$lib/i18n/index.svelte';
+</script>
+
+<svelte:head>
+  <title>{i18n.m.mytool.title} · {i18n.m.landing.kicker}</title>
+</svelte:head>
+
+<header class="hero">
+  <div class="hero-tag">{i18n.m.landing.kicker}</div>
+  <h1 class="hero-title">{i18n.m.mytool.title}</h1>
+  <p class="hero-sub">{i18n.m.mytool.sub}</p>
+</header>
 ```
 
 ### Adding a new tool to the menu
 
-In `index.html`, duplicate the slush card structure and replace its visual + name + description + href:
+Edit `src/routes/+page.svelte` and add a new `<a class="tool-card">` block with a unique SVG visual and a `href="{base}/<name>/"`. Add `landing.<name>.title` and `landing.<name>.desc` keys to the i18n files.
 
-```html
-<a href="newtool.html" class="card">
-  <div class="card-visual">[new tool svg]</div>
-  <div class="card-body">
-    <h2 class="card-name">new tool name</h2>
-    <p class="card-desc">One sentence.</p>
-  </div>
-  <svg class="card-arrow" ...>[arrow]</svg>
-</a>
-```
-
-If multiple tools are available, the ghost "more cooking" card can be removed.
+When two or more tools are live, you can drop the ghost "more cooking" card.
 
 ---
 
@@ -545,4 +529,5 @@ What breaks the system:
 - **Tight, dense containers.** Generous whitespace is part of the calm feel.
 - **First-person marketing voice.** "We think you'll love this." No.
 - **CSS `transform` on SVG elements that also have a `transform` attribute.** See the gotcha section. Wrap with an outer group.
-- **Adding JS frameworks.** Vanilla JS only. Tools should run from `file://` if needed.
+- **Physical CSS direction properties** in shared components. Use logical properties (`margin-inline-*`, `inset-inline-*`, `text-align: end`) so the Arabic RTL locale flips layout cleanly. The 0-24h slider in the TZ tool is an explicit exception — it's pinned `dir="ltr"`.
+- **`setPointerCapture` for drag.** Use `attachDrag` from `src/lib/utils/drag.ts`, which attaches `pointermove`/`pointerup`/`pointercancel` on `document` and filters by `pointerId`. Capture is fragile on iOS Safari.
