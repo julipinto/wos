@@ -1,11 +1,11 @@
 <script lang="ts">
-  import type { Snippet } from 'svelte';
   import Modal from './Modal.svelte';
 
   export interface Slide {
     title: string;
     caption: string;
-    visual: Snippet;
+    /** Inner SVG markup (or any HTML). Will be rendered with {@html}. */
+    svg: string;
   }
 
   interface Props {
@@ -36,9 +36,7 @@
   <div class="tour-content">
     {#each slides as slide, i (i)}
       <div class="tour-slide" class:active={i === idx} aria-hidden={i !== idx}>
-        <div class="tour-visual">
-          {@render slide.visual()}
-        </div>
+        <div class="tour-visual">{@html slide.svg}</div>
         <h3 class="tour-title">{slide.title}</h3>
         <p class="tour-caption">{slide.caption}</p>
       </div>
@@ -101,6 +99,12 @@
     max-width: 360px;
     aspect-ratio: 320 / 175;
     margin-bottom: 22px;
+  }
+  /* Tutorial SVGs are inline via {@html} so they need :global() rules to match. */
+  :global(.tour-visual svg) {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
   }
   /* Pause animations in inactive slides — forces them to restart fresh when
    * the slide becomes active. */
