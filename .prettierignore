@@ -4,3 +4,9 @@ dist
 node_modules
 package-lock.json
 pnpm-lock.yaml
+# Legacy vanilla HTML tools — kept untouched as a fallback / reference.
+/index.html
+/slush/index.html
+/tz/index.html
+# Tool-specific harness files (not part of the project).
+.claude/

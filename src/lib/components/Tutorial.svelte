@@ -38,6 +38,9 @@
   <div class="tour-content">
     {#each slides as slide, i (i)}
       <div class="tour-slide" class:active={i === idx} aria-hidden={i !== idx}>
+        <!-- Tutorial SVGs are built in our code (slush/tz tutorial.ts), not
+             user input — XSS not in scope here. -->
+        <!-- eslint-disable-next-line svelte/no-at-html-tags -->
         <div class="tour-visual">{@html slide.svg}</div>
         <h3 class="tour-title">{slide.title}</h3>
         <p class="tour-caption">{slide.caption}</p>

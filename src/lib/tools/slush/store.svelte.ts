@@ -125,8 +125,7 @@ export const slush = {
   },
   get currentFilled(): boolean {
     return (
-      state.currentGuess.every((c) => c !== null) &&
-      state.currentFeedback.every((f) => f !== null)
+      state.currentGuess.every((c) => c !== null) && state.currentFeedback.every((f) => f !== null)
     );
   },
 

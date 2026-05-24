@@ -48,7 +48,7 @@ function loadUserZones(): Zone[] {
   let colorIdx = 0;
   for (const e of raw) {
     const id = typeof e === 'string' ? e : e?.id;
-    const tags = typeof e === 'string' ? [] : (Array.isArray(e?.tags) ? e.tags : []);
+    const tags = typeof e === 'string' ? [] : Array.isArray(e?.tags) ? e.tags : [];
     if (!id) continue;
     const cat = CATALOG.find((c) => c.id === id);
     if (!cat) continue;

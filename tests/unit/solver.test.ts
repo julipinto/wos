@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { solve, suggestBestGuess, getConfirmedPositions, blockedAtSlot } from '../../src/lib/tools/slush/solver';
+import {
+  solve,
+  suggestBestGuess,
+  getConfirmedPositions,
+  blockedAtSlot
+} from '../../src/lib/tools/slush/solver';
 import type { Round } from '../../src/lib/tools/slush/types';
 
 const R = '#ef4444';

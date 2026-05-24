@@ -95,7 +95,10 @@ export function vFeedback(): string {
     const cy = 110;
     const colPhase = i * 0.4;
     const variants = [
-      { delay: colPhase, content: `<circle r="11" fill="transparent" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>` },
+      {
+        delay: colPhase,
+        content: `<circle r="11" fill="transparent" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>`
+      },
       {
         delay: colPhase + 1.0,
         content: `<circle r="11" fill="rgba(110,231,168,0.22)" stroke="rgba(110,231,168,0.65)" stroke-width="1.2"/>

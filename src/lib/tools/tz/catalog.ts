@@ -15,7 +15,12 @@ export const CATALOG: CatalogEntry[] = [
   { id: 'America/Chicago', name: 'CT', loc: 'Chicago, USA', iana: 'America/Chicago' },
   { id: 'America/Denver', name: 'MT', loc: 'Denver, USA', iana: 'America/Denver' },
   { id: 'America/Los_Angeles', name: 'PT', loc: 'Los Angeles, USA', iana: 'America/Los_Angeles' },
-  { id: 'America/Mexico_City', name: 'CST', loc: 'Mexico City, Mexico', iana: 'America/Mexico_City' },
+  {
+    id: 'America/Mexico_City',
+    name: 'CST',
+    loc: 'Mexico City, Mexico',
+    iana: 'America/Mexico_City'
+  },
   {
     id: 'America/Argentina/Buenos_Aires',
     name: 'ART',
@@ -35,7 +40,12 @@ export const CATALOG: CatalogEntry[] = [
   { id: 'Europe/Istanbul', name: 'TRT', loc: 'Istanbul, Turkey', iana: 'Europe/Istanbul' },
   { id: 'Europe/Athens', name: 'EET', loc: 'Athens, Greece', iana: 'Europe/Athens' },
   { id: 'Africa/Cairo', name: 'EET', loc: 'Cairo, Egypt', iana: 'Africa/Cairo' },
-  { id: 'Africa/Johannesburg', name: 'SAST', loc: 'Johannesburg, S. Africa', iana: 'Africa/Johannesburg' },
+  {
+    id: 'Africa/Johannesburg',
+    name: 'SAST',
+    loc: 'Johannesburg, S. Africa',
+    iana: 'Africa/Johannesburg'
+  },
   { id: 'Africa/Lagos', name: 'WAT', loc: 'Lagos, Nigeria', iana: 'Africa/Lagos' },
   { id: 'Asia/Dubai', name: 'GST', loc: 'Dubai, UAE', iana: 'Asia/Dubai' },
   { id: 'Asia/Tehran', name: 'IRST', loc: 'Tehran, Iran', iana: 'Asia/Tehran' },

@@ -19,12 +19,20 @@ Migrated from vanilla HTML to SvelteKit + Svelte 5 (runes) in May 2026. See `STY
 
 ## Develop
 
+Requires **Node 24 LTS** (`@iconify/utils` imports `node:util.styleText`, added in Node 22+). If you use nvm:
+
+```bash
+nvm use 24   # or `nvm install 24` first
+```
+
 ```bash
 npm install
 npm run dev      # localhost:5173
 npm run build    # produces ./build
 npm run preview  # preview the static build
 npm test         # vitest run (solver + time helpers)
+npm run lint     # prettier --check + eslint
+npm run format   # prettier --write
 ```
 
 If `npm install` fails with `Cannot find module @rollup/rollup-linux-x64-gnu` (npm/cli#4828):

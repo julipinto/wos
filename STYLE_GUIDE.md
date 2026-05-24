@@ -11,6 +11,7 @@ Dark, glassy, calm. Italic Fraunces titles do most of the visual work — confid
 Each tool should look like a small, intentional indie utility — not a SaaS dashboard, not a marketing landing page. Functional first, but allowed to be beautiful.
 
 **Avoid:**
+
 - Generic AI aesthetics (Inter, Roboto, Space Grotesk; purple-on-white gradients; rounded-square neutral icons; cookie-cutter cards)
 - Decoration that doesn't earn its place
 - More than one accent color per page
@@ -65,7 +66,7 @@ Page body always uses the soft radial gradient atmosphere:
 body {
   background: var(--bg);
   background-image:
-    radial-gradient(ellipse 70% 50% at 50% -10%, rgba(147, 212, 255, 0.10), transparent 60%),
+    radial-gradient(ellipse 70% 50% at 50% -10%, rgba(147, 212, 255, 0.1), transparent 60%),
     radial-gradient(ellipse 60% 40% at 90% 100%, rgba(196, 132, 252, 0.06), transparent 60%),
     radial-gradient(ellipse 50% 35% at 10% 80%, rgba(110, 231, 168, 0.04), transparent 60%);
   color: var(--text);
@@ -81,9 +82,12 @@ body {
 Load both fonts with preconnect (always do this; it cuts ~100ms off first paint):
 
 ```html
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..900;1,9..144,400..900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..900;1,9..144,400..900&family=DM+Mono:wght@400;500&display=swap"
+  rel="stylesheet"
+/>
 ```
 
 ### Rules
@@ -94,14 +98,14 @@ Load both fonts with preconnect (always do this; it cuts ~100ms off first paint)
 
 ### Hierarchy
 
-| Use | Font | Size | Style |
-|---|---|---|---|
-| Hero title | Fraunces italic 800 | `clamp(56px, 14vw, 100px)` | gradient fill |
-| Tool/card title | Fraunces italic 700 | 22-26px | letter-spacing -0.01em |
-| Section/eyebrow label | DM Mono 500 | 10-11px | uppercase, ls 3-5px, color `--text-dim` |
-| Body | DM Mono 400 | 12-13px | color `--text-mid`, line-height 1.5-1.7 |
-| Button | DM Mono 500 | 11-13px | uppercase, ls 1-2px |
-| Solved/celebratory text | Fraunces italic 600 | inline | color `--ok` |
+| Use                     | Font                | Size                       | Style                                   |
+| ----------------------- | ------------------- | -------------------------- | --------------------------------------- |
+| Hero title              | Fraunces italic 800 | `clamp(56px, 14vw, 100px)` | gradient fill                           |
+| Tool/card title         | Fraunces italic 700 | 22-26px                    | letter-spacing -0.01em                  |
+| Section/eyebrow label   | DM Mono 500         | 10-11px                    | uppercase, ls 3-5px, color `--text-dim` |
+| Body                    | DM Mono 400         | 12-13px                    | color `--text-mid`, line-height 1.5-1.7 |
+| Button                  | DM Mono 500         | 11-13px                    | uppercase, ls 1-2px                     |
+| Solved/celebratory text | Fraunces italic 600 | inline                     | color `--ok`                            |
 
 ### Gradient text (hero titles)
 
@@ -128,10 +132,18 @@ Mobile-first, single column by default. Pages use a `.wrap` with `max-width: 640
 
 ```css
 /* default = small phones (< 380px) */
-@media (min-width: 380px)  { /* normal phones */ }
-@media (min-width: 640px)  { /* tablet / large phones — bigger jars, more padding */ }
-@media (min-width: 1024px) { /* desktop — 2-col tool layouts available */ }
-@media (min-width: 1280px) { /* large desktop — bigger imagery */ }
+@media (min-width: 380px) {
+  /* normal phones */
+}
+@media (min-width: 640px) {
+  /* tablet / large phones — bigger jars, more padding */
+}
+@media (min-width: 1024px) {
+  /* desktop — 2-col tool layouts available */
+}
+@media (min-width: 1280px) {
+  /* large desktop — bigger imagery */
+}
 ```
 
 For tool pages with input + output, do 2-col at `>= 1024px` with output sticky:
@@ -144,7 +156,11 @@ For tool pages with input + output, do 2-col at `>= 1024px` with output sticky:
     gap: 32px;
     max-width: 1180px;
   }
-  .col-output { position: sticky; top: 24px; align-self: start; }
+  .col-output {
+    position: sticky;
+    top: 24px;
+    align-self: start;
+  }
 }
 ```
 
@@ -176,8 +192,9 @@ Tag (mono uppercase with side-dashes) → giant Fraunces title → one-sentence 
   align-items: center;
   gap: 14px;
 }
-.hero-tag::before, .hero-tag::after {
-  content: "";
+.hero-tag::before,
+.hero-tag::after {
+  content: '';
   width: 22px;
   height: 1px;
   background: rgba(255, 255, 255, 0.2);
@@ -208,7 +225,11 @@ Tag (mono uppercase with side-dashes) → giant Fraunces title → one-sentence 
   border-radius: var(--r-card);
   color: inherit;
   text-decoration: none;
-  transition: background .25s ease, border-color .25s ease, transform .25s ease, box-shadow .25s ease;
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
   position: relative;
   overflow: hidden;
 }
@@ -220,14 +241,21 @@ Tag (mono uppercase with side-dashes) → giant Fraunces title → one-sentence 
 }
 /* Left-edge cyan glow on hover */
 .card::before {
-  content: "";
-  position: absolute; inset: 0;
-  background: radial-gradient(ellipse 240px 120px at 0% 50%, rgba(147,212,255,0.08), transparent 70%);
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 240px 120px at 0% 50%,
+    rgba(147, 212, 255, 0.08),
+    transparent 70%
+  );
   opacity: 0;
-  transition: opacity .3s ease;
+  transition: opacity 0.3s ease;
   pointer-events: none;
 }
-.card:hover::before { opacity: 1; }
+.card:hover::before {
+  opacity: 1;
+}
 ```
 
 For "coming soon" cards, use a `.is-ghost` modifier: dashed border, no hover lift, dimmer text.
@@ -258,7 +286,10 @@ For "coming soon" cards, use a `.is-ghost` modifier: dashed border, no hover lif
   color: var(--bg);
   border-color: var(--accent);
 }
-.btn-primary:hover { transform: translateX(1px); filter: brightness(1.05); }
+.btn-primary:hover {
+  transform: translateX(1px);
+  filter: brightness(1.05);
+}
 ```
 
 For "advance to next step" actions inside a tool (e.g. submit), use a small pill with the `→` arrow in cyan rather than a green ✓ — keeps the check mark reserved for feedback states.
@@ -267,11 +298,14 @@ For "advance to next step" actions inside a tool (e.g. submit), use a small pill
 
 ```css
 .modal-overlay {
-  position: fixed; inset: 0;
+  position: fixed;
+  inset: 0;
   background: rgba(11, 14, 22, 0.6);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   z-index: 100;
   padding: 18px;
 }
@@ -285,14 +319,24 @@ For "advance to next step" actions inside a tool (e.g. submit), use a small pill
   position: relative;
 }
 .modal-close {
-  position: absolute; top: 14px; right: 14px;
-  width: 32px; height: 32px;
-  background: transparent; border: 0; cursor: pointer;
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
   color: var(--text-mid);
   border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.modal-close:hover { background: var(--surface); color: var(--text); }
+.modal-close:hover {
+  background: var(--surface);
+  color: var(--text);
+}
 ```
 
 ### Section label (divider)
@@ -309,7 +353,7 @@ For "advance to next step" actions inside a tool (e.g. submit), use a small pill
   gap: 12px;
 }
 .section-label::after {
-  content: "";
+  content: '';
   flex: 1;
   height: 1px;
   background: linear-gradient(90deg, var(--border), transparent);
@@ -321,11 +365,13 @@ For "advance to next step" actions inside a tool (e.g. submit), use a small pill
 ## Motion
 
 Subtle and purposeful. Animations should:
+
 - Telegraph interactivity (hover lifts, arrow shifts)
 - Add ambient life (slow bobs on idle illustrations)
 - Reinforce state changes (fade between tutorial slides)
 
 Skip:
+
 - Loops longer than ~3s
 - Anything that moves while the user reads
 - More than 2-3 simultaneous animations on screen
@@ -365,11 +411,27 @@ For multiple sibling elements that should appear in sequence at the same spot (e
 
 ```css
 @keyframes cycle-visible {
-  0%, 1% { opacity: 0; transform: scale(0.85); }
-  4%     { opacity: 1; transform: scale(1); }
-  30%    { opacity: 1; transform: scale(1); }
-  33%    { opacity: 0; transform: scale(0.85); }
-  100%   { opacity: 0; transform: scale(0.85); }
+  0%,
+  1% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  4% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  33% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
 }
 .cycle {
   animation: cycle-visible 3s ease-in-out backwards infinite;
@@ -451,6 +513,7 @@ Adding a new glyph:
 3. Use it: `<Icon name="your-name" />`
 
 Notes:
+
 - Per-icon imports from `@iconify-icons/lucide` are tree-shaken — the bundle only carries the glyphs you actually reference.
 - That package predates a Lucide rename, so a few names diverge from the current site: `circle-help` → `help-circle`, `circle-check` → `check-circle`. The local map normalizes these.
 - Don't introduce a second icon family — the whole app reads as one set.
