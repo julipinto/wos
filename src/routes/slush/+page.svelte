@@ -257,7 +257,13 @@
         <div class="rounds">
           {#each slush.rounds as round, ri (ri)}
             <div class="round">
-              <span class="round-num">#{ri + 1}</span>
+              <!-- Meta row: round label + delete. Jars get the full width below. -->
+              <div class="round-meta">
+                <span class="round-num">round #{ri + 1}</span>
+                <button class="del" aria-label="Delete round" onclick={() => slush.deleteRound(ri)}>
+                  <Icon name="x" size={14} />
+                </button>
+              </div>
               <div class="slots">
                 {#each round.guess as hex, i (i)}
                   <div class="slot small">
@@ -272,9 +278,6 @@
                   </div>
                 {/each}
               </div>
-              <button class="del" aria-label="Delete round" onclick={() => slush.deleteRound(ri)}>
-                <Icon name="x" size={14} />
-              </button>
             </div>
           {/each}
 
@@ -285,7 +288,17 @@
             </div>
           {:else}
             <div class="round current">
-              <span class="round-num">#{slush.rounds.length + 1}</span>
+              <div class="round-meta">
+                <span class="round-num">round #{slush.rounds.length + 1}</span>
+                <button
+                  class="submit"
+                  disabled={!slush.currentFilled}
+                  aria-label="Submit round"
+                  onclick={() => slush.submitRound()}
+                >
+                  <Icon name="arrow-right" size={14} />
+                </button>
+              </div>
               <div class="slots">
                 {#each slush.currentGuess as hex, i (i)}
                   {@const locked = confirmed[i] !== null}
@@ -319,14 +332,6 @@
                   </div>
                 {/each}
               </div>
-              <button
-                class="submit"
-                disabled={!slush.currentFilled}
-                aria-label="Submit round"
-                onclick={() => slush.submitRound()}
-              >
-                <Icon name="arrow-right" size={14} />
-              </button>
             </div>
           {/if}
         </div>
@@ -356,28 +361,34 @@
 
         <div class="pos-grid">
           {#each Array(slush.slots) as _, i (i)}
-            {@const colors = sol.perPosition[i] ?? []}
-            <div class="pos-col" class:empty={colors.length === 0 && slush.rounds.length > 0}>
+            {@const possibles = new Set(sol.perPosition[i] ?? [])}
+            <div class="pos-col" class:empty={possibles.size === 0 && slush.rounds.length > 0}>
               <span class="pos-tag">{i + 1}</span>
               <div class="mini-jars">
-                {#if colors.length === 0 && slush.rounds.length > 0}
+                {#if possibles.size === 0 && slush.rounds.length > 0}
                   <span class="x-mark" aria-hidden="true">
                     <Icon name="x" size={14} />
                   </span>
                 {:else}
-                  {#each colors as hex (hex)}
-                    {@const left = remaining.get(hex) ?? 0}
-                    {@const softOut = left <= 0 && slush.currentGuess[i] !== hex}
-                    <button
-                      class="mini-jar"
-                      class:soft-out={softOut}
-                      disabled={softOut}
-                      onclick={() => {
-                        if ((remaining.get(hex) ?? 0) > 0) slush.placeAt(i, hex);
-                      }}
-                    >
-                      <Jar {hex} scale={0.55} />
-                    </button>
+                  <!-- Iterate uniqueColors (inventory order) and filter by what's
+                       still possible at slot i — so the same color lands in the
+                       same vertical row across columns, matching the legacy
+                       slush.html behavior. -->
+                  {#each uniqueColors as hex (hex)}
+                    {#if possibles.has(hex)}
+                      {@const left = remaining.get(hex) ?? 0}
+                      {@const softOut = left <= 0 && slush.currentGuess[i] !== hex}
+                      <button
+                        class="mini-jar"
+                        class:soft-out={softOut}
+                        disabled={softOut}
+                        onclick={() => {
+                          if ((remaining.get(hex) ?? 0) > 0) slush.placeAt(i, hex);
+                        }}
+                      >
+                        <Jar {hex} scale={0.55} />
+                      </button>
+                    {/if}
                   {/each}
                 {/if}
               </div>
@@ -608,7 +619,14 @@
   .palette {
     display: flex;
     flex-wrap: wrap;
-    gap: 14px;
+    gap: 10px;
+  }
+  @media (max-width: 540px) {
+    .palette {
+      /* On phones the palette needs to fit 6-8 jars on one row at ~320 px;
+       * the 14 px gap blew that out. */
+      gap: 6px;
+    }
   }
   .jar-btn {
     position: relative;
@@ -661,11 +679,13 @@
     gap: 10px;
   }
   .round {
-    display: grid;
-    grid-template-columns: 22px 1fr auto;
-    align-items: center;
+    /* Vertical stack: meta row (label + action) on top, jars full-width below.
+     * Frees horizontal space for the slots — important on mobile where the
+     * round counter used to eat 22 px from a ~320 px row. */
+    display: flex;
+    flex-direction: column;
     gap: 8px;
-    padding: 8px 10px;
+    padding: 10px 12px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 14px;
@@ -674,25 +694,23 @@
     border-color: var(--border-strong);
     background: var(--surface-hover);
   }
+  .round-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
   .round-num {
-    font-family: var(--font-display);
-    font-style: italic;
-    font-weight: 700;
-    font-size: 14px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
     color: var(--text-dim);
-    text-align: center;
     line-height: 1;
   }
   @media (max-width: 540px) {
     .round {
-      /* On phones the round number eats too much room — shrink it and let
-       * the slots row take the rest. */
-      grid-template-columns: 16px 1fr auto;
+      padding: 10px;
       gap: 6px;
-      padding: 8px;
-    }
-    .round-num {
-      font-size: 12px;
     }
     .slots {
       gap: 4px;
