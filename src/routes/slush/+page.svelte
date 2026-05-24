@@ -650,6 +650,7 @@
   .palette {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     gap: 10px;
   }
   @media (max-width: 540px) {
