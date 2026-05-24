@@ -80,16 +80,40 @@
   function attachRowDrag(node: HTMLElement, hex: string) {
     let dragging = false;
     let grid: HTMLElement | null = null;
+    // Offset from the cursor to the row's top at grab time. Keeps the grab
+    // point under the finger/cursor so the row doesn't "snap" to center.
+    let grabOffsetY = 0;
+
+    function settle() {
+      // Animate transform back to natural position, then clear inline styles.
+      node.style.transition = 'transform .22s cubic-bezier(.2,.6,.3,1)';
+      node.style.transform = '';
+      setTimeout(() => {
+        node.style.transition = '';
+      }, 240);
+      node.classList.remove('dragging');
+      dragging = false;
+    }
+
     const cleanup = attachDrag(node, {
       threshold: 6,
       axis: 'y',
-      onStart() {
+      onStart(e) {
         dragging = true;
         node.classList.add('dragging');
         grid = node.parentElement;
+        const rect = node.getBoundingClientRect();
+        grabOffsetY = e.clientY - rect.top;
+        // Suppress the FLIP transition on the dragged row itself; we're
+        // controlling it directly via transform.
+        node.style.transition = 'none';
       },
       onMove(e) {
         if (!dragging || !grid) return;
+
+        // 1) Reorder DOM if the cursor crossed into another row's midline.
+        //    This shuffles the SIBLINGS via FLIP — the dragged row's DOM slot
+        //    might change here, which is fine; we recompute its transform below.
         const others = [...grid.querySelectorAll<HTMLElement>('.inv-row:not(.dragging)')];
         const target = others.find((r) => {
           const rect = r.getBoundingClientRect();
@@ -101,20 +125,27 @@
           const beforeNode = e.clientY < midY ? target : target.nextSibling;
           flipReorder(grid, node, beforeNode);
         }
+
+        // 2) Position the dragged row so its top is at (cursor − grabOffset).
+        //    offsetTop reflects the row's CURRENT natural top relative to the
+        //    grid (post-reorder), so this stays accurate even when the dragged
+        //    row's DOM slot just changed.
+        const gridRect = grid.getBoundingClientRect();
+        const targetTopInGrid = e.clientY - grabOffsetY - gridRect.top;
+        const dy = targetTopInGrid - node.offsetTop;
+        node.style.transform = `translateY(${dy}px)`;
       },
       onEnd(_, committed) {
-        node.classList.remove('dragging');
         if (committed && grid) {
           const newOrder = [...grid.querySelectorAll<HTMLElement>('.inv-row')]
             .map((r) => r.dataset.hex)
             .filter((x): x is string => !!x);
           slush.setInventoryOrder(newOrder);
         }
-        dragging = false;
+        settle();
       },
       onCancel() {
-        node.classList.remove('dragging');
-        dragging = false;
+        settle();
       }
     });
     return { destroy: cleanup, _ref: hex };
@@ -548,9 +579,18 @@
     border-radius: 12px;
   }
   .inv-row.dragging {
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+    /* Lifted state: stronger shadow, accent border, slightly larger and
+     * brighter so the row clearly reads as "in-hand". */
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.55);
     border-color: var(--border-accent);
-    z-index: 2;
+    background: var(--surface-strong);
+    position: relative;
+    z-index: 5;
+    cursor: grabbing;
+  }
+  .inv-row.dragging .inv-grip,
+  .inv-row.dragging .inv-jar {
+    cursor: grabbing;
   }
   .inv-grip {
     color: var(--text-dim);
@@ -558,6 +598,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    touch-action: none;
+  }
+  .inv-grip:hover {
+    color: var(--text-mid);
   }
   .inv-jar {
     cursor: grab;
