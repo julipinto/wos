@@ -192,24 +192,37 @@ export const slush = {
     }
   },
 
+  /** Add another jar of `hex` (duplicates allowed — multiset). */
   addInventoryColor(hex: Hex): void {
     if (state.inventory.length >= MAX_JARS) return;
-    state.inventory.push(hex);
+    state.inventory = [...state.inventory, hex];
     state.rounds = [];
     applyAutoLock();
     persistInventory();
   },
-  removeInventoryColor(idx: number): void {
+  /** Remove one jar of `hex` (the first occurrence). */
+  decrementInventoryColor(hex: Hex): void {
     if (state.inventory.length <= MIN_JARS) return;
-    state.inventory.splice(idx, 1);
+    const idx = state.inventory.indexOf(hex);
+    if (idx < 0) return;
+    state.inventory = state.inventory.filter((_, i) => i !== idx);
     state.rounds = [];
     applyAutoLock();
     persistInventory();
   },
-  /** Apply new color order preserving multiset counts. Doesn't clear rounds. */
-  setInventoryOrder(orderedHexes: Hex[]): void {
-    state.inventory = [...orderedHexes];
-    persistInventory();
+  /** Apply a new ORDER of unique colors. Preserves the count of each color. */
+  setInventoryOrder(orderedUniqueHexes: Hex[]): void {
+    const counts = new Map<Hex, number>();
+    for (const h of state.inventory) counts.set(h, (counts.get(h) ?? 0) + 1);
+    const next: Hex[] = [];
+    for (const h of orderedUniqueHexes) {
+      const ct = counts.get(h) ?? 0;
+      for (let i = 0; i < ct; i++) next.push(h);
+    }
+    if (next.length === state.inventory.length) {
+      state.inventory = next;
+      persistInventory();
+    }
   },
 
   hasSeenTour(): boolean {

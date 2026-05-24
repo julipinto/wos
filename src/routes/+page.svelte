@@ -1,5 +1,6 @@
 <script lang="ts">
   import { base } from '$app/paths';
+  import { i18n } from '$lib/i18n/index.svelte';
 
   const slushJars: { x: number; hex: string; dark: string; delay: number }[] = [
     { x: 2, hex: '#ef4444', dark: '#a83333', delay: 0 },
@@ -9,16 +10,14 @@
 </script>
 
 <svelte:head>
-  <title>tools · whiteout survival</title>
+  <title>{i18n.m.landing.title} · {i18n.m.landing.kicker}</title>
 </svelte:head>
 
 <div class="wrap">
   <header class="hero">
-    <div class="hero-tag">whiteout survival</div>
-    <h1 class="hero-title">tools</h1>
-    <p class="hero-sub">
-      Small calculators and solvers for the parts of the game that get tedious by hand.
-    </p>
+    <div class="hero-tag">{i18n.m.landing.kicker}</div>
+    <h1 class="hero-title">{i18n.m.landing.title}</h1>
+    <p class="hero-sub">{i18n.m.landing.sub}</p>
   </header>
 
   <section class="tools">
@@ -55,10 +54,8 @@
         </svg>
       </div>
       <div class="tool-body">
-        <h2 class="tool-name">slush station</h2>
-        <p class="tool-desc">
-          Solver for the in-game event. Tracks per-slot feedback and suggests your next pick.
-        </p>
+        <h2 class="tool-name">{i18n.m.landing.slush.title}</h2>
+        <p class="tool-desc">{i18n.m.landing.slush.desc}</p>
       </div>
       <svg
         class="tool-arrow"
@@ -109,8 +106,8 @@
         </svg>
       </div>
       <div class="tool-body">
-        <h2 class="tool-name">time tool</h2>
-        <p class="tool-desc">UTC ↔ any timezone, both ways. Drag a pin to align the whole alliance.</p>
+        <h2 class="tool-name">{i18n.m.landing.tz.title}</h2>
+        <p class="tool-desc">{i18n.m.landing.tz.desc}</p>
       </div>
       <svg
         class="tool-arrow"
@@ -158,13 +155,13 @@
         </svg>
       </div>
       <div class="tool-body">
-        <h2 class="tool-name">more cooking</h2>
-        <p class="tool-desc">Stay frosty — more tools on the way.</p>
+        <h2 class="tool-name">{i18n.m.landing.ghost.title}</h2>
+        <p class="tool-desc">{i18n.m.landing.ghost.desc}</p>
       </div>
     </div>
   </section>
 
-  <footer class="foot">made for the team</footer>
+  <footer class="foot">{i18n.m.landing.footer}</footer>
 </div>
 
 <style>
