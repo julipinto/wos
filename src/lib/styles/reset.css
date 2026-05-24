@@ -1,0 +1,37 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  background-image:
+    radial-gradient(ellipse 70% 50% at 50% -10%, rgba(147, 212, 255, 0.1), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 90% 100%, rgba(196, 132, 252, 0.06), transparent 60%),
+    radial-gradient(ellipse 50% 35% at 10% 80%, rgba(110, 231, 168, 0.04), transparent 60%);
+  color: var(--text);
+  font-family: var(--font-mono);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+input {
+  font: inherit;
+  color: inherit;
+}

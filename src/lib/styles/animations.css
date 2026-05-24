@@ -1,0 +1,39 @@
+/* Shared keyframes. Tools may add tool-specific keyframes scoped to their
+ * components — this file is for genuinely cross-cutting motion. */
+
+@keyframes t-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2.5px);
+  }
+}
+.t-bob {
+  animation: t-bob 2.8s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.pop {
+  animation: pop 0.25s ease-out;
+}
+
+/* Pause-when-inactive — used by tutorial slides. Tools declare their own
+ * .t-* keyframes and append matching `:not(.active)` selectors to gate them.
+ * See STYLE_GUIDE.md "SVG transform gotcha" — animated <g>s must be nested
+ * inside a positioning <g>. */
