@@ -1,0 +1,74 @@
+/* TZ tutorial animations. See STYLE_GUIDE.md "SVG transform gotcha":
+ * inner <g class="t-*"> must be nested inside an outer positioning <g>. */
+
+@keyframes t-sync-tz {
+  0%,
+  100% {
+    transform: translateX(-26px);
+  }
+  50% {
+    transform: translateX(26px);
+  }
+}
+.t-sync {
+  animation: t-sync-tz 3.2s ease-in-out infinite;
+}
+
+@keyframes t-pulse-fast-tz {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.t-pulse-fast {
+  animation: t-pulse-fast-tz 1.4s ease-in-out infinite;
+}
+
+/* Crossfade A↔B: A starts visible, B starts hidden, switch in the middle. */
+@keyframes t-show-a-tz {
+  0%,
+  40% {
+    opacity: 1;
+  }
+  50%,
+  90% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes t-show-b-tz {
+  0%,
+  40% {
+    opacity: 0;
+  }
+  50%,
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.t-show-a {
+  animation: t-show-a-tz 4s ease-in-out infinite;
+}
+.t-show-b {
+  animation: t-show-b-tz 4s ease-in-out infinite;
+}
+
+@keyframes t-chip-fade-tz {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.t-chip-fade {
+  animation: t-chip-fade-tz 0.45s ease-out both;
+}
