@@ -840,7 +840,7 @@
   .slot.locked .slot-jar {
     box-shadow:
       0 0 0 2px var(--ok),
-      0 0 14px rgba(110, 231, 168, 0.35);
+      0 0 14px var(--ok-glow-strong);
     border-radius: 12px;
   }
   .slot-jar {
