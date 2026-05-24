@@ -25,12 +25,26 @@ const dict: Record<Locale, Messages> = { en, pt, es, ru, ar };
 
 const STORAGE_KEY = 'wos-locale';
 
-const state = $state<{ locale: Locale }>({ locale: 'en' });
+// Keep both `locale` and `m` in $state so templates that read `i18n.m.x.y`
+// re-render when locale changes. A getter that returns `dict[state.locale]`
+// is technically reactive, but reads through a non-$state plain JSON
+// reference don't always propagate cleanly — assigning `state.m` on swap
+// makes the dependency unambiguous.
+const state = $state<{ locale: Locale; m: Messages }>({
+  locale: 'en',
+  m: dict.en
+});
 
 function applyDocumentAttrs(l: Locale): void {
   if (typeof document === 'undefined') return;
   document.documentElement.lang = l;
   document.documentElement.dir = RTL_LOCALES.includes(l) ? 'rtl' : 'ltr';
+}
+
+function applyLocale(l: Locale): void {
+  state.locale = l;
+  state.m = dict[l];
+  applyDocumentAttrs(l);
 }
 
 export const i18n = {
@@ -41,28 +55,27 @@ export const i18n = {
     return RTL_LOCALES.includes(state.locale);
   },
   get m(): Messages {
-    return dict[state.locale];
+    return state.m;
   },
   setLocale(l: Locale): void {
     if (!SUPPORTED_LOCALES.includes(l)) return;
-    state.locale = l;
+    applyLocale(l);
     writeString(STORAGE_KEY, l);
-    applyDocumentAttrs(l);
   },
   /** Read stored locale, or sniff from navigator.language, or fall back to 'en'. */
   initFromBrowser(): void {
     if (typeof window === 'undefined') return;
     const stored = readString(STORAGE_KEY);
     if (stored && SUPPORTED_LOCALES.includes(stored as Locale)) {
-      state.locale = stored as Locale;
-      applyDocumentAttrs(state.locale);
+      applyLocale(stored as Locale);
       return;
     }
     const guess = navigator.language?.toLowerCase().slice(0, 2) as Locale;
     if (SUPPORTED_LOCALES.includes(guess)) {
-      state.locale = guess;
+      applyLocale(guess);
+    } else {
+      applyDocumentAttrs(state.locale);
     }
-    applyDocumentAttrs(state.locale);
   }
 };
 
