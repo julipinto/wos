@@ -136,7 +136,12 @@
       >
         <Icon name="settings" size={15} />
       </button>
-      <button class="ibtn" aria-label={i18n.m.common.reset} title={i18n.m.common.reset} onclick={onReset}>
+      <button
+        class="ibtn"
+        aria-label={i18n.m.common.reset}
+        title={i18n.m.common.reset}
+        onclick={onReset}
+      >
         <Icon name="rotate-ccw" size={15} />
       </button>
       <button
@@ -154,7 +159,11 @@
     <section class="panel settings">
       <div class="panel-bar">
         <span class="eyebrow">{i18n.m.slush.inventoryEyebrow}</span>
-        <button class="ibtn-sm" aria-label={i18n.m.common.close} onclick={() => (settingsOpen = false)}>
+        <button
+          class="ibtn-sm"
+          aria-label={i18n.m.common.close}
+          onclick={() => (settingsOpen = false)}
+        >
           <Icon name="x" size={12} />
         </button>
       </div>
@@ -215,7 +224,8 @@
         </div>
       {/if}
       <div class="inv-total">
-        {i18n.m.slush.totalLabel} <b>{slush.inventory.length}</b> {i18n.m.slush.jarsLabel}
+        {i18n.m.slush.totalLabel} <b>{slush.inventory.length}</b>
+        {i18n.m.slush.jarsLabel}
       </div>
     </section>
   {/if}
@@ -242,8 +252,24 @@
               {#if blocked && left > 0}
                 <span class="block-x" aria-hidden="true">
                   <svg width="22" height="22" viewBox="0 0 22 22">
-                    <line x1="4" y1="4" x2="18" y2="18" stroke="#ff8a8a" stroke-width="2.5" stroke-linecap="round" />
-                    <line x1="18" y1="4" x2="4" y2="18" stroke="#ff8a8a" stroke-width="2.5" stroke-linecap="round" />
+                    <line
+                      x1="4"
+                      y1="4"
+                      x2="18"
+                      y2="18"
+                      stroke="#ff8a8a"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                    />
+                    <line
+                      x1="18"
+                      y1="4"
+                      x2="4"
+                      y2="18"
+                      stroke="#ff8a8a"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                    />
                   </svg>
                 </span>
               {/if}
@@ -262,7 +288,13 @@
                 {#each round.guess as hex, i (i)}
                   <div class="slot small">
                     <Jar {hex} scale={0.75} />
-                    <div class="fb {round.feedback[i] === true ? 'ok' : round.feedback[i] === false ? 'no' : ''}">
+                    <div
+                      class="fb {round.feedback[i] === true
+                        ? 'ok'
+                        : round.feedback[i] === false
+                          ? 'no'
+                          : ''}"
+                    >
                       {#if round.feedback[i] === true}
                         <Icon name="check" size={12} />
                       {:else if round.feedback[i] === false}
@@ -305,7 +337,11 @@
                       </div>
                     {/if}
                     <button
-                      class="fb {slush.currentFeedback[i] === true ? 'ok' : slush.currentFeedback[i] === false ? 'no' : ''}"
+                      class="fb {slush.currentFeedback[i] === true
+                        ? 'ok'
+                        : slush.currentFeedback[i] === false
+                          ? 'no'
+                          : ''}"
                       disabled={locked}
                       aria-label="Cycle feedback"
                       onclick={() => slush.cycleFeedback(i)}
@@ -674,15 +710,15 @@
     gap: 10px;
   }
   .round {
-    /* Single row: slots flex 1 + action button (del/submit) inline at the end.
-     * The button aligns with the jars row; on long inventories the slots
-     * wrap and the button stays vertically centered against the block. */
+    /* Single row: slots flex 1 + action button (del/submit) at the far end.
+     * The button is centered against the jars; the badge floats in the
+     * corner outside the flow. */
     position: relative;
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 14px 12px 10px;
-    background: var(--surface);
+    padding: 12px;
+    background: var(--bg-soft);
     border: 1px solid var(--border);
     border-radius: 14px;
   }
@@ -706,6 +742,12 @@
   .slots {
     flex: 1;
   }
+  /* Push the action all the way to the right edge of the card. */
+  .round .del,
+  .round .submit {
+    margin-inline-start: auto;
+    margin-inline-end: -2px;
+  }
   @media (max-width: 540px) {
     .round {
       padding: 10px;
@@ -727,7 +769,9 @@
     gap: 4px;
   }
   .slot.locked .slot-jar {
-    box-shadow: 0 0 0 2px var(--ok), 0 0 14px rgba(110, 231, 168, 0.35);
+    box-shadow:
+      0 0 0 2px var(--ok),
+      0 0 14px rgba(110, 231, 168, 0.35);
     border-radius: 12px;
   }
   .slot-jar {
@@ -907,5 +951,4 @@
   .suggest:hover:not(:disabled) {
     background: rgba(147, 212, 255, 0.28);
   }
-
 </style>
