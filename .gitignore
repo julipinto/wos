@@ -12,3 +12,5 @@ Thumbs.db
 .vercel
 .netlify
 coverage
+yarn.lock
+pnpm-lock.yaml
