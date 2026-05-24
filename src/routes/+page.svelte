@@ -17,7 +17,8 @@
 <div class="wrap">
   <PageHeader title={i18n.m.landing.title} sub={i18n.m.landing.sub} backHref={null} large />
 
-  <section class="tools">
+  <div class="tools">
+    <h2 class="section-label">{i18n.m.landing.sectionEvents}</h2>
     <a href="{base}/slush/" class="tool-card">
       <div class="tool-visual" aria-hidden="true">
         <svg viewBox="0 0 132 60" xmlns="http://www.w3.org/2000/svg">
@@ -72,6 +73,7 @@
       </svg>
     </a>
 
+    <h2 class="section-label section-label--later">{i18n.m.landing.sectionEveryday}</h2>
     <a href="{base}/tz/" class="tool-card">
       <div class="tool-visual" aria-hidden="true">
         <svg viewBox="0 0 132 60" xmlns="http://www.w3.org/2000/svg">
@@ -156,7 +158,7 @@
         <p class="tool-desc">{i18n.m.landing.ghost.desc}</p>
       </div>
     </div>
-  </section>
+  </div>
 
   <!-- Personal signature — intentionally not localized, stays the same in
        every language. -->
@@ -174,6 +176,31 @@
   .tools {
     display: grid;
     gap: 14px;
+  }
+  .section-label {
+    /* Style guide section divider — uppercase mono label with a fading rule
+     * on the trailing side. */
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 8px 0 -2px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+  /* The second (and any subsequent) section gets a little extra breathing
+   * room above so the groups read as separate. */
+  .section-label--later {
+    margin-top: 24px;
   }
 
   .tool-card {

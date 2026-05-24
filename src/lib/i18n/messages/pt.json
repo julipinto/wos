@@ -13,6 +13,8 @@
     "kicker": "whiteout survival",
     "title": "tools",
     "sub": "Pequenas calculadoras e solvers pras partes chatas do jogo.",
+    "sectionEvents": "eventos",
+    "sectionEveryday": "dia a dia",
     "footer": "feito pro time",
     "slush": {
       "title": "slush station",
