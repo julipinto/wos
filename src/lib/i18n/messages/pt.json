@@ -4,27 +4,27 @@
     "next": "próximo",
     "gotIt": "entendi",
     "close": "fechar",
-    "tools": "ferramentas",
+    "tools": "tools",
     "help": "ajuda",
-    "settings": "configurações",
+    "settings": "config",
     "reset": "limpar"
   },
   "landing": {
     "kicker": "whiteout survival",
-    "title": "ferramentas",
-    "sub": "Calculadoras e solucionadores para as partes do jogo que dão trabalho na mão.",
-    "footer": "feito para o time",
+    "title": "tools",
+    "sub": "Pequenas calculadoras e solvers pras partes chatas do jogo.",
+    "footer": "feito pro time",
     "slush": {
       "title": "slush station",
-      "desc": "Solver pro evento. Registra o feedback por posição e sugere o próximo palpite."
+      "desc": "Solver do evento. Marca o resultado de cada posição e sugere o próximo palpite."
     },
     "tz": {
-      "title": "fuso horário",
-      "desc": "UTC ↔ qualquer fuso, nos dois sentidos. Arrasta um pino pra alinhar a aliança."
+      "title": "horários",
+      "desc": "UTC ↔ qualquer fuso. Arrasta um pino pra alinhar a aliança inteira."
     },
     "ghost": {
       "title": "mais no forno",
-      "desc": "Mantém o frio — mais ferramentas a caminho."
+      "desc": "Fica frio — mais coisa vindo aí."
     }
   },
   "slush": {
@@ -41,25 +41,25 @@
     "solved": "resolvido",
     "noSolution": "sem solução",
     "possibilities": "possibilidades",
-    "allUsedUp": "todos usados",
+    "allUsedUp": "esgotou",
     "rowFull": "linha cheia",
-    "blockedAtSlot": "marcado errado na posição {slot} antes",
+    "blockedAtSlot": "errado na posição {slot} antes",
     "tour": {
       "welcomeTitle": "slush solver",
       "welcomeCaption": "tour rápido · 5 passos",
-      "inventoryTitle": "monte seus jarros",
-      "inventoryCaption": "abra configurações · edite o inventário",
-      "placeTitle": "toque para posicionar",
-      "placeCaption": "paleta → preenche a próxima posição vazia",
-      "feedbackTitle": "marque cada resultado",
-      "feedbackCaption": "toque abaixo · ✓ certo · ✕ errado",
-      "solverTitle": "veja afunilar",
+      "inventoryTitle": "monte seu inventário",
+      "inventoryCaption": "abre as config · ajusta os jarros",
+      "placeTitle": "toca pra colocar",
+      "placeCaption": "paleta → vai pra próxima vazia",
+      "feedbackTitle": "marca o resultado",
+      "feedbackCaption": "toca abaixo · ✓ certo · ✕ errado",
+      "solverTitle": "vê afunilar",
       "solverCaption": "contagem cai · opções somem · resolvido"
     }
   },
   "tz": {
-    "title": "fuso horário",
-    "sub": "Ancorado em UTC. Arrasta um pino e a lista toda se reordena.",
+    "title": "horários",
+    "sub": "Tudo ancorado em UTC. Arrasta um pino e a lista se reordena sozinha.",
     "live": "ao vivo",
     "manual": "manual",
     "resetToNow": "voltar pra agora",
@@ -67,22 +67,22 @@
     "nowLabel": "agora",
     "addTimezone": "adicionar fuso",
     "copyAsText": "copiar como texto",
-    "searchPlaceholder": "buscar cidade, sigla ou offset…",
+    "searchPlaceholder": "busca cidade, sigla ou offset…",
     "nothingMatches": "nada encontrado",
     "tagPlaceholder": "nome…",
     "copied": "copiado",
     "copyFailed": "falha ao copiar",
     "tour": {
-      "welcomeTitle": "fuso horário",
+      "welcomeTitle": "horários",
       "welcomeCaption": "converte utc · nos dois sentidos · todos os fusos",
       "dragTitle": "arrasta qualquer pino",
-      "dragCaption": "todos se movem juntos",
+      "dragCaption": "todos se movem junto",
       "addTitle": "adiciona fusos",
       "addCaption": "busca por cidade · ou offset · ±9",
       "modeTitle": "ao vivo até você arrastar",
       "modeCaption": "limpar volta pra agora",
-      "tagsTitle": "marca pessoas",
-      "tagsCaption": "coloca nomes em cada fuso"
+      "tagsTitle": "marca quem é",
+      "tagsCaption": "põe nomes em cada fuso"
     }
   }
 }
