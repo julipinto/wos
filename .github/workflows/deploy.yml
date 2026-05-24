@@ -1,0 +1,54 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Cancel in-flight runs for the same branch — only the latest push deploys.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        # npm has a long-standing bug where optional platform-specific deps
+        # (Rollup native binaries) sometimes don't install. The explicit
+        # install of @rollup/rollup-linux-x64-gnu is a workaround. See
+        # https://github.com/npm/cli/issues/4828
+        run: |
+          npm ci
+          npm install --no-save @rollup/rollup-linux-x64-gnu || true
+      - name: Test
+        run: npm test
+      - name: Build
+        env:
+          BASE_PATH: /wos
+        run: npm run build
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
