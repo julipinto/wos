@@ -14,7 +14,8 @@
     backHref?: string | null;
     /** Tool-specific action buttons rendered before LocaleSwitcher. */
     actions?: Snippet;
-    /** Larger hero size — use on the landing. */
+    /** Larger hero + centered kicker-with-side-dashes above the title.
+     * Use on the landing — tool pages keep the compact left-aligned kicker. */
     large?: boolean;
   }
 
@@ -30,14 +31,19 @@
     <LocaleSwitcher />
   </div>
 
-  <div class="top-row">
+  <!-- Tool pages: kicker lives next to the back link in the top-row.
+       Landing: kicker moves into the hero with side-dashes (original
+       treatment), so the top-row is just actions. -->
+  <div class="top-row" class:no-kicker={large}>
     {#if back}
       <a class="back" href={back} aria-label="Back">
         <Icon name="arrow-left" size={12} />
         <span class="kicker">{i18n.m.landing.kicker}</span>
       </a>
-    {:else}
+    {:else if !large}
       <span class="kicker kicker-static">{i18n.m.landing.kicker}</span>
+    {:else}
+      <span></span>
     {/if}
     <div class="actions">
       {#if actions}{@render actions()}{/if}
@@ -45,6 +51,9 @@
   </div>
 
   <div class="hero" class:large>
+    {#if large}
+      <div class="hero-kicker">{i18n.m.landing.kicker}</div>
+    {/if}
     <h1 class="hero-title">{title}</h1>
     {#if sub}<p class="hero-sub">{sub}</p>{/if}
   </div>
@@ -109,7 +118,32 @@
     padding: 8px 0 16px;
   }
   .hero.large {
-    padding: 24px 0 48px;
+    padding: 8px 0 48px;
+  }
+  .hero-kicker {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin: 0 auto 24px;
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .hero-kicker::before,
+  .hero-kicker::after {
+    content: '';
+    width: 22px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.2);
+  }
+  @media (max-width: 540px) {
+    .hero-kicker {
+      font-size: 10px;
+      letter-spacing: 4px;
+    }
   }
   .hero-title {
     font-family: var(--font-display);
