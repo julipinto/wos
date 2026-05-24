@@ -1,8 +1,9 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import { base } from '$app/paths';
   import Modal from '$lib/components/Modal.svelte';
   import Tutorial from '$lib/components/Tutorial.svelte';
+  import Icon from '$lib/components/Icon.svelte';
+  import PageHeader from '$lib/components/PageHeader.svelte';
   import { snackbar } from '$lib/stores/snackbar.svelte';
   import { attachDrag } from '$lib/utils/drag';
   import { clamp, formatTime, formatOffset, mod } from '$lib/utils/format';
@@ -153,26 +154,18 @@
 </svelte:head>
 
 <main class="page">
-  <div class="top-nav">
-    <a class="back" href="{base}/" aria-label="Back to tools">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-        <path d="M9 3 L4 7 L9 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-      </svg>
-      {i18n.m.common.tools}
-    </a>
-    <button class="ibtn" aria-label="Help" onclick={() => (tourOpen = true)}>
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-        <circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.5" />
-        <path d="M5 5 a2 2 0 1 1 2 2 v1 M7 10 v0.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-      </svg>
-    </button>
-  </div>
-
-  <header class="hero">
-    <div class="hero-tag">{i18n.m.landing.kicker}</div>
-    <h1 class="hero-title">{i18n.m.tz.title}</h1>
-    <p class="hero-sub">{i18n.m.tz.sub}</p>
-  </header>
+  <PageHeader title={i18n.m.tz.title} sub={i18n.m.tz.sub}>
+    {#snippet actions()}
+      <button
+        class="ibtn"
+        aria-label={i18n.m.common.help}
+        title={i18n.m.common.help}
+        onclick={() => (tourOpen = true)}
+      >
+        <Icon name="circle-help" size={15} />
+      </button>
+    {/snippet}
+  </PageHeader>
 
   <section class="slider-card">
     <div class="slider-info">
@@ -242,9 +235,7 @@
                 <span class="tag">
                   <span class="tag-text">{t}</span>
                   <button class="tag-x" aria-label="Remove {t}" onclick={() => tz.removeTag(zone.id, t)}>
-                    <svg viewBox="0 0 8 8" width="8" height="8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
-                      <path d="M2 2 L6 6 M6 2 L2 6" />
-                    </svg>
+                    <Icon name="x" size={10} />
                   </button>
                 </span>
               {/each}
@@ -274,9 +265,7 @@
                   aria-label="Add person"
                   onclick={() => startAddTag(zone.id)}
                 >
-                  <svg viewBox="0 0 10 10" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
-                    <path d="M5 2 V8 M2 5 H8" />
-                  </svg>
+                  <Icon name="plus" size={12} />
                 </button>
               {/if}
             </div>
@@ -286,9 +275,7 @@
           </div>
           {#if zone.removable}
             <button class="zone-remove" aria-label="Remove zone" onclick={() => tz.removeZone(zone.id)}>
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                <path d="M2 2 L10 10 M10 2 L2 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-              </svg>
+              <Icon name="x" size={12} />
             </button>
           {/if}
         </div>
@@ -298,16 +285,11 @@
 
   <div class="actions-row">
     <button class="action-btn" onclick={() => (pickerOpen = true)}>
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-        <path d="M7 2 V12 M2 7 H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-      </svg>
+      <Icon name="plus" size={14} />
       {i18n.m.tz.addTimezone}
     </button>
     <button class="action-btn" onclick={doCopy}>
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-        <rect x="3" y="3" width="8" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5" />
-        <path d="M5 3 V2 a1 1 0 0 1 1 -1 h2 a1 1 0 0 1 1 1 v1" stroke="currentColor" stroke-width="1.5" />
-      </svg>
+      <Icon name="copy" size={14} />
       {i18n.m.tz.copyAsText}
     </button>
   </div>
@@ -364,29 +346,9 @@
     margin: 0 auto;
     padding: 32px 18px 80px;
   }
-  .top-nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 22px;
-  }
-  .back {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--text-mid);
-    text-decoration: none;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-  }
-  .back:hover {
-    color: var(--text);
-  }
   .ibtn {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     border-radius: var(--r-pill);
     background: var(--surface);
     border: 1px solid var(--border);
@@ -395,22 +357,12 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.2s ease;
   }
   .ibtn:hover {
     color: var(--text);
     background: var(--surface-hover);
-  }
-
-  .hero {
-    text-align: center;
-    padding: 16px 0 32px;
-  }
-  .hero-tag {
-    margin-bottom: 16px;
-  }
-  .hero-title {
-    font-size: clamp(48px, 12vw, 72px);
-    margin: 0 0 14px;
+    border-color: var(--border-strong);
   }
 
   /* Slider */

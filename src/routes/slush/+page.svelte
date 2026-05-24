@@ -1,8 +1,9 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { base } from '$app/paths';
   import Jar from '$lib/components/Jar.svelte';
   import Tutorial from '$lib/components/Tutorial.svelte';
+  import Icon from '$lib/components/Icon.svelte';
+  import PageHeader from '$lib/components/PageHeader.svelte';
   import { snackbar } from '$lib/stores/snackbar.svelte';
   import { attachDrag } from '$lib/utils/drag';
   import { flipReorder } from '$lib/utils/flip';
@@ -125,56 +126,36 @@
 </svelte:head>
 
 <main class="page">
-  <header class="bar">
-    <a class="brand" href="{base}/" aria-label="Back to tools">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-        <path d="M9 3 L4 7 L9 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-      </svg>
-      <span class="brand-name">{i18n.m.slush.brand}</span>
-      <span class="brand-sub">{i18n.m.slush.brandSub}</span>
-    </a>
-    <div class="actions">
-      <button class="ibtn" aria-label="Settings" onclick={() => (settingsOpen = !settingsOpen)}>
-        <!-- Gear icon: outer cog with 8 teeth + inner ring. -->
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <path
-            d="M8 1.5 L8.7 3.4 L10.6 2.9 L10.6 4.9 L12.5 5.7 L11.5 7.4 L13.1 8.7 L11.5 10 L12.5 11.7 L10.6 12.5 L10.6 14.5 L8.7 14 L8 15.9 L7.3 14 L5.4 14.5 L5.4 12.5 L3.5 11.7 L4.5 10 L2.9 8.7 L4.5 7.4 L3.5 5.7 L5.4 4.9 L5.4 2.9 L7.3 3.4 Z"
-            stroke="currentColor"
-            stroke-width="1.3"
-            stroke-linejoin="round"
-            fill="none"
-          />
-          <circle cx="8" cy="8.7" r="2" stroke="currentColor" stroke-width="1.3" />
-        </svg>
+  <PageHeader title={i18n.m.landing.slush.title} sub={i18n.m.landing.slush.desc}>
+    {#snippet actions()}
+      <button
+        class="ibtn"
+        aria-label={i18n.m.common.settings}
+        title={i18n.m.common.settings}
+        onclick={() => (settingsOpen = !settingsOpen)}
+      >
+        <Icon name="settings" size={15} />
       </button>
-      <button class="ibtn" aria-label="Reset" onclick={onReset}>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <path
-            d="M3 4 a5 5 0 1 1 -1 5 L1 8 M1 8 L3 8 M1 8 L1 5"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
+      <button class="ibtn" aria-label={i18n.m.common.reset} title={i18n.m.common.reset} onclick={onReset}>
+        <Icon name="rotate-ccw" size={15} />
       </button>
-      <button class="ibtn" aria-label="Help" onclick={() => (tourOpen = true)}>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5" />
-          <path d="M6 6 a2 2 0 1 1 2 2 v1.5 M8 11.5 v0.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-        </svg>
+      <button
+        class="ibtn"
+        aria-label={i18n.m.common.help}
+        title={i18n.m.common.help}
+        onclick={() => (tourOpen = true)}
+      >
+        <Icon name="circle-help" size={15} />
       </button>
-    </div>
-  </header>
+    {/snippet}
+  </PageHeader>
 
   {#if settingsOpen}
     <section class="panel settings">
       <div class="panel-bar">
         <span class="eyebrow">{i18n.m.slush.inventoryEyebrow}</span>
-        <button class="ibtn-sm" aria-label="Close" onclick={() => (settingsOpen = false)}>
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-            <path d="M2 2 L10 10 M10 2 L2 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-          </svg>
+        <button class="ibtn-sm" aria-label={i18n.m.common.close} onclick={() => (settingsOpen = false)}>
+          <Icon name="x" size={12} />
         </button>
       </div>
       <div class="inv-grid">
@@ -182,14 +163,7 @@
           {@const count = slush.inventory.filter((x) => x === hex).length}
           <div class="inv-row" data-hex={hex} use:attachRowDrag={hex}>
             <div class="inv-grip" aria-label="Drag to reorder" style="touch-action: none;">
-              <svg width="14" height="20" viewBox="0 0 14 20" fill="none" aria-hidden="true">
-                <circle cx="4" cy="5" r="1.5" fill="currentColor" />
-                <circle cx="10" cy="5" r="1.5" fill="currentColor" />
-                <circle cx="4" cy="10" r="1.5" fill="currentColor" />
-                <circle cx="10" cy="10" r="1.5" fill="currentColor" />
-                <circle cx="4" cy="15" r="1.5" fill="currentColor" />
-                <circle cx="10" cy="15" r="1.5" fill="currentColor" />
-              </svg>
+              <Icon name="grip-vertical" size={16} />
             </div>
             <div class="inv-jar" style="touch-action: none;">
               <Jar {hex} scale={0.9} />
@@ -202,9 +176,7 @@
                 disabled={slush.inventory.length <= MIN_JARS}
                 onclick={() => slush.decrementInventoryColor(hex)}
               >
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                  <path d="M3 7 H11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                </svg>
+                <Icon name="minus" size={14} />
               </button>
               <button
                 class="ibtn-sm"
@@ -212,9 +184,7 @@
                 disabled={!colorsAvailable}
                 onclick={() => slush.addInventoryColor(hex)}
               >
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                  <path d="M7 3 V11 M3 7 H11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                </svg>
+                <Icon name="plus" size={14} />
               </button>
             </div>
           </div>
@@ -226,9 +196,7 @@
           disabled={slush.inventory.length >= MAX_JARS}
           onclick={() => (pickerOpen = !pickerOpen)}
         >
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-            <path d="M7 3 V11 M3 7 H11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-          </svg>
+          <Icon name="plus" size={12} />
           {i18n.m.slush.addColor}
         </button>
       </div>
@@ -296,33 +264,23 @@
                     <Jar {hex} scale={0.75} />
                     <div class="fb {round.feedback[i] === true ? 'ok' : round.feedback[i] === false ? 'no' : ''}">
                       {#if round.feedback[i] === true}
-                        <svg viewBox="-6 -6 12 12" width="14" height="14" aria-hidden="true">
-                          <polyline points="-4 0 -1 3 4 -3" fill="none" stroke="#6ee7a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
+                        <Icon name="check" size={12} strokeWidth={2.5} />
                       {:else if round.feedback[i] === false}
-                        <svg viewBox="-6 -6 12 12" width="14" height="14" aria-hidden="true">
-                          <line x1="-3" y1="-3" x2="3" y2="3" stroke="#ff8a8a" stroke-width="2" stroke-linecap="round" />
-                          <line x1="3" y1="-3" x2="-3" y2="3" stroke="#ff8a8a" stroke-width="2" stroke-linecap="round" />
-                        </svg>
+                        <Icon name="x" size={12} strokeWidth={2.5} />
                       {/if}
                     </div>
                   </div>
                 {/each}
               </div>
               <button class="del" aria-label="Delete round" onclick={() => slush.deleteRound(ri)}>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                  <path d="M3 3 L11 11 M11 3 L3 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                </svg>
+                <Icon name="x" size={14} />
               </button>
             </div>
           {/each}
 
           {#if slush.isWon}
             <div class="won">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" stroke-opacity="0.5" />
-                <polyline points="8 12 11 15 16 9" />
-              </svg>
+              <Icon name="circle-check" size={22} strokeWidth={2} />
               <span>{i18n.m.slush.solved}</span>
             </div>
           {:else}
@@ -353,14 +311,9 @@
                       onclick={() => slush.cycleFeedback(i)}
                     >
                       {#if slush.currentFeedback[i] === true}
-                        <svg viewBox="-6 -6 12 12" width="14" height="14" aria-hidden="true">
-                          <polyline points="-4 0 -1 3 4 -3" fill="none" stroke="#6ee7a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
+                        <Icon name="check" size={12} strokeWidth={2.5} />
                       {:else if slush.currentFeedback[i] === false}
-                        <svg viewBox="-6 -6 12 12" width="14" height="14" aria-hidden="true">
-                          <line x1="-3" y1="-3" x2="3" y2="3" stroke="#ff8a8a" stroke-width="2" stroke-linecap="round" />
-                          <line x1="3" y1="-3" x2="-3" y2="3" stroke="#ff8a8a" stroke-width="2" stroke-linecap="round" />
-                        </svg>
+                        <Icon name="x" size={12} strokeWidth={2.5} />
                       {/if}
                     </button>
                   </div>
@@ -372,9 +325,7 @@
                 aria-label="Submit round"
                 onclick={() => slush.submitRound()}
               >
-                <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                  <path d="M5 10 H14 M10 6 L14 10 L10 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
+                <Icon name="arrow-right" size={14} />
               </button>
             </div>
           {/if}
@@ -411,10 +362,7 @@
               <div class="mini-jars">
                 {#if colors.length === 0 && slush.rounds.length > 0}
                   <span class="x-mark" aria-hidden="true">
-                    <svg width="14" height="14" viewBox="0 0 14 14">
-                      <line x1="3" y1="3" x2="11" y2="11" stroke="#ff8a8a" stroke-width="2" stroke-linecap="round" />
-                      <line x1="11" y1="3" x2="3" y2="11" stroke="#ff8a8a" stroke-width="2" stroke-linecap="round" />
-                    </svg>
+                    <Icon name="x" size={14} strokeWidth={2} />
                   </span>
                 {:else}
                   {#each colors as hex (hex)}
@@ -443,10 +391,7 @@
             disabled={sol.valid.length === 0}
             onclick={() => slush.applySuggestion()}
           >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-              <circle cx="7" cy="6" r="3.5" stroke="currentColor" stroke-width="1.5" />
-              <path d="M5 12 H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-            </svg>
+            <Icon name="lightbulb" size={14} />
             {i18n.m.slush.suggest}
           </button>
         </div>
@@ -493,42 +438,6 @@
     max-width: 1180px;
     margin: 0 auto;
     padding: 32px 18px 80px;
-  }
-  .bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 22px;
-  }
-  .brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    color: var(--text-mid);
-    text-decoration: none;
-  }
-  .brand:hover {
-    color: var(--text);
-  }
-  .brand-name {
-    font-family: var(--font-display);
-    font-style: italic;
-    font-weight: 700;
-    font-size: 22px;
-    color: var(--text);
-    letter-spacing: -0.01em;
-  }
-  .brand-sub {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    padding-top: 2px;
-  }
-  .actions {
-    display: inline-flex;
-    gap: 8px;
   }
   .ibtn,
   .ibtn-sm {
@@ -753,10 +662,10 @@
   }
   .round {
     display: grid;
-    grid-template-columns: 28px 1fr auto;
+    grid-template-columns: 22px 1fr auto;
     align-items: center;
-    gap: 10px;
-    padding: 8px;
+    gap: 8px;
+    padding: 8px 10px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 14px;
@@ -769,8 +678,25 @@
     font-family: var(--font-display);
     font-style: italic;
     font-weight: 700;
+    font-size: 14px;
     color: var(--text-dim);
     text-align: center;
+    line-height: 1;
+  }
+  @media (max-width: 540px) {
+    .round {
+      /* On phones the round number eats too much room — shrink it and let
+       * the slots row take the rest. */
+      grid-template-columns: 16px 1fr auto;
+      gap: 6px;
+      padding: 8px;
+    }
+    .round-num {
+      font-size: 12px;
+    }
+    .slots {
+      gap: 4px;
+    }
   }
   .slots {
     display: flex;
@@ -814,10 +740,16 @@
   .fb.ok {
     background: rgba(110, 231, 168, 0.22);
     border-color: rgba(110, 231, 168, 0.65);
+    color: var(--ok);
   }
   .fb.no {
     background: rgba(255, 138, 138, 0.22);
     border-color: rgba(255, 138, 138, 0.65);
+    color: var(--no);
+  }
+  .x-mark {
+    color: var(--no);
+    display: inline-flex;
   }
   .fb:disabled {
     cursor: default;

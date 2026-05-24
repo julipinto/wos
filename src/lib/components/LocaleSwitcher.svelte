@@ -1,5 +1,6 @@
 <script lang="ts">
   import { i18n, SUPPORTED_LOCALES, LOCALE_NAMES, type Locale } from '$lib/i18n/index.svelte';
+  import Icon from './Icon.svelte';
 
   let open = $state(false);
   let menuEl = $state<HTMLDivElement | null>(null);
@@ -38,15 +39,9 @@
     aria-label="Language"
     onclick={() => (open = !open)}
   >
-    <svg class="globe" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-      <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1" />
-      <ellipse cx="6" cy="6" rx="2" ry="4.5" stroke="currentColor" stroke-width="1" />
-      <path d="M1.5 6 H10.5" stroke="currentColor" stroke-width="1" />
-    </svg>
+    <Icon name="languages" size={13} class="globe" />
     <span class="label">{LOCALE_NAMES[i18n.locale]}</span>
-    <svg class="caret" class:up={open} width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
-      <path d="M2.5 3.5 L5 6 L7.5 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
-    </svg>
+    <Icon name="chevron-down" size={12} class="caret {open ? 'up' : ''}" />
   </button>
 
   {#if open}
@@ -63,9 +58,7 @@
           <span class="item-code">{code}</span>
           <span class="item-name">{LOCALE_NAMES[code]}</span>
           {#if code === i18n.locale}
-            <svg width="12" height="12" viewBox="-6 -6 12 12" aria-hidden="true">
-              <polyline points="-4 0 -1 3 4 -3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
+            <Icon name="check" size={14} />
           {/if}
         </button>
       {/each}
@@ -103,14 +96,14 @@
     border-color: var(--border-accent);
     background: var(--surface-hover);
   }
-  .trigger .globe {
-    opacity: 0.7;
+  .trigger :global(.globe) {
+    opacity: 0.75;
   }
-  .trigger .caret {
+  .trigger :global(.caret) {
     opacity: 0.6;
     transition: transform 0.2s ease;
   }
-  .trigger .caret.up {
+  .trigger :global(.caret.up) {
     transform: rotate(180deg);
   }
 

@@ -438,7 +438,13 @@ const COLORS_EXTRA = ['#facc15', '#22d3ee', '#a3e635', '#fb7185', '#fbbf24', '#a
 
 ### Icons
 
-Match the existing icon language: stroke-based, single weight (1.5px), `stroke-linecap="round" stroke-linejoin="round"`. The check `M -4 0 -1 3 4 -3`, the cross (two crossing lines), the right arrow `M 5 10 H14 M10 6 L14 10 L10 14`. Hand-drawn to match; don't pull in an icon library.
+Use the shared `<Icon>` component (`src/lib/components/Icon.svelte`) which carries a subset of [Lucide](https://lucide.dev/) (MIT) inlined as SVG paths. Lucide is the source of truth because its stroke-based, 1.5px-weight, round-capped style matches the system without further tweaking. Pass `name`, `size`, and (optionally) `strokeWidth`.
+
+```svelte
+<Icon name="settings" size={16} />
+```
+
+To add a new glyph: copy the inner SVG from the Lucide site and add an entry to the `icons` map at the top of `Icon.svelte`. Don't ship multiple icon styles; the whole app reads as one set.
 
 ---
 
