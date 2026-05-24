@@ -25,59 +25,48 @@ const dict: Record<Locale, Messages> = { en, pt, es, ru, ar };
 
 const STORAGE_KEY = 'wos-locale';
 
-// Keep both `locale` and `m` in $state so templates that read `i18n.m.x.y`
-// re-render when locale changes. A getter that returns `dict[state.locale]`
-// is technically reactive, but reads through a non-$state plain JSON
-// reference don't always propagate cleanly — assigning `state.m` on swap
-// makes the dependency unambiguous.
-const state = $state<{ locale: Locale; m: Messages }>({
-  locale: 'en',
-  m: dict.en
-});
-
 function applyDocumentAttrs(l: Locale): void {
   if (typeof document === 'undefined') return;
   document.documentElement.lang = l;
   document.documentElement.dir = RTL_LOCALES.includes(l) ? 'rtl' : 'ltr';
 }
 
-function applyLocale(l: Locale): void {
-  state.locale = l;
-  state.m = dict[l];
-  applyDocumentAttrs(l);
-}
+/**
+ * Shared i18n state. Implemented as a class with $state/$derived fields —
+ * this is the official Svelte 5 pattern for sharing runes across modules,
+ * and unlike a plain-object-with-getters wrapper it routes reads through
+ * the rune system directly so dependents re-render on locale changes.
+ */
+class I18n {
+  locale = $state<Locale>('en');
+  isRtl = $derived(RTL_LOCALES.includes(this.locale));
+  m = $derived(dict[this.locale]);
 
-export const i18n = {
-  get locale(): Locale {
-    return state.locale;
-  },
-  get isRtl(): boolean {
-    return RTL_LOCALES.includes(state.locale);
-  },
-  get m(): Messages {
-    return state.m;
-  },
   setLocale(l: Locale): void {
     if (!SUPPORTED_LOCALES.includes(l)) return;
-    applyLocale(l);
+    this.locale = l;
     writeString(STORAGE_KEY, l);
-  },
+    applyDocumentAttrs(l);
+  }
+
   /** Read stored locale, or sniff from navigator.language, or fall back to 'en'. */
   initFromBrowser(): void {
     if (typeof window === 'undefined') return;
     const stored = readString(STORAGE_KEY);
     if (stored && SUPPORTED_LOCALES.includes(stored as Locale)) {
-      applyLocale(stored as Locale);
+      this.locale = stored as Locale;
+      applyDocumentAttrs(this.locale);
       return;
     }
     const guess = navigator.language?.toLowerCase().slice(0, 2) as Locale;
     if (SUPPORTED_LOCALES.includes(guess)) {
-      applyLocale(guess);
-    } else {
-      applyDocumentAttrs(state.locale);
+      this.locale = guess;
     }
+    applyDocumentAttrs(this.locale);
   }
-};
+}
+
+export const i18n = new I18n();
 
 /** Interpolate {placeholder} tokens. Lightweight; no plural rules yet. */
 export function fmt(template: string, vars: Record<string, string | number>): string {
