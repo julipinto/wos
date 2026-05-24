@@ -20,6 +20,20 @@ export function formatTime(min: number): string {
   return `${pad2(h)}:${pad2(m)}`;
 }
 
+/**
+ * "H:MM am/pm" from minutes-of-day. 12-hour secondary display alongside the
+ * 24h primary — for readers who can't parse 24h at a glance. No leading zero
+ * on the hour (1:05 pm reads cleaner than 01:05 pm at small sizes).
+ */
+export function formatTimeAmPm(min: number): string {
+  const h24 = Math.floor(min / 60);
+  const m = min % 60;
+  const period = h24 < 12 ? 'am' : 'pm';
+  // 0 → 12am (midnight), 12 → 12pm (noon), 13..23 → 1..11pm
+  const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+  return `${h12}:${pad2(m)} ${period}`;
+}
+
 /** "UTC+09:00", "UTC-03", "UTC+05:30" from minutes-of-offset. */
 export function formatOffset(min: number): string {
   const sign = min >= 0 ? '+' : '-';

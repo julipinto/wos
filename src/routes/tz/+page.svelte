@@ -6,7 +6,7 @@
   import PageHeader from '$lib/components/PageHeader.svelte';
   import { snackbar } from '$lib/stores/snackbar.svelte';
   import { attachDrag } from '$lib/utils/drag';
-  import { clamp, formatTime, formatOffset, mod } from '$lib/utils/format';
+  import { clamp, formatTime, formatTimeAmPm, formatOffset, mod } from '$lib/utils/format';
   import { copyText } from '$lib/utils/copy';
   import { tz, type Zone } from '$lib/tools/tz/store.svelte';
   import { CATALOG } from '$lib/tools/tz/catalog';
@@ -180,6 +180,7 @@
     <div class="utc-anchor">
       <div class="utc-anchor-label">{i18n.m.tz.utcLabel}</div>
       <div class="utc-anchor-time">{formatTime(tz.baseUtcMin)}</div>
+      <div class="utc-anchor-ampm">{formatTimeAmPm(tz.baseUtcMin)}</div>
     </div>
     <!-- Slider stays LTR even when the page is RTL — time is a universal
          left-to-right progression. The surrounding controls (mode tag, reset
@@ -222,7 +223,10 @@
         <div class="zone-row is-utc">
           <div class="zone-dot" style="background: {zone.color};"></div>
           <div class="zone-info"><div class="zone-name">UTC</div></div>
-          <div class="zone-time">{formatTime(tz.baseUtcMin)}</div>
+          <div class="zone-time">
+            <span class="time-24h">{formatTime(tz.baseUtcMin)}</span>
+            <span class="time-ampm">{formatTimeAmPm(tz.baseUtcMin)}</span>
+          </div>
         </div>
       {:else}
         <div class="zone-row">
@@ -271,7 +275,10 @@
             </div>
           </div>
           <div class="zone-time">
-            {localTimeFor(zone)}{#if dayTagFor(zone)}<span class="day-tag">{dayTagFor(zone)}</span>{/if}
+            <span class="time-24h">
+              {localTimeFor(zone)}{#if dayTagFor(zone)}<span class="day-tag">{dayTagFor(zone)}</span>{/if}
+            </span>
+            <span class="time-ampm">{formatTimeAmPm(mod(tz.baseUtcMin + zone.offsetMin, 1440))}</span>
           </div>
           {#if zone.removable}
             <button class="zone-remove" aria-label="Remove zone" onclick={() => tz.removeZone(zone.id)}>
@@ -461,6 +468,15 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+  .utc-anchor-ampm {
+    /* Secondary 12h read of the same UTC time — small, dim, mono. */
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-top: 8px;
   }
   .slider-track {
     position: relative;
@@ -679,15 +695,32 @@
     border-color: var(--border-accent);
   }
   .zone-time {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1.05;
+  }
+  .time-24h {
     font-family: var(--font-display);
     font-style: italic;
     font-weight: 700;
     font-size: 22px;
     letter-spacing: -0.01em;
-    text-align: end;
   }
-  .is-utc .zone-time {
+  .time-ampm {
+    /* 12h companion — small, dim mono so the 24h reading stays the headline. */
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+  .is-utc .time-24h {
     font-size: 18px;
+  }
+  .is-utc .time-ampm {
+    font-size: 8.5px;
   }
   .day-tag {
     display: inline-block;
