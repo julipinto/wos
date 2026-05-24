@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
+  import Icon from './Icon.svelte';
 
   interface Props {
     open: boolean;
@@ -39,14 +40,7 @@
     <div class="modal" class:wide>
       {#if showClose}
         <button class="modal-close" aria-label="Close" onclick={onClose}>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-            <path
-              d="M3 3 L11 11 M11 3 L3 11"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-            />
-          </svg>
+          <Icon name="x" size={14} />
         </button>
       {/if}
       {@render children()}

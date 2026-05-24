@@ -1,5 +1,7 @@
 <script lang="ts">
   import Modal from './Modal.svelte';
+  import Icon from './Icon.svelte';
+  import { i18n } from '$lib/i18n/index.svelte';
 
   export interface Slide {
     title: string;
@@ -43,7 +45,7 @@
     {/each}
   </div>
   <div class="tour-footer">
-    <button class="text-btn" onclick={back} disabled={idx === 0}>back</button>
+    <button class="text-btn" onclick={back} disabled={idx === 0}>{i18n.m.common.back}</button>
     <div class="dots" role="tablist">
       {#each slides as _, i (i)}
         <button
@@ -57,17 +59,9 @@
       {/each}
     </div>
     <button class="cta" class:final={isLast} onclick={next}>
-      {isLast ? 'got it' : 'next'}
+      {isLast ? i18n.m.common.gotIt : i18n.m.common.next}
       {#if !isLast}
-        <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <path
-            d="M5 10 H14 M10 6 L14 10 L10 14"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
+        <Icon name="arrow-right" size={14} />
       {/if}
     </button>
   </div>

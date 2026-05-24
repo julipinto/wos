@@ -1,6 +1,7 @@
 <script lang="ts">
   import { base } from '$app/paths';
   import { i18n } from '$lib/i18n/index.svelte';
+  import PageHeader from '$lib/components/PageHeader.svelte';
 
   const slushJars: { x: number; hex: string; dark: string; delay: number }[] = [
     { x: 2, hex: '#ef4444', dark: '#a83333', delay: 0 },
@@ -14,11 +15,7 @@
 </svelte:head>
 
 <div class="wrap">
-  <header class="hero">
-    <div class="hero-tag">{i18n.m.landing.kicker}</div>
-    <h1 class="hero-title">{i18n.m.landing.title}</h1>
-    <p class="hero-sub">{i18n.m.landing.sub}</p>
-  </header>
+  <PageHeader title={i18n.m.landing.title} sub={i18n.m.landing.sub} backHref={null} large />
 
   <section class="tools">
     <a href="{base}/slush/" class="tool-card">
@@ -169,18 +166,7 @@
     width: 100%;
     max-width: 640px;
     margin: 0 auto;
-    padding: 64px 24px 96px;
-  }
-  .hero {
-    text-align: center;
-    padding: 16px 0 64px;
-  }
-  .hero-tag {
-    margin-bottom: 24px;
-  }
-  .hero-title {
-    font-size: clamp(64px, 16vw, 104px);
-    margin: 0 0 22px;
+    padding: 32px 24px 96px;
   }
 
   .tools {
@@ -298,17 +284,7 @@
 
   @media (max-width: 540px) {
     .wrap {
-      padding: 44px 18px 72px;
-    }
-    .hero {
-      padding: 8px 0 48px;
-    }
-    .hero-tag {
-      font-size: 10px;
-      letter-spacing: 4px;
-    }
-    .hero-sub {
-      font-size: 12px;
+      padding: 24px 18px 72px;
     }
     .tool-card {
       padding: 18px;
