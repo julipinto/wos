@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { offsetMinutes, dayOffsetFor, matchesOffsetQuery } from '../../src/lib/tools/tz/time';
-import { mod, formatTime, formatOffset } from '../../src/lib/utils/format';
+import { mod, formatTime, formatTimeAmPm, formatOffset } from '../../src/lib/utils/format';
 
 describe('offsetMinutes', () => {
   it('UTC is always 0', () => {
@@ -99,5 +99,14 @@ describe('format helpers', () => {
     expect(formatOffset(540)).toBe('UTC+09');
     expect(formatOffset(330)).toBe('UTC+05:30');
     expect(formatOffset(-180)).toBe('UTC-03');
+  });
+
+  it('formatTimeAmPm handles midnight, noon, and the boundaries', () => {
+    expect(formatTimeAmPm(0)).toBe('12:00 am');
+    expect(formatTimeAmPm(60)).toBe('1:00 am');
+    expect(formatTimeAmPm(11 * 60 + 59)).toBe('11:59 am');
+    expect(formatTimeAmPm(12 * 60)).toBe('12:00 pm');
+    expect(formatTimeAmPm(13 * 60)).toBe('1:00 pm');
+    expect(formatTimeAmPm(23 * 60 + 5)).toBe('11:05 pm');
   });
 });
