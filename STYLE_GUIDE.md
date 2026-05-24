@@ -438,13 +438,22 @@ const COLORS_EXTRA = ['#facc15', '#22d3ee', '#a3e635', '#fb7185', '#fbbf24', '#a
 
 ### Icons
 
-Use the shared `<Icon>` component (`src/lib/components/Icon.svelte`) which carries a subset of [Lucide](https://lucide.dev/) (MIT) inlined as SVG paths. Lucide is the source of truth because its stroke-based, 1.5px-weight, round-capped style matches the system without further tweaking. Pass `name`, `size`, and (optionally) `strokeWidth`.
+Use the shared `<Icon>` component (`src/lib/components/Icon.svelte`). It wraps [`@iconify/svelte`](https://iconify.design/docs/icon-components/svelte/) in offline mode and serves [Lucide](https://lucide.dev/) (MIT). Lucide is the source of truth because its stroke-based, 2px-weight, round-capped style matches the system out of the box.
 
 ```svelte
 <Icon name="settings" size={16} />
 ```
 
-To add a new glyph: copy the inner SVG from the Lucide site and add an entry to the `icons` map at the top of `Icon.svelte`. Don't ship multiple icon styles; the whole app reads as one set.
+Adding a new glyph:
+
+1. Find the kebab-case name at https://lucide.dev/icons
+2. In `Icon.svelte`, add an `import x from '@iconify-icons/lucide/<name>'` and an entry in the local `icons` map
+3. Use it: `<Icon name="your-name" />`
+
+Notes:
+- Per-icon imports from `@iconify-icons/lucide` are tree-shaken — the bundle only carries the glyphs you actually reference.
+- That package predates a Lucide rename, so a few names diverge from the current site: `circle-help` → `help-circle`, `circle-check` → `check-circle`. The local map normalizes these.
+- Don't introduce a second icon family — the whole app reads as one set.
 
 ---
 
