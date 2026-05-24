@@ -84,6 +84,11 @@
     // point under the finger/cursor so the row doesn't "snap" to center.
     let grabOffsetY = 0;
 
+    function currentTransformY(): number {
+      const m = /translateY\(([-\d.]+)px\)/.exec(node.style.transform);
+      return m ? parseFloat(m[1]) : 0;
+    }
+
     function settle() {
       // Animate transform back to natural position, then clear inline styles.
       node.style.transition = 'transform .22s cubic-bezier(.2,.6,.3,1)';
@@ -112,8 +117,9 @@
         if (!dragging || !grid) return;
 
         // 1) Reorder DOM if the cursor crossed into another row's midline.
-        //    This shuffles the SIBLINGS via FLIP — the dragged row's DOM slot
-        //    might change here, which is fine; we recompute its transform below.
+        //    This shuffles the SIBLINGS via FLIP; the dragged row's DOM slot
+        //    can move too, which is fine — step 2 reads the post-reorder
+        //    natural position.
         const others = [...grid.querySelectorAll<HTMLElement>('.inv-row:not(.dragging)')];
         const target = others.find((r) => {
           const rect = r.getBoundingClientRect();
@@ -126,14 +132,15 @@
           flipReorder(grid, node, beforeNode);
         }
 
-        // 2) Position the dragged row so its top is at (cursor − grabOffset).
-        //    offsetTop reflects the row's CURRENT natural top relative to the
-        //    grid (post-reorder), so this stays accurate even when the dragged
-        //    row's DOM slot just changed.
-        const gridRect = grid.getBoundingClientRect();
-        const targetTopInGrid = e.clientY - grabOffsetY - gridRect.top;
-        const dy = targetTopInGrid - node.offsetTop;
-        node.style.transform = `translateY(${dy}px)`;
+        // 2) Glue the row's top to (cursor − grabOffset) in viewport space.
+        //    getBoundingClientRect() reflects the row's CURRENT visual top
+        //    (natural + whatever transform we already applied), so we read
+        //    naturalTop by subtracting the current translate, then compute
+        //    a fresh dy. Works correctly across reorders.
+        const rect = node.getBoundingClientRect();
+        const naturalTop = rect.top - currentTransformY();
+        const targetTop = e.clientY - grabOffsetY;
+        node.style.transform = `translateY(${targetTop - naturalTop}px)`;
       },
       onEnd(_, committed) {
         if (committed && grid) {
