@@ -728,10 +728,14 @@
     border: 0;
     padding: 0;
     cursor: pointer;
-    transition: transform 0.2s ease;
+    transition:
+      transform 0.2s ease,
+      filter 0.25s ease;
   }
   .jar-btn:hover {
     transform: translateY(-2px);
+    /* Cyan halo on hover — the legacy tool had this on every interactive jar. */
+    filter: drop-shadow(0 0 10px var(--accent-glow-strong));
   }
   .jar-btn.depleted {
     opacity: 0.3;
@@ -739,6 +743,7 @@
   }
   .jar-btn.depleted:hover {
     transform: none;
+    filter: none;
   }
   .jar-btn.blocked {
     opacity: 0.85;
@@ -866,11 +871,13 @@
     background: rgba(110, 231, 168, 0.22);
     border-color: rgba(110, 231, 168, 0.65);
     color: var(--ok);
+    box-shadow: 0 0 8px rgba(110, 231, 168, 0.25);
   }
   .fb.no {
     background: rgba(255, 138, 138, 0.22);
     border-color: rgba(255, 138, 138, 0.65);
     color: var(--no);
+    box-shadow: 0 0 8px rgba(255, 138, 138, 0.25);
   }
   .x-mark {
     color: var(--no);
@@ -911,6 +918,7 @@
     font-style: italic;
     font-weight: 600;
     font-size: 18px;
+    filter: drop-shadow(0 0 6px rgba(110, 231, 168, 0.22));
   }
 
   /* Count display */
@@ -982,9 +990,18 @@
     border: 0;
     padding: 0;
     cursor: pointer;
+    transition:
+      transform 0.15s ease,
+      filter 0.2s ease;
+  }
+  .mini-jar:hover:not(:disabled) {
+    /* Lift + cyan halo — telegraphs that this is the clickable candidate. */
+    transform: translateY(-2px);
+    filter: drop-shadow(0 0 8px var(--accent-glow-strong));
   }
   .mini-jar.soft-out {
     opacity: 0.35;
+    filter: saturate(0.55);
     pointer-events: none;
   }
 

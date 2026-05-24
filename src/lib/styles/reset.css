@@ -12,14 +12,35 @@ body {
 
 body {
   min-height: 100vh;
-  background: var(--bg);
+  background-color: var(--bg);
+  /* Layered ambient: soft cyan from the top, violet from bottom-right, green
+   * pinch from bottom-left. Matches the original slush atmosphere. */
   background-image:
-    radial-gradient(ellipse 70% 50% at 50% -10%, rgba(147, 212, 255, 0.1), transparent 60%),
-    radial-gradient(ellipse 60% 40% at 90% 100%, rgba(196, 132, 252, 0.06), transparent 60%),
-    radial-gradient(ellipse 50% 35% at 10% 80%, rgba(110, 231, 168, 0.04), transparent 60%);
+    radial-gradient(60% 50% at 50% 0%, rgba(147, 212, 255, 0.1), transparent 70%),
+    radial-gradient(50% 40% at 90% 100%, rgba(192, 164, 255, 0.08), transparent 70%),
+    radial-gradient(40% 30% at 10% 80%, rgba(110, 231, 168, 0.05), transparent 70%);
+  background-attachment: fixed;
   color: var(--text);
   font-family: var(--font-mono);
   -webkit-font-smoothing: antialiased;
+  position: relative;
+}
+
+/* Faint star sparkle overlaying the gradient — six fixed specks, low opacity.
+ * Adds depth without animation noise (the style guide bans long loops). */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background-image:
+    radial-gradient(1px 1px at 13% 22%, rgba(255, 255, 255, 0.4), transparent 50%),
+    radial-gradient(1px 1px at 47% 8%, rgba(255, 255, 255, 0.3), transparent 50%),
+    radial-gradient(1px 1px at 78% 38%, rgba(255, 255, 255, 0.35), transparent 50%),
+    radial-gradient(1px 1px at 23% 71%, rgba(255, 255, 255, 0.3), transparent 50%),
+    radial-gradient(1px 1px at 88% 86%, rgba(255, 255, 255, 0.4), transparent 50%),
+    radial-gradient(1px 1px at 62% 56%, rgba(255, 255, 255, 0.25), transparent 50%);
 }
 
 button {
