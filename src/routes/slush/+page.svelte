@@ -257,13 +257,6 @@
         <div class="rounds">
           {#each slush.rounds as round, ri (ri)}
             <div class="round">
-              <!-- Meta row: round label + delete. Jars get the full width below. -->
-              <div class="round-meta">
-                <span class="round-num">round #{ri + 1}</span>
-                <button class="del" aria-label="Delete round" onclick={() => slush.deleteRound(ri)}>
-                  <Icon name="x" size={14} />
-                </button>
-              </div>
               <div class="slots">
                 {#each round.guess as hex, i (i)}
                   <div class="slot small">
@@ -278,6 +271,9 @@
                   </div>
                 {/each}
               </div>
+              <button class="del" aria-label="Delete round" onclick={() => slush.deleteRound(ri)}>
+                <Icon name="x" size={14} />
+              </button>
             </div>
           {/each}
 
@@ -288,17 +284,6 @@
             </div>
           {:else}
             <div class="round current">
-              <div class="round-meta">
-                <span class="round-num">round #{slush.rounds.length + 1}</span>
-                <button
-                  class="submit"
-                  disabled={!slush.currentFilled}
-                  aria-label="Submit round"
-                  onclick={() => slush.submitRound()}
-                >
-                  <Icon name="arrow-right" size={14} />
-                </button>
-              </div>
               <div class="slots">
                 {#each slush.currentGuess as hex, i (i)}
                   {@const locked = confirmed[i] !== null}
@@ -332,6 +317,14 @@
                   </div>
                 {/each}
               </div>
+              <button
+                class="submit"
+                disabled={!slush.currentFilled}
+                aria-label="Submit round"
+                onclick={() => slush.submitRound()}
+              >
+                <Icon name="arrow-right" size={14} />
+              </button>
             </div>
           {/if}
         </div>
@@ -679,11 +672,11 @@
     gap: 10px;
   }
   .round {
-    /* Vertical stack: meta row (label + action) on top, jars full-width below.
-     * Frees horizontal space for the slots — important on mobile where the
-     * round counter used to eat 22 px from a ~320 px row. */
+    /* Single row: slots flex 1 + action button (del/submit) inline at the end.
+     * The button aligns with the jars row; on long inventories the slots
+     * wrap and the button stays vertically centered against the block. */
     display: flex;
-    flex-direction: column;
+    align-items: center;
     gap: 8px;
     padding: 10px 12px;
     background: var(--surface);
@@ -694,18 +687,8 @@
     border-color: var(--border-strong);
     background: var(--surface-hover);
   }
-  .round-meta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .round-num {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 2.5px;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    line-height: 1;
+  .slots {
+    flex: 1;
   }
   @media (max-width: 540px) {
     .round {
