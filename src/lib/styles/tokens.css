@@ -1,0 +1,54 @@
+/* Design tokens — single source of truth.
+ * Canon: STYLE_GUIDE.md. Don't deviate without an entry in the guide. */
+
+:root {
+  /* Surfaces */
+  --bg: #0b0e16;
+  --bg-soft: #11151f;
+  --surface: rgba(255, 255, 255, 0.035);
+  --surface-hover: rgba(255, 255, 255, 0.055);
+  --surface-strong: rgba(255, 255, 255, 0.07);
+
+  /* Borders */
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.12);
+  --border-accent: rgba(147, 212, 255, 0.4);
+
+  /* Text */
+  --text: rgba(255, 255, 255, 0.92);
+  --text-mid: rgba(255, 255, 255, 0.62);
+  --text-dim: rgba(255, 255, 255, 0.38);
+
+  /* Accents — cyan is primary; green/red are state-only */
+  --accent: #93d4ff;
+  --accent-glow: rgba(147, 212, 255, 0.18);
+  --ok: #6ee7a8;
+  --no: #ff8a8a;
+
+  /* Fonts */
+  --font-display: 'Fraunces', serif;
+  --font-mono: 'DM Mono', monospace;
+
+  /* Radii */
+  --r-card: 20px;
+  --r-button: 12px;
+  --r-pill: 999px;
+
+  /* Durations */
+  --d-hover: 0.22s;
+  --d-state: 0.32s;
+
+  /* Jar / pin palette — index N picks color (cycling) */
+  --pin-0: #ef4444; /* red */
+  --pin-1: #fb923c; /* orange */
+  --pin-2: #f472b6; /* pink */
+  --pin-3: #60a5fa; /* blue */
+  --pin-4: #c084fc; /* purple */
+  --pin-5: #4ade80; /* green */
+  --pin-6: #facc15; /* yellow */
+  --pin-7: #22d3ee; /* cyan-bright */
+  --pin-8: #a3e635; /* lime */
+  --pin-9: #fb7185; /* rose */
+  --pin-10: #fcd34d; /* amber */
+  --pin-11: #a78bfa; /* violet */
+}
