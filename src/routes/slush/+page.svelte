@@ -781,25 +781,23 @@
     gap: 10px;
   }
   .round {
-    /* Single row: slots flex 1 + action button (del/submit) at the far end.
-     * The button is centered against the jars; the badge floats in the
-     * corner outside the flow. */
+    /* No card chrome of its own — the .panel parent already provides surface
+     * + border. Stacking another solid bg on top read as a brighter floating
+     * card. Slots + corner badge sit transparent over the panel. */
     position: relative;
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 12px;
-    background: var(--bg-soft);
-    border: 1px solid var(--border);
-    border-radius: 14px;
+    padding: 8px 4px;
+    border-radius: 12px;
+    transition: background 0.2s ease;
   }
   .round.current {
-    /* Subtle cyan highlight gradient (like the legacy slush.html), no solid
-     * hover-bg — the brighter surface-hover read as a strong blue tint over
-     * the new dark-blue body. */
-    background:
-      linear-gradient(90deg, transparent, rgba(147, 212, 255, 0.04), transparent), var(--surface);
-    border-color: var(--border-strong);
+    /* Subtle cyan-gradient highlight + dashed top rule, matches legacy slush. */
+    background: linear-gradient(90deg, transparent, rgba(147, 212, 255, 0.04), transparent);
+    border-top: 1px dashed var(--border);
+    padding-top: 14px;
+    margin-top: 4px;
   }
   .round-num {
     /* Tiny corner badge — visible reference for which round you're on without
@@ -844,11 +842,15 @@
     align-items: center;
     gap: 4px;
   }
+  /* Locked jar (confirmed by a past round) — soft green drop-shadow only.
+   * The hard ring + bright box-shadow that used to live here read as a
+   * heavy selection box; the legacy treatment is a gentle halo. */
   .slot.locked .slot-jar {
-    box-shadow:
-      0 0 0 2px var(--ok),
-      0 0 14px var(--ok-glow-strong);
-    border-radius: 12px;
+    filter: drop-shadow(0 0 6px rgba(110, 231, 168, 0.22));
+  }
+  .slot.locked .fb {
+    border-color: rgba(110, 231, 168, 0.7);
+    box-shadow: 0 0 10px rgba(110, 231, 168, 0.35);
   }
   .slot-jar {
     background: transparent;
