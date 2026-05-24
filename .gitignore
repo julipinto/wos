@@ -1,0 +1,14 @@
+node_modules
+/.svelte-kit
+/build
+/dist
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+*.log
+.vite
+.vercel
+.netlify
+coverage
