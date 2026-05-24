@@ -453,10 +453,12 @@
                        slush.html behavior. -->
                   {#each uniqueColors as hex (hex)}
                     {#if possibles.has(hex)}
+                      {@const isPlaced = slush.currentGuess[i] === hex}
                       {@const left = remaining.get(hex) ?? 0}
-                      {@const softOut = left <= 0 && slush.currentGuess[i] !== hex}
+                      {@const softOut = left <= 0 && !isPlaced}
                       <button
                         class="mini-jar"
+                        class:active={isPlaced}
                         class:soft-out={softOut}
                         disabled={softOut}
                         onclick={() => {
@@ -998,6 +1000,15 @@
     /* Lift + cyan halo — telegraphs that this is the clickable candidate. */
     transform: translateY(-2px);
     filter: drop-shadow(0 0 8px var(--accent-glow-strong));
+  }
+  /* The jar that's currently placed at this slot reads as "selected" — strong
+   * cyan halo (matches legacy .jar.active treatment). */
+  .mini-jar.active {
+    filter: drop-shadow(0 0 10px var(--accent-glow-strong));
+  }
+  .mini-jar.active:hover:not(:disabled) {
+    transform: translateY(-2px);
+    filter: drop-shadow(0 0 14px var(--accent-glow-strong));
   }
   .mini-jar.soft-out {
     opacity: 0.35;
