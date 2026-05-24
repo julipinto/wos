@@ -741,6 +741,12 @@
   }
   .slots {
     flex: 1;
+    /* Match the legacy slush.html: jars sit horizontally centered inside the
+     * row, not stuck to the left edge. */
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
   }
   /* Push the action all the way to the right edge of the card. */
   .round .del,
@@ -756,11 +762,6 @@
     .slots {
       gap: 4px;
     }
-  }
-  .slots {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
   }
   .slot {
     display: flex;
