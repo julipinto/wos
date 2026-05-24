@@ -1,0 +1,137 @@
+/* Slush tutorial animations.
+ *
+ * SVG transform gotcha: the outer <g transform="translate(...)"> positions
+ * the element; the inner <g class="t-*"> animates it. Don't merge.
+ *
+ * All animations include `transform-box: fill-box` because inner <g> needs a
+ * stable origin for scaling/translating relative to the visible content,
+ * not the user-space origin.
+ */
+
+@keyframes t-pulse-slush {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  50% {
+    transform: scale(1.06);
+    filter: drop-shadow(0 0 8px rgba(147, 212, 255, 0.4));
+  }
+}
+.t-pulse {
+  animation: t-pulse-slush 1.8s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+@keyframes t-fb-slush {
+  0%,
+  1% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  4% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  33% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+}
+.t-fb {
+  animation: t-fb-slush 3s ease-in-out backwards infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+@keyframes t-fly-slush {
+  0%,
+  10% {
+    opacity: 0;
+    transform: translate(var(--from-x), var(--from-y)) scale(0.85);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(var(--from-x), var(--from-y)) scale(1);
+  }
+  60%,
+  70% {
+    opacity: 1;
+    transform: translate(var(--to-x), var(--to-y)) scale(1);
+  }
+  85% {
+    opacity: 0;
+    transform: translate(var(--to-x), var(--to-y)) scale(0.85);
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.t-fly {
+  animation: t-fly-slush 3.6s ease-in-out infinite;
+}
+
+@keyframes t-tap-slush {
+  0%,
+  20% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  35% {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}
+.t-tap {
+  animation: t-tap-slush 3.6s ease-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+@keyframes t-fade-cycle-slush {
+  0%,
+  3% {
+    opacity: 0;
+  }
+  6%,
+  22% {
+    opacity: 1;
+  }
+  25% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.t-fade-cycle {
+  animation: t-fade-cycle-slush 4s ease-in-out infinite;
+}
+
+@keyframes t-fade-slush {
+  0%,
+  100% {
+    opacity: 0.18;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.t-fade {
+  animation: t-fade-slush 3s ease-in-out infinite;
+  transform-box: fill-box;
+}
