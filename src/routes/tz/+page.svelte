@@ -16,6 +16,7 @@
     matchesOffsetQuery
   } from '$lib/tools/tz/time';
   import { TZ_SLIDES } from '$lib/tools/tz/tutorial';
+  import { i18n } from '$lib/i18n/index.svelte';
   import '$lib/tools/tz/tutorial.css';
 
   let pickerOpen = $state(false);
@@ -119,8 +120,8 @@
       return `${z.name}: ${formatTime(localMin)}${dayTag}`;
     });
     const ok = await copyText(lines.join(' · '));
-    if (ok) snackbar.show('copied to clipboard');
-    else snackbar.show('copy failed', 'no');
+    if (ok) snackbar.show(i18n.m.tz.copied);
+    else snackbar.show(i18n.m.tz.copyFailed, 'no');
   }
 
   function onPick(c: (typeof CATALOG)[number]) {
@@ -157,7 +158,7 @@
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
         <path d="M9 3 L4 7 L9 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
-      tools
+      {i18n.m.common.tools}
     </a>
     <button class="ibtn" aria-label="Help" onclick={() => (tourOpen = true)}>
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
@@ -168,26 +169,29 @@
   </div>
 
   <header class="hero">
-    <div class="hero-tag">whiteout survival</div>
-    <h1 class="hero-title">time tool</h1>
-    <p class="hero-sub">UTC anchored. Drag a pin and the whole list re-sorts.</p>
+    <div class="hero-tag">{i18n.m.landing.kicker}</div>
+    <h1 class="hero-title">{i18n.m.tz.title}</h1>
+    <p class="hero-sub">{i18n.m.tz.sub}</p>
   </header>
 
   <section class="slider-card">
     <div class="slider-info">
       <span class="mode-tag" class:live={!tz.isManual} class:manual={tz.isManual}>
         {#if !tz.isManual}<span class="dot"></span>{/if}
-        {tz.isManual ? 'manual' : 'live'}
+        {tz.isManual ? i18n.m.tz.manual : i18n.m.tz.live}
       </span>
       <button class="reset-btn" disabled={!tz.isManual} onclick={() => tz.resetToNow()}>
-        reset to now
+        {i18n.m.tz.resetToNow}
       </button>
     </div>
     <div class="utc-anchor">
-      <div class="utc-anchor-label">utc</div>
+      <div class="utc-anchor-label">{i18n.m.tz.utcLabel}</div>
       <div class="utc-anchor-time">{formatTime(tz.baseUtcMin)}</div>
     </div>
-    <div class="slider-track" bind:this={trackEl}>
+    <!-- Slider stays LTR even when the page is RTL — time is a universal
+         left-to-right progression. The surrounding controls (mode tag, reset
+         button, zone list) still flow according to the page dir. -->
+    <div class="slider-track" dir="ltr" bind:this={trackEl}>
       {#each Array(23) as _, i (i)}
         {@const h = i + 1}
         <div
@@ -198,7 +202,7 @@
       {/each}
       {#if tz.isManual}
         <div class="now-line" style="left: {(nowUtcMinutes() / 1440) * 100}%;">
-          <span class="now-label">now</span>
+          <span class="now-label">{i18n.m.tz.nowLabel}</span>
         </div>
       {/if}
       {#each tz.zones as zone (zone.id)}
@@ -214,7 +218,7 @@
         </div>
       {/each}
     </div>
-    <div class="tick-row">
+    <div class="tick-row" dir="ltr">
       <span>00</span><span>06</span><span>12</span><span>18</span><span>24</span>
     </div>
   </section>
@@ -248,7 +252,7 @@
                 <input
                   class="tag-input"
                   type="text"
-                  placeholder="name…"
+                  placeholder={i18n.m.tz.tagPlaceholder}
                   maxlength="24"
                   autocomplete="off"
                   bind:value={tagInputValue}
@@ -297,26 +301,26 @@
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
         <path d="M7 2 V12 M2 7 H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
       </svg>
-      add timezone
+      {i18n.m.tz.addTimezone}
     </button>
     <button class="action-btn" onclick={doCopy}>
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
         <rect x="3" y="3" width="8" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5" />
         <path d="M5 3 V2 a1 1 0 0 1 1 -1 h2 a1 1 0 0 1 1 1 v1" stroke="currentColor" stroke-width="1.5" />
       </svg>
-      copy as text
+      {i18n.m.tz.copyAsText}
     </button>
   </div>
 </main>
 
 <Modal open={pickerOpen} onClose={() => (pickerOpen = false)} label="Add timezone">
   <div class="picker-header">
-    <h2 class="picker-title">add timezone</h2>
+    <h2 class="picker-title">{i18n.m.tz.addTimezone}</h2>
   </div>
   <input
     class="picker-search"
     type="text"
-    placeholder="search city, abbreviation or offset…"
+    placeholder={i18n.m.tz.searchPlaceholder}
     autocomplete="off"
     bind:value={pickerSearch}
   />
@@ -336,7 +340,7 @@
         <span class="picker-item-offset">{formatOffset(offsetMinutes(c.iana))}</span>
       </button>
     {:else}
-      <div class="picker-empty">nothing matches</div>
+      <div class="picker-empty">{i18n.m.tz.nothingMatches}</div>
     {/each}
   </div>
 </Modal>
@@ -344,7 +348,13 @@
 <Tutorial
   open={tourOpen}
   onClose={closeTour}
-  slides={TZ_SLIDES.map((s) => ({ title: s.title, caption: s.caption, svg: s.svg() }))}
+  slides={[
+    { title: i18n.m.tz.tour.welcomeTitle, caption: i18n.m.tz.tour.welcomeCaption, svg: TZ_SLIDES[0].svg() },
+    { title: i18n.m.tz.tour.dragTitle, caption: i18n.m.tz.tour.dragCaption, svg: TZ_SLIDES[1].svg() },
+    { title: i18n.m.tz.tour.addTitle, caption: i18n.m.tz.tour.addCaption, svg: TZ_SLIDES[2].svg() },
+    { title: i18n.m.tz.tour.modeTitle, caption: i18n.m.tz.tour.modeCaption, svg: TZ_SLIDES[3].svg() },
+    { title: i18n.m.tz.tour.tagsTitle, caption: i18n.m.tz.tour.tagsCaption, svg: TZ_SLIDES[4].svg() }
+  ]}
 />
 
 <style>
@@ -529,13 +539,14 @@
     top: 6px;
     bottom: 6px;
     width: 0;
-    border-inline-start: 1px dashed rgba(255, 255, 255, 0.4);
+    /* physical because the parent .slider-track is dir=ltr */
+    border-left: 1px dashed rgba(255, 255, 255, 0.4);
     pointer-events: none;
   }
   .now-label {
     position: absolute;
     top: -16px;
-    inset-inline-start: 4px;
+    left: 4px;
     font-family: var(--font-mono);
     font-size: 9px;
     color: var(--text-dim);
@@ -547,7 +558,9 @@
     top: 0;
     bottom: 0;
     width: 36px;
-    margin-inline-start: -18px;
+    /* margin-left is physical on purpose — the slider is forced LTR via
+     * dir="ltr" on .slider-track so the pin's center stays at left:X%. */
+    margin-left: -18px;
     cursor: grab;
     touch-action: none;
   }
@@ -555,7 +568,7 @@
     position: absolute;
     top: 18px;
     bottom: 0;
-    inset-inline-start: 17px;
+    left: 17px;
     width: 2px;
     background: var(--c);
     box-shadow: 0 0 8px var(--c);
@@ -566,7 +579,7 @@
   .pin .pin-head {
     position: absolute;
     top: 12px;
-    inset-inline-start: 13px;
+    left: 13px;
     width: 10px;
     height: 10px;
     border-radius: 50%;
