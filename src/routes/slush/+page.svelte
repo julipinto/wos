@@ -240,6 +240,14 @@
       <div class="add-row">
         <button
           class="add-btn"
+          title={i18n.m.slush.resetInventory}
+          onclick={() => slush.resetInventoryToDefault()}
+        >
+          <Icon name="rotate-ccw" size={12} />
+          {i18n.m.slush.resetInventory}
+        </button>
+        <button
+          class="add-btn"
           disabled={slush.inventory.length >= MAX_JARS}
           onclick={() => (pickerOpen = !pickerOpen)}
         >
@@ -630,6 +638,9 @@
   }
   .add-row {
     margin-top: 12px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
   }
   .add-btn {
     font-family: var(--font-mono);
