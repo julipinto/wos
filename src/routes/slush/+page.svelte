@@ -257,6 +257,7 @@
         <div class="rounds">
           {#each slush.rounds as round, ri (ri)}
             <div class="round">
+              <span class="round-num">#{ri + 1}</span>
               <div class="slots">
                 {#each round.guess as hex, i (i)}
                   <div class="slot small">
@@ -284,6 +285,7 @@
             </div>
           {:else}
             <div class="round current">
+              <span class="round-num">#{slush.rounds.length + 1}</span>
               <div class="slots">
                 {#each slush.currentGuess as hex, i (i)}
                   {@const locked = confirmed[i] !== null}
@@ -675,10 +677,11 @@
     /* Single row: slots flex 1 + action button (del/submit) inline at the end.
      * The button aligns with the jars row; on long inventories the slots
      * wrap and the button stays vertically centered against the block. */
+    position: relative;
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 12px;
+    padding: 14px 12px 10px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 14px;
@@ -686,6 +689,19 @@
   .round.current {
     border-color: var(--border-strong);
     background: var(--surface-hover);
+  }
+  .round-num {
+    /* Tiny corner badge — visible reference for which round you're on without
+     * eating any horizontal space from the jar row. */
+    position: absolute;
+    top: 4px;
+    inset-inline-start: 10px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    line-height: 1;
+    pointer-events: none;
   }
   .slots {
     flex: 1;
