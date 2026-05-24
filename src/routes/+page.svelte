@@ -158,7 +158,9 @@
     </div>
   </section>
 
-  <footer class="foot">{i18n.m.landing.footer}</footer>
+  <!-- Personal signature — intentionally not localized, stays the same in
+       every language. -->
+  <footer class="foot">3214 ❤️ SUV</footer>
 </div>
 
 <style>
