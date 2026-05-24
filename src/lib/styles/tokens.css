@@ -2,9 +2,9 @@
  * Canon: STYLE_GUIDE.md. Don't deviate without an entry in the guide. */
 
 :root {
-  /* Surfaces */
-  --bg: #0b0e16;
-  --bg-soft: #11151f;
+  /* Surfaces — slightly blue/violet tint (matches the legacy slush bg). */
+  --bg: #0b0d1f;
+  --bg-soft: #0f1230;
   --surface: rgba(255, 255, 255, 0.035);
   --surface-hover: rgba(255, 255, 255, 0.055);
   --surface-strong: rgba(255, 255, 255, 0.07);
@@ -21,9 +21,14 @@
 
   /* Accents — cyan is primary; green/red are state-only */
   --accent: #93d4ff;
+  /* --accent-glow is the soft hover/border tint; --accent-glow-strong is the
+   * saturated cyan used by drop-shadows on interactive jars. */
   --accent-glow: rgba(147, 212, 255, 0.18);
+  --accent-glow-strong: rgba(147, 212, 255, 0.5);
   --ok: #6ee7a8;
+  --ok-glow-strong: rgba(110, 231, 168, 0.55);
   --no: #ff8a8a;
+  --no-glow-strong: rgba(255, 138, 138, 0.55);
 
   /* Fonts */
   --font-display: 'Fraunces', serif;
