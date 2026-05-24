@@ -264,9 +264,9 @@
                     <Jar {hex} scale={0.75} />
                     <div class="fb {round.feedback[i] === true ? 'ok' : round.feedback[i] === false ? 'no' : ''}">
                       {#if round.feedback[i] === true}
-                        <Icon name="check" size={12} strokeWidth={2.5} />
+                        <Icon name="check" size={12} />
                       {:else if round.feedback[i] === false}
-                        <Icon name="x" size={12} strokeWidth={2.5} />
+                        <Icon name="x" size={12} />
                       {/if}
                     </div>
                   </div>
@@ -280,7 +280,7 @@
 
           {#if slush.isWon}
             <div class="won">
-              <Icon name="circle-check" size={22} strokeWidth={2} />
+              <Icon name="circle-check" size={22} />
               <span>{i18n.m.slush.solved}</span>
             </div>
           {:else}
@@ -311,9 +311,9 @@
                       onclick={() => slush.cycleFeedback(i)}
                     >
                       {#if slush.currentFeedback[i] === true}
-                        <Icon name="check" size={12} strokeWidth={2.5} />
+                        <Icon name="check" size={12} />
                       {:else if slush.currentFeedback[i] === false}
-                        <Icon name="x" size={12} strokeWidth={2.5} />
+                        <Icon name="x" size={12} />
                       {/if}
                     </button>
                   </div>
@@ -362,7 +362,7 @@
               <div class="mini-jars">
                 {#if colors.length === 0 && slush.rounds.length > 0}
                   <span class="x-mark" aria-hidden="true">
-                    <Icon name="x" size={14} strokeWidth={2} />
+                    <Icon name="x" size={14} />
                   </span>
                 {:else}
                   {#each colors as hex (hex)}

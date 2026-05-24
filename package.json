@@ -16,6 +16,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.14.0",
+    "@iconify-icons/lucide": "^1.2.135",
+    "@iconify-json/lucide": "^1.2.109",
     "@sveltejs/adapter-static": "^3.0.6",
     "@sveltejs/kit": "^2.8.0",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
@@ -31,7 +33,11 @@
     "tslib": "^2.8.1",
     "typescript": "^5.6.3",
     "typescript-eslint": "^8.13.0",
+    "unplugin-icons": "^23.0.1",
     "vite": "^6.0.0",
     "vitest": "^2.1.4"
+  },
+  "dependencies": {
+    "@iconify/svelte": "^5.2.1"
   }
 }
