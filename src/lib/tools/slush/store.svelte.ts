@@ -210,6 +210,15 @@ export const slush = {
     applyAutoLock();
     persistInventory();
   },
+  /** Reset inventory back to DEFAULT_INVENTORY. Clears rounds too — the
+   * multiset is changing, so feedback collected against the old set is no
+   * longer meaningful. */
+  resetInventoryToDefault(): void {
+    state.inventory = [...DEFAULT_INVENTORY];
+    state.rounds = [];
+    applyAutoLock();
+    persistInventory();
+  },
   /** Apply a new ORDER of unique colors. Preserves the count of each color. */
   setInventoryOrder(orderedUniqueHexes: Hex[]): void {
     const counts = new Map<Hex, number>();
