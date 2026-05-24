@@ -25,7 +25,14 @@ export function offsetMinutes(iana: string, atDate: Date = new Date()): number {
   const parts = Object.fromEntries(fmt.formatToParts(atDate).map((p) => [p.type, p.value]));
   // Some locales emit hour "24" for midnight; normalize.
   const h = +parts.hour === 24 ? 0 : +parts.hour;
-  const asUtcMs = Date.UTC(+parts.year, +parts.month - 1, +parts.day, h, +parts.minute, +parts.second);
+  const asUtcMs = Date.UTC(
+    +parts.year,
+    +parts.month - 1,
+    +parts.day,
+    h,
+    +parts.minute,
+    +parts.second
+  );
   // `|| 0` normalizes -0 (which Math.round can produce) to +0.
   return Math.round((asUtcMs - atDate.getTime()) / 60000) || 0;
 }
@@ -41,7 +48,10 @@ export function dayOffsetFor(baseUtcMin: number, offsetMin: number): number {
  * Unsigned input matches both polarities ("7" → UTC+7 AND UTC-7).
  */
 export function matchesOffsetQuery(offsetMin: number, rawQuery: string): boolean {
-  const q = rawQuery.toLowerCase().trim().replace(/^utc\s*/, '');
+  const q = rawQuery
+    .toLowerCase()
+    .trim()
+    .replace(/^utc\s*/, '');
   const m = q.match(/^([+-]?)\s*(\d{1,2})(?::(\d{2}))?$/);
   if (!m) return false;
   const sign = m[1] === '-' ? -1 : 1;

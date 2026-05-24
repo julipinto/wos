@@ -595,7 +595,8 @@
     border: 1px solid var(--border);
     border-radius: 12px;
   }
-  .inv-row.dragging {
+  /* :global(.dragging) — class added at runtime by the drag util, scope-opaque to Svelte. */
+  .inv-row:global(.dragging) {
     /* Lifted state: stronger shadow, accent border, slightly larger and
      * brighter so the row clearly reads as "in-hand". */
     box-shadow: 0 18px 36px rgba(0, 0, 0, 0.55);
@@ -605,8 +606,8 @@
     z-index: 5;
     cursor: grabbing;
   }
-  .inv-row.dragging .inv-grip,
-  .inv-row.dragging .inv-jar {
+  .inv-row:global(.dragging) .inv-grip,
+  .inv-row:global(.dragging) .inv-jar {
     cursor: grabbing;
   }
   .inv-grip {
@@ -793,8 +794,12 @@
     border-radius: 14px;
   }
   .round.current {
+    /* Subtle cyan highlight gradient (like the legacy slush.html), no solid
+     * hover-bg — the brighter surface-hover read as a strong blue tint over
+     * the new dark-blue body. */
+    background:
+      linear-gradient(90deg, transparent, rgba(147, 212, 255, 0.04), transparent), var(--surface);
     border-color: var(--border-strong);
-    background: var(--surface-hover);
   }
   .round-num {
     /* Tiny corner badge — visible reference for which round you're on without

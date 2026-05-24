@@ -238,7 +238,11 @@
               {#each zone.tags as t (t)}
                 <span class="tag">
                   <span class="tag-text">{t}</span>
-                  <button class="tag-x" aria-label="Remove {t}" onclick={() => tz.removeTag(zone.id, t)}>
+                  <button
+                    class="tag-x"
+                    aria-label="Remove {t}"
+                    onclick={() => tz.removeTag(zone.id, t)}
+                  >
                     <Icon name="x" size={10} />
                   </button>
                 </span>
@@ -276,12 +280,19 @@
           </div>
           <div class="zone-time">
             <span class="time-24h">
-              {localTimeFor(zone)}{#if dayTagFor(zone)}<span class="day-tag">{dayTagFor(zone)}</span>{/if}
+              {localTimeFor(zone)}{#if dayTagFor(zone)}<span class="day-tag">{dayTagFor(zone)}</span
+                >{/if}
             </span>
-            <span class="time-ampm">{formatTimeAmPm(mod(tz.baseUtcMin + zone.offsetMin, 1440))}</span>
+            <span class="time-ampm"
+              >{formatTimeAmPm(mod(tz.baseUtcMin + zone.offsetMin, 1440))}</span
+            >
           </div>
           {#if zone.removable}
-            <button class="zone-remove" aria-label="Remove zone" onclick={() => tz.removeZone(zone.id)}>
+            <button
+              class="zone-remove"
+              aria-label="Remove zone"
+              onclick={() => tz.removeZone(zone.id)}
+            >
               <Icon name="x" size={12} />
             </button>
           {/if}
@@ -316,12 +327,7 @@
   <div class="picker-list">
     {#each filteredCatalog as c (c.id)}
       {@const used = tz.zones.some((z) => z.id === c.id)}
-      <button
-        class="picker-item"
-        class:in-use={used}
-        disabled={used}
-        onclick={() => onPick(c)}
-      >
+      <button class="picker-item" class:in-use={used} disabled={used} onclick={() => onPick(c)}>
         <div class="picker-item-label">
           <span class="picker-item-name">{c.name} · {c.loc}</span>
           <span class="picker-item-loc">{c.iana}</span>
@@ -338,11 +344,27 @@
   open={tourOpen}
   onClose={closeTour}
   slides={[
-    { title: i18n.m.tz.tour.welcomeTitle, caption: i18n.m.tz.tour.welcomeCaption, svg: TZ_SLIDES[0].svg() },
-    { title: i18n.m.tz.tour.dragTitle, caption: i18n.m.tz.tour.dragCaption, svg: TZ_SLIDES[1].svg() },
+    {
+      title: i18n.m.tz.tour.welcomeTitle,
+      caption: i18n.m.tz.tour.welcomeCaption,
+      svg: TZ_SLIDES[0].svg()
+    },
+    {
+      title: i18n.m.tz.tour.dragTitle,
+      caption: i18n.m.tz.tour.dragCaption,
+      svg: TZ_SLIDES[1].svg()
+    },
     { title: i18n.m.tz.tour.addTitle, caption: i18n.m.tz.tour.addCaption, svg: TZ_SLIDES[2].svg() },
-    { title: i18n.m.tz.tour.modeTitle, caption: i18n.m.tz.tour.modeCaption, svg: TZ_SLIDES[3].svg() },
-    { title: i18n.m.tz.tour.tagsTitle, caption: i18n.m.tz.tour.tagsCaption, svg: TZ_SLIDES[4].svg() }
+    {
+      title: i18n.m.tz.tour.modeTitle,
+      caption: i18n.m.tz.tour.modeCaption,
+      svg: TZ_SLIDES[3].svg()
+    },
+    {
+      title: i18n.m.tz.tour.tagsTitle,
+      caption: i18n.m.tz.tour.tagsCaption,
+      svg: TZ_SLIDES[4].svg()
+    }
   ]}
 />
 
@@ -556,10 +578,11 @@
     pointer-events: none;
     transition: transform 0.15s ease;
   }
-  .pin.dragging .pin-head {
+  /* :global(.dragging) — class is added by JS during drag. */
+  .pin:global(.dragging) .pin-head {
     transform: scale(1.3);
   }
-  .pin.dragging .pin-line {
+  .pin:global(.dragging) .pin-line {
     width: 3px;
   }
   .tick-row {

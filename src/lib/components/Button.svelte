@@ -8,6 +8,7 @@
     children: Snippet;
   }
 
+  // eslint-disable-next-line svelte/valid-compile -- rest props are fine; we don't ship as a custom element
   let { variant = 'secondary', size = 'md', children, class: cls, ...rest }: Props = $props();
 </script>
 

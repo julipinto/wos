@@ -105,8 +105,10 @@ export function suggestBestGuess(possibilities: Hex[][]): Hex[] | null {
   if (possibilities.length === 1) return possibilities[0];
   const CAND_LIMIT = 600;
   const SAMPLE_LIMIT = 1500;
-  const candidates = possibilities.length > CAND_LIMIT ? possibilities.slice(0, CAND_LIMIT) : possibilities;
-  const sample = possibilities.length > SAMPLE_LIMIT ? possibilities.slice(0, SAMPLE_LIMIT) : possibilities;
+  const candidates =
+    possibilities.length > CAND_LIMIT ? possibilities.slice(0, CAND_LIMIT) : possibilities;
+  const sample =
+    possibilities.length > SAMPLE_LIMIT ? possibilities.slice(0, SAMPLE_LIMIT) : possibilities;
 
   let best = candidates[0];
   let bestScore = Infinity;

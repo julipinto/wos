@@ -16,6 +16,13 @@ export default [
         ...globals.browser,
         ...globals.node
       }
+    },
+    rules: {
+      // Allow `_` and `_*` as unused — common in {#each items as _, i (i)}.
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }
+      ]
     }
   },
   {
