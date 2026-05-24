@@ -19,7 +19,7 @@
 
   <div class="tools">
     <h2 class="section-label">{i18n.m.landing.sectionEvents}</h2>
-    <a href="{base}/slush/" class="tool-card">
+    <a href="{base}/slush" class="tool-card">
       <div class="tool-visual" aria-hidden="true">
         <svg viewBox="0 0 132 60" xmlns="http://www.w3.org/2000/svg">
           {#each slushJars as jar, i (i)}
@@ -74,7 +74,7 @@
     </a>
 
     <h2 class="section-label section-label--later">{i18n.m.landing.sectionEveryday}</h2>
-    <a href="{base}/tz/" class="tool-card">
+    <a href="{base}/tz" class="tool-card">
       <div class="tool-visual" aria-hidden="true">
         <svg viewBox="0 0 132 60" xmlns="http://www.w3.org/2000/svg">
           <defs>
