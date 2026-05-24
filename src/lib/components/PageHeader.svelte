@@ -24,6 +24,12 @@
 </script>
 
 <header class="page-header">
+  <!-- Pref row: locale switcher only. Stays at the very top because it's
+       low-frequency — the tool actions get the more prominent position. -->
+  <div class="pref-row">
+    <LocaleSwitcher />
+  </div>
+
   <div class="top-row">
     {#if back}
       <a class="back" href={back} aria-label="Back">
@@ -35,7 +41,6 @@
     {/if}
     <div class="actions">
       {#if actions}{@render actions()}{/if}
-      <LocaleSwitcher />
     </div>
   </div>
 
@@ -48,6 +53,11 @@
 <style>
   .page-header {
     margin-bottom: 22px;
+  }
+  .pref-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 14px;
   }
   .top-row {
     display: flex;
@@ -130,6 +140,9 @@
   }
 
   @media (max-width: 540px) {
+    .pref-row {
+      margin-bottom: 10px;
+    }
     .top-row {
       margin-bottom: 22px;
     }
