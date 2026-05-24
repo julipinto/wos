@@ -1,0 +1,88 @@
+{
+  "common": {
+    "back": "back",
+    "next": "next",
+    "gotIt": "got it",
+    "close": "close",
+    "tools": "tools",
+    "help": "help",
+    "settings": "settings",
+    "reset": "reset"
+  },
+  "landing": {
+    "kicker": "whiteout survival",
+    "title": "tools",
+    "sub": "Small calculators and solvers for the parts of the game that get tedious by hand.",
+    "footer": "made for the team",
+    "slush": {
+      "title": "slush station",
+      "desc": "Solver for the in-game event. Tracks per-slot feedback and suggests your next pick."
+    },
+    "tz": {
+      "title": "time tool",
+      "desc": "UTC ↔ any timezone, both ways. Drag a pin to align the whole alliance."
+    },
+    "ghost": {
+      "title": "more cooking",
+      "desc": "Stay frosty — more tools on the way."
+    }
+  },
+  "slush": {
+    "brand": "slush",
+    "brandSub": "solver",
+    "inventoryEyebrow": "Inventory",
+    "paletteEyebrow": "Palette",
+    "roundsEyebrow": "Rounds",
+    "solverEyebrow": "Solver",
+    "addColor": "color",
+    "totalLabel": "total",
+    "jarsLabel": "jars",
+    "suggest": "suggest",
+    "solved": "solved",
+    "noSolution": "no solution",
+    "possibilities": "possibilities",
+    "allUsedUp": "all used up",
+    "rowFull": "row is full",
+    "blockedAtSlot": "marked wrong at slot {slot} before",
+    "tour": {
+      "welcomeTitle": "slush solver",
+      "welcomeCaption": "a quick walkthrough · 5 steps",
+      "inventoryTitle": "set your jars",
+      "inventoryCaption": "open settings · edit the inventory",
+      "placeTitle": "tap to place",
+      "placeCaption": "palette → fills the next empty slot",
+      "feedbackTitle": "mark each result",
+      "feedbackCaption": "tap below · ✓ correct · ✕ wrong",
+      "solverTitle": "watch it narrow",
+      "solverCaption": "count drops · options fade · solved"
+    }
+  },
+  "tz": {
+    "title": "time tool",
+    "sub": "UTC anchored. Drag a pin and the whole list re-sorts.",
+    "live": "live",
+    "manual": "manual",
+    "resetToNow": "reset to now",
+    "utcLabel": "utc",
+    "nowLabel": "now",
+    "addTimezone": "add timezone",
+    "copyAsText": "copy as text",
+    "searchPlaceholder": "search city, abbreviation or offset…",
+    "nothingMatches": "nothing matches",
+    "tagPlaceholder": "name…",
+    "copied": "copied to clipboard",
+    "copyFailed": "copy failed",
+    "tour": {
+      "welcomeTitle": "time tool",
+      "welcomeCaption": "convert utc · both ways · all timezones",
+      "dragTitle": "drag any pin",
+      "dragCaption": "they all move in sync",
+      "addTitle": "add timezones",
+      "addCaption": "search by city · or offset · ±9",
+      "modeTitle": "live until you drag",
+      "modeCaption": "reset returns to now",
+      "tagsTitle": "tag people",
+      "tagsCaption": "drop names on each timezone"
+    }
+  }
+}

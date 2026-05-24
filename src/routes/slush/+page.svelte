@@ -8,6 +8,7 @@
   import { flipReorder } from '$lib/utils/flip';
   import { slush, COLOR_POOL, MAX_JARS, MIN_JARS } from '$lib/tools/slush/store.svelte';
   import { SLUSH_SLIDES } from '$lib/tools/slush/tutorial';
+  import { i18n, fmt } from '$lib/i18n/index.svelte';
   import '$lib/tools/slush/tutorial.css';
 
   let settingsOpen = $state(false);
@@ -17,7 +18,10 @@
   const sol = $derived(slush.solution);
   const confirmed = $derived(slush.confirmed);
   const remaining = $derived(slush.remaining());
+  // Preserves the inventory's order (Set keeps insertion order); used for both
+  // the palette and the inventory editor — one row per unique color.
   const uniqueColors = $derived([...new Set(slush.inventory)]);
+  const colorsAvailable = $derived(slush.inventory.length < MAX_JARS);
   const nextEmptySlot = $derived.by(() => {
     const N = slush.slots;
     for (let i = 0; i < N; i++) {
@@ -39,7 +43,7 @@
     const remaining = slush.remaining();
     const left = remaining.get(hex) ?? 0;
     if (left <= 0) {
-      snackbar.show('all used up', 'no');
+      snackbar.show(i18n.m.slush.allUsedUp, 'no');
       return;
     }
     const N = slush.slots;
@@ -53,11 +57,11 @@
       }
     }
     if (nextSlot === -1) {
-      snackbar.show('row is full', 'no');
+      snackbar.show(i18n.m.slush.rowFull, 'no');
       return;
     }
     if (slush.blockedAt(nextSlot).has(hex)) {
-      snackbar.show(`marked wrong at slot ${nextSlot + 1} before`, 'no');
+      snackbar.show(fmt(i18n.m.slush.blockedAtSlot, { slot: nextSlot + 1 }), 'no');
       return;
     }
     slush.placeAt(nextSlot, hex);
@@ -126,19 +130,21 @@
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
         <path d="M9 3 L4 7 L9 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
-      <span class="brand-name">slush</span>
-      <span class="brand-sub">solver</span>
+      <span class="brand-name">{i18n.m.slush.brand}</span>
+      <span class="brand-sub">{i18n.m.slush.brandSub}</span>
     </a>
     <div class="actions">
       <button class="ibtn" aria-label="Settings" onclick={() => (settingsOpen = !settingsOpen)}>
+        <!-- Gear icon: outer cog with 8 teeth + inner ring. -->
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.5" />
           <path
-            d="M8 1 V3 M8 13 V15 M3 8 H1 M15 8 H13 M3.5 3.5 L4.9 4.9 M11.1 11.1 L12.5 12.5 M12.5 3.5 L11.1 4.9 M4.9 11.1 L3.5 12.5"
+            d="M8 1.5 L8.7 3.4 L10.6 2.9 L10.6 4.9 L12.5 5.7 L11.5 7.4 L13.1 8.7 L11.5 10 L12.5 11.7 L10.6 12.5 L10.6 14.5 L8.7 14 L8 15.9 L7.3 14 L5.4 14.5 L5.4 12.5 L3.5 11.7 L4.5 10 L2.9 8.7 L4.5 7.4 L3.5 5.7 L5.4 4.9 L5.4 2.9 L7.3 3.4 Z"
             stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
+            stroke-width="1.3"
+            stroke-linejoin="round"
+            fill="none"
           />
+          <circle cx="8" cy="8.7" r="2" stroke="currentColor" stroke-width="1.3" />
         </svg>
       </button>
       <button class="ibtn" aria-label="Reset" onclick={onReset}>
@@ -164,7 +170,7 @@
   {#if settingsOpen}
     <section class="panel settings">
       <div class="panel-bar">
-        <span class="eyebrow">Inventory</span>
+        <span class="eyebrow">{i18n.m.slush.inventoryEyebrow}</span>
         <button class="ibtn-sm" aria-label="Close" onclick={() => (settingsOpen = false)}>
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
             <path d="M2 2 L10 10 M10 2 L2 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
@@ -172,7 +178,8 @@
         </button>
       </div>
       <div class="inv-grid">
-        {#each slush.inventory as hex, i (i + '-' + hex)}
+        {#each uniqueColors as hex (hex)}
+          {@const count = slush.inventory.filter((x) => x === hex).length}
           <div class="inv-row" data-hex={hex} use:attachRowDrag={hex}>
             <div class="inv-grip" aria-label="Drag to reorder" style="touch-action: none;">
               <svg width="14" height="20" viewBox="0 0 14 20" fill="none" aria-hidden="true">
@@ -187,16 +194,26 @@
             <div class="inv-jar" style="touch-action: none;">
               <Jar {hex} scale={0.9} />
             </div>
-            <span class="inv-count">×{slush.inventory.filter((x) => x === hex).length}</span>
+            <span class="inv-count">×{count}</span>
             <div class="inv-ctrls">
               <button
                 class="ibtn-sm"
-                aria-label="Remove"
+                aria-label="Remove one"
                 disabled={slush.inventory.length <= MIN_JARS}
-                onclick={() => slush.removeInventoryColor(i)}
+                onclick={() => slush.decrementInventoryColor(hex)}
               >
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                   <path d="M3 7 H11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                </svg>
+              </button>
+              <button
+                class="ibtn-sm"
+                aria-label="Add one"
+                disabled={!colorsAvailable}
+                onclick={() => slush.addInventoryColor(hex)}
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                  <path d="M7 3 V11 M3 7 H11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
                 </svg>
               </button>
             </div>
@@ -212,29 +229,33 @@
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
             <path d="M7 3 V11 M3 7 H11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
           </svg>
-          color
+          {i18n.m.slush.addColor}
         </button>
       </div>
       {#if pickerOpen}
         <div class="color-picker">
-          {#each COLOR_POOL as hex (hex)}
+          {#each COLOR_POOL.filter((h) => !slush.inventory.includes(h)) as hex (hex)}
             <button
               class="picker-swatch"
               style="background: {hex};"
               aria-label={hex}
               onclick={() => onAddColorPick(hex)}
             ></button>
+          {:else}
+            <span class="picker-empty">all colors added · use + on a row to duplicate</span>
           {/each}
         </div>
       {/if}
-      <div class="inv-total">total <b>{slush.inventory.length}</b> jars</div>
+      <div class="inv-total">
+        {i18n.m.slush.totalLabel} <b>{slush.inventory.length}</b> {i18n.m.slush.jarsLabel}
+      </div>
     </section>
   {/if}
 
   <div class="work">
     <div class="col col-input">
       <section class="panel">
-        <div class="panel-bar"><span class="eyebrow">Palette</span></div>
+        <div class="panel-bar"><span class="eyebrow">{i18n.m.slush.paletteEyebrow}</span></div>
         <div class="palette">
           {#each uniqueColors as hex (hex)}
             {@const left = remaining.get(hex) ?? 0}
@@ -264,7 +285,7 @@
       </section>
 
       <section class="panel">
-        <div class="panel-bar"><span class="eyebrow">Rounds</span></div>
+        <div class="panel-bar"><span class="eyebrow">{i18n.m.slush.roundsEyebrow}</span></div>
         <div class="rounds">
           {#each slush.rounds as round, ri (ri)}
             <div class="round">
@@ -302,7 +323,7 @@
                 <circle cx="12" cy="12" r="10" stroke-opacity="0.5" />
                 <polyline points="8 12 11 15 16 9" />
               </svg>
-              <span>solved</span>
+              <span>{i18n.m.slush.solved}</span>
             </div>
           {:else}
             <div class="round current">
@@ -363,7 +384,7 @@
 
     <div class="col col-output">
       <section class="panel">
-        <div class="panel-bar"><span class="eyebrow">Solver</span></div>
+        <div class="panel-bar"><span class="eyebrow">{i18n.m.slush.solverEyebrow}</span></div>
         <div class="count">
           <div
             class="count-num"
@@ -374,7 +395,11 @@
             {sol.contradiction ? '—' : sol.truncated ? '50k+' : sol.total}
           </div>
           <div class="count-label">
-            {sol.contradiction ? 'no solution' : sol.total === 1 ? 'solved' : 'possibilities'}
+            {sol.contradiction
+              ? i18n.m.slush.noSolution
+              : sol.total === 1
+                ? i18n.m.slush.solved
+                : i18n.m.slush.possibilities}
           </div>
         </div>
 
@@ -422,7 +447,7 @@
               <circle cx="7" cy="6" r="3.5" stroke="currentColor" stroke-width="1.5" />
               <path d="M5 12 H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
             </svg>
-            suggest
+            {i18n.m.slush.suggest}
           </button>
         </div>
       </section>
@@ -433,7 +458,33 @@
 <Tutorial
   open={tourOpen}
   onClose={closeTour}
-  slides={SLUSH_SLIDES.map((s) => ({ title: s.title, caption: s.caption, svg: s.svg() }))}
+  slides={[
+    {
+      title: i18n.m.slush.tour.welcomeTitle,
+      caption: i18n.m.slush.tour.welcomeCaption,
+      svg: SLUSH_SLIDES[0].svg()
+    },
+    {
+      title: i18n.m.slush.tour.inventoryTitle,
+      caption: i18n.m.slush.tour.inventoryCaption,
+      svg: SLUSH_SLIDES[1].svg()
+    },
+    {
+      title: i18n.m.slush.tour.placeTitle,
+      caption: i18n.m.slush.tour.placeCaption,
+      svg: SLUSH_SLIDES[2].svg()
+    },
+    {
+      title: i18n.m.slush.tour.feedbackTitle,
+      caption: i18n.m.slush.tour.feedbackCaption,
+      svg: SLUSH_SLIDES[3].svg()
+    },
+    {
+      title: i18n.m.slush.tour.solverTitle,
+      caption: i18n.m.slush.tour.solverCaption,
+      svg: SLUSH_SLIDES[4].svg()
+    }
+  ]}
 />
 
 <style>
@@ -567,7 +618,13 @@
   }
   .inv-ctrls {
     display: inline-flex;
-    gap: 6px;
+    gap: 4px;
+  }
+  .picker-empty {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
   }
   .add-row {
     margin-top: 12px;
