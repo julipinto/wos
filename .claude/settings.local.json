@@ -4,7 +4,11 @@
       "Bash(git *)",
       "Bash(npm install *)",
       "Bash(npx svelte-kit *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(npx eslint *)",
+      "Bash(echo \"eslint exit $?\")",
+      "Bash(yarn test *)",
+      "Bash(yarn run *)"
     ]
   }
 }
