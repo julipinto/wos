@@ -22,36 +22,58 @@
   import chevronDown from '@iconify-icons/lucide/chevron-down';
   // Note: this package predates the lucide rename; help/check live under
   // "help-circle" / "check-circle" rather than the current "circle-*".
+  import circle from '@iconify-icons/lucide/circle';
   import circleCheck from '@iconify-icons/lucide/check-circle';
+  import circleDot from '@iconify-icons/lucide/circle-dot';
   import circleHelp from '@iconify-icons/lucide/help-circle';
   import copy from '@iconify-icons/lucide/copy';
+  import crown from '@iconify-icons/lucide/crown';
+  import download from '@iconify-icons/lucide/download';
   import globe from '@iconify-icons/lucide/globe';
   import gripVertical from '@iconify-icons/lucide/grip-vertical';
   import languages from '@iconify-icons/lucide/languages';
   import lightbulb from '@iconify-icons/lucide/lightbulb';
   import minus from '@iconify-icons/lucide/minus';
+  import move from '@iconify-icons/lucide/move';
+  import play from '@iconify-icons/lucide/play';
   import plus from '@iconify-icons/lucide/plus';
   import rotateCcw from '@iconify-icons/lucide/rotate-ccw';
   import settings from '@iconify-icons/lucide/settings';
+  import slash from '@iconify-icons/lucide/slash';
+  import target from '@iconify-icons/lucide/target';
+  import trash2 from '@iconify-icons/lucide/trash-2';
+  import upload from '@iconify-icons/lucide/upload';
   import x from '@iconify-icons/lucide/x';
+  import zap from '@iconify-icons/lucide/zap';
 
   const icons = {
     'arrow-left': arrowLeft,
     'arrow-right': arrowRight,
     check,
     'chevron-down': chevronDown,
+    circle,
     'circle-check': circleCheck,
+    'circle-dot': circleDot,
     'circle-help': circleHelp,
     copy,
+    crown,
+    download,
     globe,
     'grip-vertical': gripVertical,
     languages,
     lightbulb,
     minus,
+    move,
+    play,
     plus,
     'rotate-ccw': rotateCcw,
     settings,
-    x
+    slash,
+    target,
+    'trash-2': trash2,
+    upload,
+    x,
+    zap
   } as const;
 
   // Register under the standard `lucide:` prefix so <OfflineIcon> can resolve

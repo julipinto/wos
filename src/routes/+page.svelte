@@ -73,6 +73,51 @@
       </svg>
     </a>
 
+    <a href="{base}/gingado" class="tool-card">
+      <div class="tool-visual" aria-hidden="true">
+        <svg viewBox="0 0 132 60" xmlns="http://www.w3.org/2000/svg">
+          {#each [22, 44, 66, 88, 110, 33, 55, 77, 99, 44, 66, 88] as cx, i (i)}
+            {@const cy = i < 5 ? 16 : i < 9 ? 30 : 44}
+            <circle {cx} {cy} r="2.2" fill="rgba(205,233,255,0.55)" />
+          {/each}
+          {#each [22, 46, 70, 94] as x, i (i)}
+            <rect
+              x={x - 1}
+              y="50"
+              width="20"
+              height="8"
+              rx="1.5"
+              fill={i === 1 ? 'rgba(255,209,102,0.16)' : 'rgba(147,212,255,0.08)'}
+              stroke={i === 1 ? 'rgba(255,209,102,0.5)' : 'rgba(147,212,255,0.25)'}
+            />
+          {/each}
+          <g class="t-bob" style="transform-origin: 66px 8px;">
+            <circle cx="66" cy="8" r="4" fill="#fff" />
+          </g>
+        </svg>
+      </div>
+      <div class="tool-body">
+        <h2 class="tool-name">{i18n.m.landing.gingado.title}</h2>
+        <p class="tool-desc">{i18n.m.landing.gingado.desc}</p>
+      </div>
+      <svg
+        class="tool-arrow"
+        width="20"
+        height="20"
+        viewBox="0 0 20 20"
+        fill="none"
+        aria-hidden="true"
+      >
+        <path
+          d="M5 10 H14 M10 6 L14 10 L10 14"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </a>
+
     <h2 class="section-label section-label--later">{i18n.m.landing.sectionEveryday}</h2>
     <a href="{base}/tz" class="tool-card">
       <div class="tool-visual" aria-hidden="true">

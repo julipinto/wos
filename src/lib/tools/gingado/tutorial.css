@@ -1,0 +1,45 @@
+/* Gingado tutorial animations. See STYLE_GUIDE.md "SVG transform gotcha":
+ * an inner <g class="t-*"> must nest inside an outer positioning <g>. */
+
+@keyframes t-fall-gingado {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(95px);
+    opacity: 1;
+  }
+}
+.t-fall {
+  animation: t-fall-gingado 2.4s ease-in infinite;
+}
+
+@keyframes t-swing-gingado {
+  0%,
+  100% {
+    transform: rotate(-26deg);
+  }
+  50% {
+    transform: rotate(26deg);
+  }
+}
+.t-swing {
+  animation: t-swing-gingado 2.8s ease-in-out infinite;
+}
+
+@keyframes t-nudge-gingado {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(10px, -8px);
+  }
+}
+.t-nudge {
+  animation: t-nudge-gingado 2.6s ease-in-out infinite;
+}
