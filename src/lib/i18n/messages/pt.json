@@ -350,9 +350,8 @@
     "view": {
       "label": "Visão",
       "flat": "Plano",
-      "tilt": "Câmera"
+      "tilt": "Iso"
     },
-    "tiltHint": "Modo câmera — volte para Plano para editar.",
     "legend": {
       "reach": "Alcance do banner (7×7)",
       "connected": "Território conectado"

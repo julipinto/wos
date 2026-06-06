@@ -16,12 +16,21 @@
   const STORAGE = 'territory-layout-v1';
   const VIEW_KEY = 'territory-view-v1';
 
-  type View = 'flat' | 'tilt';
-  let view = $state<View>(readJson<View>(VIEW_KEY) === 'tilt' ? 'tilt' : 'flat');
+  type View = 'flat' | 'iso';
+  let view = $state<View>(readJson<View>(VIEW_KEY) === 'iso' ? 'iso' : 'flat');
   function setView(v: View) {
     view = v;
     writeJson(VIEW_KEY, v);
   }
+
+  // The transformed group + the click-mapping CTM source.
+  let plane: SVGGElement | undefined = $state();
+  // 2D isometric: rotate the square grid 45° about its centre and squash it
+  // vertically into the classic diamond. Pure affine → clicks stay invertible.
+  const ISO = 'translate(15 15) scale(0.7071 0.45) rotate(45) translate(-15 -15)';
+  const planeTransform = $derived(view === 'iso' ? ISO : '');
+  // In iso the diamond only spans y≈5–25, so crop the viewBox to drop the bands.
+  const viewBox = $derived(view === 'iso' ? '-1 4.5 32 21' : '0 0 30 30');
 
   function load(): PlacedObject[] {
     const raw = readJson<PlacedObject[]>(STORAGE);
@@ -40,16 +49,19 @@
   const objName = (k: string) => (i18n.m.territory.obj as Record<string, string>)[k];
   const count = (t: TerritoryType) => objects.filter((o) => o.type === t).length;
 
-  function cellFromEvent(e: MouseEvent): { x: number; y: number } {
-    const r = (e.currentTarget as SVGElement).getBoundingClientRect();
-    return {
-      x: Math.floor(((e.clientX - r.left) / r.width) * N),
-      y: Math.floor(((e.clientY - r.top) / r.height) * N)
-    };
+  // Map a screen click to a grid cell by inverting the plane's CTM. This works
+  // in both views because the iso projection is a plain 2D affine on the <g>,
+  // so getScreenCTM() captures it (plus the viewBox) and stays invertible.
+  function cellFromEvent(e: MouseEvent): { x: number; y: number } | null {
+    const ctm = plane?.getScreenCTM();
+    if (!ctm) return null;
+    const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse());
+    return { x: Math.floor(p.x), y: Math.floor(p.y) };
   }
   function onGrid(e: MouseEvent) {
-    if (view === 'tilt') return; // camera view is read-only; edit in flat
-    const { x, y } = cellFromEvent(e);
+    const cell = cellFromEvent(e);
+    if (!cell) return;
+    const { x, y } = cell;
     if (x < 0 || y < 0 || x >= N || y >= N) return;
     // Clicking an existing object removes it; empty cell places the current tool.
     const hitIdx = objects.findIndex((o) => footprintCells(o).includes(`${x},${y}`));
@@ -109,9 +121,9 @@
       >
       <button
         class="seg-btn"
-        class:active={view === 'tilt'}
+        class:active={view === 'iso'}
         type="button"
-        onclick={() => setView('tilt')}>{i18n.m.territory.view.tilt}</button
+        onclick={() => setView('iso')}>{i18n.m.territory.view.tilt}</button
       >
     </div>
   </div>
@@ -133,10 +145,10 @@
     {/each}
   </div>
 
-  <div class="board" class:tilted={view === 'tilt'}>
+  <div class="board" class:iso={view === 'iso'}>
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <svg viewBox="0 0 {N} {N}" class="grid" onclick={onGrid} role="application" aria-label="grid">
+    <svg {viewBox} class="grid" onclick={onGrid} role="application" aria-label="grid">
       <defs>
         <pattern id="cells" width="1" height="1" patternUnits="userSpaceOnUse">
           <rect
@@ -148,32 +160,35 @@
           />
         </pattern>
       </defs>
-      <rect width={N} height={N} fill="var(--bg-soft)" />
-      <!-- banner reach (7×7), subtle amber under everything -->
-      {#each reachCells as c (c.x + '_' + c.y)}
-        <rect x={c.x} y={c.y} width="1" height="1" fill="rgba(251,191,36,0.1)" />
-      {/each}
-      <!-- connected territory -->
-      {#each territoryCells as c (c.x + '_' + c.y)}
-        <rect x={c.x} y={c.y} width="1" height="1" fill="rgba(147,212,255,0.16)" />
-      {/each}
-      <rect width={N} height={N} fill="url(#cells)" />
-      <!-- objects -->
-      {#each objects as o (o.id)}
-        {@const def = OBJECT_DEFS[o.type]}
-        {@const orphan = territory.orphaned.has(o.id)}
-        <rect
-          x={o.x + 0.08}
-          y={o.y + 0.08}
-          width={def.w - 0.16}
-          height={def.h - 0.16}
-          rx="0.18"
-          fill={def.color}
-          fill-opacity={orphan ? 0.25 : 0.85}
-          stroke={orphan ? '#fb7185' : 'rgba(0,0,0,0.3)'}
-          stroke-width={orphan ? 0.12 : 0.05}
-        />
-      {/each}
+      <!-- panel backdrop, generously sized to cover both viewBoxes -->
+      <rect x="-5" y="-5" width="42" height="42" fill="var(--bg-soft)" />
+      <g bind:this={plane} transform={planeTransform}>
+        <!-- banner reach (7×7), subtle amber under everything -->
+        {#each reachCells as c (c.x + '_' + c.y)}
+          <rect x={c.x} y={c.y} width="1" height="1" fill="rgba(251,191,36,0.1)" />
+        {/each}
+        <!-- connected territory -->
+        {#each territoryCells as c (c.x + '_' + c.y)}
+          <rect x={c.x} y={c.y} width="1" height="1" fill="rgba(147,212,255,0.16)" />
+        {/each}
+        <rect width={N} height={N} fill="url(#cells)" />
+        <!-- objects -->
+        {#each objects as o (o.id)}
+          {@const def = OBJECT_DEFS[o.type]}
+          {@const orphan = territory.orphaned.has(o.id)}
+          <rect
+            x={o.x + 0.08}
+            y={o.y + 0.08}
+            width={def.w - 0.16}
+            height={def.h - 0.16}
+            rx="0.18"
+            fill={def.color}
+            fill-opacity={orphan ? 0.25 : 0.85}
+            stroke={orphan ? '#fb7185' : 'rgba(0,0,0,0.3)'}
+            stroke-width={orphan ? 0.12 : 0.05}
+          />
+        {/each}
+      </g>
     </svg>
   </div>
 
@@ -183,7 +198,7 @@
   </div>
 
   <div class="footer">
-    <p class="hint">{view === 'tilt' ? i18n.m.territory.tiltHint : i18n.m.territory.hint}</p>
+    <p class="hint">{i18n.m.territory.hint}</p>
     <button class="reset" type="button" onclick={reset} disabled={objects.length === 0}>
       {i18n.m.common.reset}
     </button>
@@ -283,23 +298,8 @@
     height: auto;
     touch-action: manipulation;
     cursor: crosshair;
-    transition: transform 0.4s ease;
-    transform-origin: center center;
   }
-  /* Camera view: tilt the board back like the in-game map camera. */
-  .board.tilted {
-    overflow: visible;
-    border: none;
-    background: none;
-    perspective: 1100px;
-    margin: 8% 0 14%;
-  }
-  .board.tilted .grid {
-    transform: rotateX(55deg) scale(0.92);
-    cursor: default;
-    border-radius: var(--r-card);
-    box-shadow: 0 40px 70px rgba(0, 0, 0, 0.45);
-  }
+  /* The iso view just swaps the viewBox + plane transform; nothing extra here. */
   .legend {
     display: flex;
     flex-wrap: wrap;
