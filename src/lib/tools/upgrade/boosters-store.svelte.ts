@@ -124,6 +124,15 @@ export const BOOSTER_DEFS: BoosterDef[] = [
     source: 'alliance',
     tiers: ALLIANCE
   },
+  // Jasser hero "Enlightened Warfare" — always-active expedition passive,
+  // research-speed analog of Zinman (skill level 0–5).
+  {
+    id: 'jasser',
+    category: 'research',
+    i18n: 'jasser',
+    source: 'hero',
+    tiers: [0, 3, 6, 9, 12, 15]
+  },
   // President "Research Advancement" — castable +10% research for 24h.
   {
     id: 'researchAdvancement',
@@ -143,6 +152,15 @@ export const BOOSTER_DEFS: BoosterDef[] = [
   },
   // Training
   { id: 'trainingSpeed', category: 'training', i18n: 'training' },
+  // Ling Xue hero "Total Control" — always-active expedition passive, the only
+  // training-speed hero (skill level 0–5).
+  {
+    id: 'lingXue',
+    category: 'training',
+    i18n: 'lingXue',
+    source: 'hero',
+    tiers: [0, 4, 8, 12, 16, 20]
+  },
   // President "Mobilize" — castable +30% training for 24h.
   { id: 'mobilize', category: 'training', i18n: 'mobilize', source: 'president', tiers: [0, 30] },
   {

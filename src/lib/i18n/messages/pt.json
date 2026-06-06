@@ -308,7 +308,9 @@
       "researchAdvancement": "Avanço da Pesquisa",
       "mobilize": "Mobilizar",
       "agnes": "Agnes",
-      "hyena": "Hiena"
+      "hyena": "Hiena",
+      "jasser": "Jasser (nível skill)",
+      "lingXue": "Ling Xue (nível skill)"
     },
     "researchTime": "tempo de pesquisa",
     "trainTime": "tempo de treinamento",
