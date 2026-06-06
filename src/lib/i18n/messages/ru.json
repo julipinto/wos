@@ -287,7 +287,6 @@
       "mechanisms2": "Mechanisms II",
       "advancedTraining1": "Advanced Training I",
       "advancedTraining2": "Advanced Training II",
-      "skatingRink": "Skating Rink",
       "src": {
         "alliance": "альянс",
         "hero": "герой",
@@ -301,7 +300,8 @@
       "adaptiveTools": "Adaptive Tools",
       "mechanisms": "Mechanisms",
       "advancedTraining": "Advanced Training",
-      "vip": "VIP (когда активен)"
+      "vip": "VIP (когда активен)",
+      "hotSpring": "Природный горячий источник"
     },
     "researchTime": "время исследования",
     "trainTime": "время обучения",
