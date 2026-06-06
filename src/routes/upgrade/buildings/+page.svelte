@@ -1,27 +1,30 @@
 <script lang="ts">
   import { i18n, fmt } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
-  import Select from '$lib/components/Select.svelte';
   import RangeSelect from '$lib/tools/upgrade/RangeSelect.svelte';
   import Boosters from '$lib/tools/upgrade/Boosters.svelte';
   import StepList from '$lib/tools/upgrade/StepList.svelte';
   import { buildingsCalc } from '$lib/tools/upgrade/store.svelte';
   import {
     sumRange,
+    combine,
     formatQty,
     formatDuration,
     applySpeed,
     presentResources
   } from '$lib/tools/upgrade/engine';
   import { boosters } from '$lib/tools/upgrade/boosters-store.svelte';
-  import { RESOURCES } from '$lib/tools/upgrade/types';
+  import { RESOURCES, type LevelCost } from '$lib/tools/upgrade/types';
 
   const resDef = (key: string) => RESOURCES.find((r) => r.key === key)!;
 
-  // Reactive selection → result.
-  const building = $derived(buildingsCalc.current);
-  const result = $derived(sumRange(building, buildingsCalc.from, buildingsCalc.to));
-  const rows = $derived(presentResources(result.totals));
+  // Additive: one combined result across every building row.
+  const rows = $derived(buildingsCalc.rows);
+  const result = $derived(
+    combine(rows.map((r) => sumRange(buildingsCalc.tableOf(r.buildingId), r.from, r.to)))
+  );
+  const resRows = $derived(presentResources(result.totals));
+
   // Speed % first, then subtract any flat reduction (Agnes), clamped at 0 —
   // time can never go negative.
   const effTime = $derived(
@@ -31,16 +34,26 @@
     )
   );
 
-  // FC building levels have no published per-level time, so any range that
-  // climbs through them under-reports — flag it instead of showing a bare 0.
-  const timeUnsourced = $derived.by(() => {
-    const lv = building.levels;
-    const fromI = lv.findIndex((l) => l.label === buildingsCalc.from);
-    const toI = lv.findIndex((l) => l.label === buildingsCalc.to);
-    for (let i = fromI + 1; i <= toI; i++)
-      if (lv[i].time === 0 && Object.keys(lv[i].cost).length > 0) return true;
-    return false;
+  // Combined per-building step breakdown — each level prefixed with its building.
+  const steps = $derived.by(() => {
+    const out: LevelCost[] = [];
+    for (const r of rows) {
+      const t = buildingsCalc.tableOf(r.buildingId);
+      const lv = t.levels;
+      const fromI = lv.findIndex((l) => l.label === r.from);
+      const toI = lv.findIndex((l) => l.label === r.to);
+      if (fromI < 0 || toI < 0) continue;
+      for (const level of lv.slice(fromI + 1, toI + 1))
+        out.push({ label: `${t.name} · ${level.label}`, cost: level.cost, time: level.time });
+    }
+    return out;
   });
+
+  // Any FC level still without a sourced time would under-report — flag it.
+  const timeUnsourced = $derived(steps.some((s) => s.time === 0 && Object.keys(s.cost).length > 0));
+  const anyUnverified = $derived(
+    rows.some((r) => !buildingsCalc.tableOf(r.buildingId).meta.verified)
+  );
 
   // Zinman's skill (set in the boosters panel) also cuts base-resource cost for
   // construction by the same %, applied to meat/wood/coal/iron only.
@@ -48,18 +61,6 @@
   const zimanPct = $derived(boosters.contribution('zinman'));
   const effRes = (key: string, amt: number) =>
     zimanPct > 0 && ZIMAN_BASE.includes(key) ? Math.round(amt * (1 - zimanPct / 100)) : amt;
-
-  // The individual levels in the chosen range (from exclusive → to inclusive),
-  // for the collapsible step-by-step breakdown.
-  const steps = $derived.by(() => {
-    const lv = building.levels;
-    const fromI = lv.findIndex((l) => l.label === buildingsCalc.from);
-    const toI = lv.findIndex((l) => l.label === buildingsCalc.to);
-    return fromI < 0 || toI < 0 ? [] : lv.slice(fromI + 1, toI + 1);
-  });
-
-  // Dropdown options for the building picker.
-  const buildingOptions = $derived(buildingsCalc.list.map((b) => ({ value: b.id, label: b.name })));
 </script>
 
 <svelte:head>
@@ -73,49 +74,65 @@
     backHref="/upgrade"
   />
 
-  {#if !building.meta.verified}
+  {#if anyUnverified}
     <div class="warn" role="note">
       <strong>⚠ {i18n.m.upgrade.unverified}</strong>
       <span>{i18n.m.upgrade.unverifiedNote}</span>
     </div>
   {/if}
 
-  <div class="controls">
-    <div class="field">
-      <span class="field-label">{i18n.m.upgrade.buildings.pick}</span>
-      <Select
-        value={buildingsCalc.buildingId}
-        options={buildingOptions}
-        onChange={(v) => buildingsCalc.setBuilding(v)}
-        ariaLabel={i18n.m.upgrade.buildings.pick}
-      />
+  {#if rows.length > 0}
+    <div class="building-rows">
+      {#each rows as row, i (row.buildingId)}
+        {@const table = buildingsCalc.tableOf(row.buildingId)}
+        <div class="building-row">
+          <span class="b-name">{table.name}</span>
+          <div class="row-controls">
+            <RangeSelect
+              labels={table.levels.map((l) => l.label)}
+              from={row.from}
+              to={row.to}
+              onChange={(f, t) => {
+                buildingsCalc.setFrom(i, f);
+                buildingsCalc.setTo(i, t);
+              }}
+              ariaFrom="{table.name} {i18n.m.upgrade.from}"
+              ariaTo="{table.name} {i18n.m.upgrade.to}"
+            />
+            <button
+              class="remove"
+              type="button"
+              onclick={() => buildingsCalc.remove(i)}
+              aria-label={i18n.m.upgrade.troops.remove}>×</button
+            >
+          </div>
+        </div>
+      {/each}
     </div>
+  {/if}
 
-    <div class="range">
-      <span class="field-label">{i18n.m.upgrade.from} → {i18n.m.upgrade.to}</span>
-      <RangeSelect
-        labels={building.levels.map((l) => l.label)}
-        from={buildingsCalc.from}
-        to={buildingsCalc.to}
-        onChange={(f, t) => {
-          buildingsCalc.setFrom(f);
-          buildingsCalc.setTo(t);
-        }}
-        ariaFrom={i18n.m.upgrade.from}
-        ariaTo={i18n.m.upgrade.to}
-      />
+  {#if buildingsCalc.available.length > 0}
+    <div class="add">
+      <span class="field-label">{i18n.m.upgrade.add}</span>
+      <div class="chips">
+        {#each buildingsCalc.available as b (b.id)}
+          <button class="chip" type="button" onclick={() => buildingsCalc.add(b.id)}
+            >+ {b.name}</button
+          >
+        {/each}
+      </div>
     </div>
-  </div>
+  {/if}
 
   <Boosters categories={['construction']} />
 
   <h2 class="section-label">{i18n.m.upgrade.totalEyebrow}</h2>
 
-  {#if rows.length === 0}
-    <p class="empty">{i18n.m.upgrade.pickRange}</p>
+  {#if resRows.length === 0}
+    <p class="empty">{i18n.m.upgrade.addHint}</p>
   {:else}
     <div class="totals">
-      {#each rows as key (key)}
+      {#each resRows as key (key)}
         {@const def = resDef(key)}
         <div class="res">
           <span class="res-icon" style="--c: {def.color}" aria-hidden="true">{def.icon}</span>
@@ -179,17 +196,6 @@
     letter-spacing: 0.5px;
   }
 
-  .controls {
-    display: grid;
-    gap: 14px;
-    margin-bottom: 28px;
-  }
-  .field {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    flex: 1;
-  }
   .field-label {
     font-family: var(--font-mono);
     font-size: 10px;
@@ -197,11 +203,77 @@
     text-transform: uppercase;
     color: var(--text-dim);
   }
-  .range {
+  .building-rows {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .building-row {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    flex: 1;
+    padding: 12px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-card);
+  }
+  .b-name {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-mid);
+  }
+  .row-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .remove {
+    flex-shrink: 0;
+    width: 36px;
+    height: 44px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    color: var(--text-dim);
+    font-size: 20px;
+    cursor: pointer;
+    transition:
+      color 0.2s ease,
+      border-color 0.2s ease;
+  }
+  .remove:hover {
+    color: #fb7185;
+    border-color: rgba(251, 113, 133, 0.4);
+  }
+  .add {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .chip {
+    background: var(--surface);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--r-pill);
+    color: var(--text-mid);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition:
+      color 0.2s ease,
+      border-color 0.2s ease,
+      background 0.2s ease;
+  }
+  .chip:hover {
+    color: var(--accent);
+    border-color: var(--border-accent);
+    background: var(--surface-hover);
   }
 
   .section-label {

@@ -1,7 +1,8 @@
 /**
- * Buildings-calculator state (Svelte 5 runes). Holds the current selection
- * (which building, from-level, to-level) and persists it to localStorage.
- * The actual maths lives in engine.ts — the page derives the result from these.
+ * Buildings-calculator state (Svelte 5 runes). Holds an ADDITIVE list of
+ * building upgrades — each row is {building, from-level, to-level} — so you can
+ * plan several buildings at once (Furnace + Embassy + camps…), not just one.
+ * Persisted to localStorage; the page sums every row. Maths lives in engine.ts.
  */
 
 import { readJson, writeJson } from '$lib/utils/storage';
@@ -10,67 +11,71 @@ import type { UpgradeTable } from './types';
 
 const STORAGE_KEY = 'upgrade-buildings-v1';
 
-interface Persisted {
+export interface BuildingRow {
   buildingId: string;
   from: string;
   to: string;
 }
 
-function clampSelection(table: UpgradeTable, from: string, to: string): Persisted {
+const lastLabel = (t: UpgradeTable) => t.levels[t.levels.length - 1].label;
+
+/** Keep a row only if its building exists and its labels are on that ladder. */
+function clampRow(row: BuildingRow): BuildingRow | null {
+  const table = buildingById(row.buildingId);
+  if (!table) return null;
   const labels = table.levels.map((l) => l.label);
-  const safeFrom = labels.includes(from) ? from : labels[0];
-  const safeTo = labels.includes(to) ? to : labels[labels.length - 1];
-  return { buildingId: table.id, from: safeFrom, to: safeTo };
+  return {
+    buildingId: table.id,
+    from: labels.includes(row.from) ? row.from : labels[0],
+    to: labels.includes(row.to) ? row.to : lastLabel(table)
+  };
 }
 
-function load(): Persisted {
-  const first = BUILDINGS[0];
-  const raw = readJson<Persisted>(STORAGE_KEY);
-  const table = (raw && buildingById(raw.buildingId)) || first;
-  return clampSelection(
-    table,
-    raw?.from ?? table.levels[0].label,
-    raw?.to ?? table.levels[table.levels.length - 1].label
-  );
+function load(): BuildingRow[] {
+  const raw = readJson<BuildingRow[]>(STORAGE_KEY);
+  if (!Array.isArray(raw)) return []; // start empty — additive UX
+  return raw.map(clampRow).filter((r): r is BuildingRow => r !== null);
 }
 
-const state = $state<Persisted>(load());
+const state = $state<{ rows: BuildingRow[] }>({ rows: load() });
 
 function persist(): void {
-  writeJson(STORAGE_KEY, { ...state });
+  writeJson(
+    STORAGE_KEY,
+    state.rows.map((r) => ({ ...r }))
+  );
 }
 
 export const buildingsCalc = {
   get list() {
     return BUILDINGS;
   },
-  get buildingId() {
-    return state.buildingId;
+  get rows() {
+    return state.rows;
   },
-  get from() {
-    return state.from;
+  /** Buildings not yet added (each building is added at most once). */
+  get available() {
+    return BUILDINGS.filter((b) => !state.rows.some((r) => r.buildingId === b.id));
   },
-  get to() {
-    return state.to;
+  tableOf(id: string): UpgradeTable {
+    return buildingById(id) ?? BUILDINGS[0];
   },
-  /** The currently selected table (always defined — falls back to the first). */
-  get current(): UpgradeTable {
-    return buildingById(state.buildingId) ?? BUILDINGS[0];
-  },
-
-  setBuilding(id: string): void {
+  add(id: string): void {
     const table = buildingById(id);
-    if (!table) return;
-    // Re-clamp the level range against the new building's ladder.
-    Object.assign(state, clampSelection(table, state.from, state.to));
+    if (!table || state.rows.some((r) => r.buildingId === id)) return;
+    state.rows.push({ buildingId: id, from: table.levels[0].label, to: lastLabel(table) });
     persist();
   },
-  setFrom(label: string): void {
-    state.from = label;
+  remove(i: number): void {
+    state.rows.splice(i, 1);
     persist();
   },
-  setTo(label: string): void {
-    state.to = label;
+  setFrom(i: number, label: string): void {
+    if (state.rows[i]) state.rows[i].from = label;
+    persist();
+  },
+  setTo(i: number, label: string): void {
+    if (state.rows[i]) state.rows[i].to = label;
     persist();
   }
 };

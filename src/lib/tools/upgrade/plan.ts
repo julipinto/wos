@@ -87,19 +87,26 @@ function charmName(sid: string): string | undefined {
 }
 
 function buildingsLine(): PlanLine | null {
-  const s = readJson<{ buildingId: string } & Pair>('upgrade-buildings-v1');
-  const b = s && buildingById(s.buildingId);
-  if (!s || !b) return null;
-  const r = sumRange(b, s.from, s.to);
-  return has(r.totals)
-    ? {
-        id: 'buildings',
-        totals: r.totals,
-        time: r.time,
-        timeCategory: 'construction',
-        detail: [`${b.name} ${range(s.from, s.to)}`]
-      }
-    : null;
+  const arr = readJson<({ buildingId: string } & Pair)[]>('upgrade-buildings-v1');
+  if (!Array.isArray(arr) || arr.length === 0) return null;
+  const valid = arr.filter((p) => {
+    const b = buildingById(p.buildingId);
+    return (
+      b &&
+      p.from !== p.to &&
+      b.levels.some((l) => l.label === p.from) &&
+      b.levels.some((l) => l.label === p.to)
+    );
+  });
+  const r = combine(valid.map((p) => sumRange(buildingById(p.buildingId)!, p.from, p.to)));
+  if (!has(r.totals)) return null;
+  return {
+    id: 'buildings',
+    totals: r.totals,
+    time: r.time,
+    timeCategory: 'construction',
+    detail: valid.map((p) => `${buildingById(p.buildingId)!.name} ${range(p.from, p.to)}`)
+  };
 }
 
 function troopsLine(): PlanLine | null {
