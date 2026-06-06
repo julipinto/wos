@@ -27,10 +27,10 @@
   let plane: SVGGElement | undefined = $state();
   // 2D isometric: rotate the square grid 45° about its centre and squash it
   // vertically into the classic diamond. Pure affine → clicks stay invertible.
-  const ISO = 'translate(15 15) scale(0.7071 0.45) rotate(45) translate(-15 -15)';
+  const ISO = 'translate(15 15) scale(0.7071 0.55) rotate(45) translate(-15 -15)';
   const planeTransform = $derived(view === 'iso' ? ISO : '');
-  // In iso the diamond only spans y≈5–25, so crop the viewBox to drop the bands.
-  const viewBox = $derived(view === 'iso' ? '-1 4.5 32 21' : '0 0 30 30');
+  // In iso the diamond only spans y≈3–27, so crop the viewBox to drop the bands.
+  const viewBox = $derived(view === 'iso' ? '-1 2.5 32 25' : '0 0 30 30');
 
   function load(): PlacedObject[] {
     const raw = readJson<PlacedObject[]>(STORAGE);
@@ -161,8 +161,11 @@
         </pattern>
       </defs>
       <!-- panel backdrop, generously sized to cover both viewBoxes -->
-      <rect x="-5" y="-5" width="42" height="42" fill="var(--bg-soft)" />
+      <rect x="-5" y="-5" width="42" height="42" fill="var(--bg)" />
       <g bind:this={plane} transform={planeTransform}>
+        <!-- the playable floor — lighter than the backdrop so the iso diamond
+             reads as a distinct surface -->
+        <rect width={N} height={N} fill="var(--bg-soft)" />
         <!-- banner reach (7×7), subtle amber under everything -->
         {#each reachCells as c (c.x + '_' + c.y)}
           <rect x={c.x} y={c.y} width="1" height="1" fill="rgba(251,191,36,0.1)" />
@@ -290,7 +293,7 @@
     border: 1px solid var(--border);
     border-radius: var(--r-card);
     overflow: hidden;
-    background: var(--bg-soft);
+    background: var(--bg);
   }
   .grid {
     display: block;
