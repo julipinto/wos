@@ -21,7 +21,14 @@
   const building = $derived(buildingsCalc.current);
   const result = $derived(sumRange(building, buildingsCalc.from, buildingsCalc.to));
   const rows = $derived(presentResources(result.totals));
-  const effTime = $derived(applySpeed(result.time, boosters.total('construction')));
+  // Speed % first, then subtract any flat reduction (Agnes), clamped at 0 —
+  // time can never go negative.
+  const effTime = $derived(
+    Math.max(
+      0,
+      applySpeed(result.time, boosters.total('construction')) - boosters.flatTotal('construction')
+    )
+  );
 
   // FC building levels have no published per-level time, so any range that
   // climbs through them under-reports — flag it instead of showing a bare 0.

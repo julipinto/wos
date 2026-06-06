@@ -292,7 +292,8 @@
         "hero": "hero",
         "island": "island",
         "position": "chief",
-        "president": "president"
+        "president": "president",
+        "expert": "expert"
       },
       "vicePresident": "Vice President",
       "mercantilism": "Mercantilism",
@@ -304,7 +305,8 @@
       "vip": "VIP (while active)",
       "hotSpring": "Natural Hot Spring",
       "researchAdvancement": "Research Advancement",
-      "mobilize": "Mobilize"
+      "mobilize": "Mobilize",
+      "agnes": "Agnes"
     },
     "researchTime": "research time",
     "trainTime": "training time",

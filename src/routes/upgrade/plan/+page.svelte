@@ -30,10 +30,13 @@
 
   // Time runs in parallel queues, so report per category — never one summed total.
   const TIME_CATS: BoosterCategory[] = ['construction', 'research', 'training'];
-  const catTime = (cat: BoosterCategory) =>
-    adjLines
+  const catTime = (cat: BoosterCategory) => {
+    const summed = adjLines
       .filter((l) => l.timeCategory === cat)
       .reduce((t, l) => t + applySpeed(l.time, boosters.total(cat)), 0);
+    // Subtract any flat reduction (Agnes, construction), clamped at 0.
+    return Math.max(0, summed - boosters.flatTotal(cat));
+  };
   const timeRows = $derived(
     TIME_CATS.map((cat) => ({ cat, secs: catTime(cat) })).filter((t) => t.secs > 0)
   );

@@ -292,7 +292,8 @@
         "hero": "herói",
         "island": "ilha",
         "position": "cargo",
-        "president": "presidente"
+        "president": "presidente",
+        "expert": "perito"
       },
       "vicePresident": "Vice-presidente",
       "mercantilism": "Mercantilismo",
@@ -304,7 +305,8 @@
       "vip": "VIP (quando ativo)",
       "hotSpring": "Fonte Termal Natural",
       "researchAdvancement": "Avanço da Pesquisa",
-      "mobilize": "Mobilizar"
+      "mobilize": "Mobilizar",
+      "agnes": "Agnes"
     },
     "researchTime": "tempo de pesquisa",
     "trainTime": "tempo de treinamento",

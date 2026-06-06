@@ -292,7 +292,8 @@
         "hero": "герой",
         "island": "остров",
         "position": "пост",
-        "president": "президент"
+        "president": "президент",
+        "expert": "эксперт"
       },
       "vicePresident": "Вице-президент",
       "mercantilism": "Меркантилизм",
@@ -304,7 +305,8 @@
       "vip": "VIP (когда активен)",
       "hotSpring": "Природный горячий источник",
       "researchAdvancement": "Развитие исследований",
-      "mobilize": "Мобилизация"
+      "mobilize": "Мобилизация",
+      "agnes": "Agnes"
     },
     "researchTime": "время исследования",
     "trainTime": "время обучения",
