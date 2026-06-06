@@ -73,11 +73,13 @@ export const BOOSTER_DEFS: BoosterDef[] = [
     tiers: ALLIANCE
   },
   {
-    id: 'skatingRink',
+    // Natural Hot Spring: user-confirmed in-game +0.8% research per level, 4% at
+    // level 5 (verified by inspecting the dismantle preview).
+    id: 'hotSpring',
     category: 'research',
-    i18n: 'skatingRink',
+    i18n: 'hotSpring',
     source: 'island',
-    tiers: [0, 2, 4, 6, 8, 10]
+    tiers: [0, 0.8, 1.6, 2.4, 3.2, 4]
   },
   // Training
   { id: 'trainingSpeed', category: 'training', i18n: 'training' },
@@ -109,7 +111,8 @@ export interface PositionDef {
 
 /** State positions — you hold ONE at a time (or none). */
 export const POSITIONS: PositionDef[] = [
-  { id: 'vicePresident', i18n: 'vicePresident', construction: 10, training: 10 },
+  // VP gives +10% to all three speeds (user-confirmed in-game).
+  { id: 'vicePresident', i18n: 'vicePresident', construction: 10, research: 10, training: 10 },
   { id: 'minister', i18n: 'minister', training: 50 }
 ];
 const POS_BY_ID = new Map(POSITIONS.map((p) => [p.id, p]));

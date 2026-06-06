@@ -287,7 +287,6 @@
       "mechanisms2": "Mechanisms II",
       "advancedTraining1": "Advanced Training I",
       "advancedTraining2": "Advanced Training II",
-      "skatingRink": "Skating Rink",
       "src": {
         "alliance": "التحالف",
         "hero": "بطل",
@@ -301,7 +300,8 @@
       "adaptiveTools": "Adaptive Tools",
       "mechanisms": "Mechanisms",
       "advancedTraining": "Advanced Training",
-      "vip": "VIP (عند التفعيل)"
+      "vip": "VIP (عند التفعيل)",
+      "hotSpring": "ينبوع حار طبيعي"
     },
     "researchTime": "وقت البحث",
     "trainTime": "وقت التدريب",

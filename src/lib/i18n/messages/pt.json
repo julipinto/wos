@@ -287,7 +287,6 @@
       "mechanisms2": "Mechanisms II",
       "advancedTraining1": "Advanced Training I",
       "advancedTraining2": "Advanced Training II",
-      "skatingRink": "Skating Rink",
       "src": {
         "alliance": "aliança",
         "hero": "herói",
@@ -301,7 +300,8 @@
       "adaptiveTools": "Adaptive Tools",
       "mechanisms": "Mechanisms",
       "advancedTraining": "Advanced Training",
-      "vip": "VIP (quando ativo)"
+      "vip": "VIP (quando ativo)",
+      "hotSpring": "Fonte Termal Natural"
     },
     "researchTime": "tempo de pesquisa",
     "trainTime": "tempo de treinamento",
