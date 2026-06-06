@@ -360,6 +360,26 @@ For "advance to next step" actions inside a tool (e.g. submit), use a small pill
 }
 ```
 
+### Select (dropdown)
+
+`src/lib/components/Select.svelte` — the shared dropdown. **Always use it instead of a native `<select>`.** Native `<option>` popups render in the OS colour scheme (white-on-white on a dark theme, even with `color-scheme: dark` set), and can't be fully styled; `Select` is a custom listbox so the popup matches the theme everywhere.
+
+It mirrors the `LocaleSwitcher` pattern: a button trigger + an absolutely-positioned listbox, click-outside and `Escape` to close, full keyboard support (↑/↓, Home/End, Enter/Space), and it scrolls the active row into view on open (important for long ladders like FC10 or pet levels).
+
+```svelte
+<Select
+  value={current}
+  options={[
+    { value: 'a', label: 'A' },
+    { value: 'b', label: 'B' }
+  ]}
+  onChange={(v) => (current = v)}
+  ariaLabel="building"
+/>
+```
+
+Props: `value: string`, `options: { value; label }[]`, `onChange: (value) => void`, `ariaLabel?`. It's uncontrolled-friendly — pass `value` back in from your own state inside `onChange`. `:root` also sets `color-scheme: dark` so any remaining native controls (number inputs, scrollbars) render dark.
+
 ---
 
 ## Motion

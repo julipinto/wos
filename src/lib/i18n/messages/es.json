@@ -31,6 +31,10 @@
     "ghost": {
       "title": "más cocinándose",
       "desc": "Mantente frío — más herramientas en camino."
+    },
+    "upgrade": {
+      "title": "planificador de mejoras",
+      "desc": "Recursos y tiempo para cualquier mejora. Indica dónde estás y tu objetivo — obtén el costo exacto."
     }
   },
   "slush": {
@@ -166,6 +170,165 @@
       "modeCaption": "reiniciar vuelve al ahora",
       "tagsTitle": "etiqueta personas",
       "tagsCaption": "pon nombres en cada zona"
+    }
+  },
+  "upgrade": {
+    "title": "planificador de mejoras",
+    "sub": "Planifica cualquier mejora — indica dónde estás y a dónde vas, obtén los recursos y el tiempo exactos.",
+    "hubEyebrow": "calculadoras",
+    "soon": "pronto",
+    "preview": "vista previa",
+    "unverified": "datos sin verificar",
+    "unverifiedNote": "Aún no contrastados con varias fuentes — no te fíes para gastos grandes.",
+    "from": "actual",
+    "to": "objetivo",
+    "totalEyebrow": "total necesario",
+    "pickRange": "Elige un objetivo superior a tu nivel actual.",
+    "buildTime": "tiempo de construcción",
+    "levelUps": "niveles",
+    "cat": {
+      "buildings": "edificios",
+      "gear": "equipo del jefe",
+      "charms": "amuletos",
+      "research": "investigación",
+      "heroes": "héroes",
+      "pets": "mascotas",
+      "troops": "tropas",
+      "helios": "Helios",
+      "experts": "experts",
+      "plan": "mi plan"
+    },
+    "res": {
+      "meat": "carne",
+      "wood": "madera",
+      "coal": "carbón",
+      "iron": "hierro",
+      "crystal": "cristal",
+      "fireCrystal": "cristal de fuego",
+      "refinedFireCrystal": "cristal de fuego refinado",
+      "hardenedAlloy": "aleación endurecida",
+      "polishingSolution": "solución de pulido",
+      "designPlans": "planos de diseño",
+      "lunarAmber": "ámbar lunar",
+      "charmDesign": "diseño de amuleto",
+      "charmGuide": "guía de amuleto",
+      "charmSecret": "secreto de amuleto",
+      "steel": "acero",
+      "petFood": "comida de mascota",
+      "tamingManual": "manual de doma",
+      "energizingPotion": "poción energizante",
+      "strengtheningSerum": "suero fortificante",
+      "essenceStones": "piedras de esencia",
+      "mythicHeroGear": "equipo de héroe mítico",
+      "widget": "widgets",
+      "heroShard": "fragmentos de héroe",
+      "fcShard": "fragmentos de cristal de fuego",
+      "expertSigil": "sigilos de experto"
+    },
+    "buildings": {
+      "sub": "Costo de recursos y tiempo entre dos niveles de un edificio.",
+      "pick": "edificio"
+    },
+    "setAll": "definir todos",
+    "apply": "aplicar",
+    "gear": {
+      "sub": "Materiales para subir las 6 piezas de equipo del jefe. Define el tier actual y objetivo de cada pieza."
+    },
+    "charms": {
+      "sub": "Materiales para los 18 slots de amuletos (3 por pieza). Define el nivel actual y objetivo de cada uno."
+    },
+    "troops": {
+      "sub": "Recursos para entrenar tropas. Añade una fila por tipo, tier y cantidad.",
+      "type": "tipo",
+      "tier": "tier",
+      "quantity": "cantidad",
+      "add": "añadir fila",
+      "remove": "quitar",
+      "infantry": "infantería",
+      "marksman": "tirador",
+      "lancer": "lancero"
+    },
+    "research": {
+      "sub": "Recursos totales para maximizar cada árbol de investigación desde cero. Activa los árboles que quieras.",
+      "growth": "Crecimiento",
+      "economy": "Economía",
+      "battle": "Batalla",
+      "note": "Fuente única, pendiente de contraste. Asume maximizar todo desde cero; investigación de War Academy / Fire Crystal aún no incluida.",
+      "nodes": "nodos"
+    },
+    "pets": {
+      "sub": "Comida de mascota y materiales de avance para subir tus mascotas. Añade una fila por mascota.",
+      "note": "Fuente única (whiteoutsurvival.wiki), pendiente de contraste. Los costos dependen del tier de nivel máximo.",
+      "pet": "mascota"
+    },
+    "add": "añadir",
+    "addHint": "Añade lo que quieras para empezar — solo lo que te interesa.",
+    "boosters": {
+      "title": "boosters",
+      "hint": "Activa cada booster que hayas desbloqueado y define su valor — se suman y reducen los tiempos de abajo. Usa tu total del juego en una fila O divídelo por fuentes, no ambos. Los efectos por-temporizador (Chief Orders, Ayuda de Alianza) no se incluyen.",
+      "construction": "velocidad de construcción",
+      "research": "velocidad de investigación",
+      "training": "velocidad de entrenamiento",
+      "base": "base",
+      "zinman": "Zinman (nivel hab.)",
+      "alliance": "tecnología de alianza",
+      "total": "total",
+      "level": "nivel de habilidad",
+      "skiResort": "Resort de Esquí",
+      "barbecue": "Puesto de Barbacoa",
+      "minister": "Ministro de Educación",
+      "adaptiveTools1": "Adaptive Tools I",
+      "adaptiveTools2": "Adaptive Tools II",
+      "mechanisms1": "Mechanisms I",
+      "mechanisms2": "Mechanisms II",
+      "advancedTraining1": "Advanced Training I",
+      "advancedTraining2": "Advanced Training II",
+      "skatingRink": "Skating Rink",
+      "src": {
+        "alliance": "alianza",
+        "hero": "héroe",
+        "island": "isla",
+        "position": "cargo"
+      },
+      "vicePresident": "Vicepresidente",
+      "mercantilism": "Mercantilismo",
+      "position": "cargo",
+      "none": "ninguno",
+      "adaptiveTools": "Adaptive Tools",
+      "mechanisms": "Mechanisms",
+      "advancedTraining": "Advanced Training"
+    },
+    "researchTime": "tiempo de investigación",
+    "trainTime": "tiempo de entrenamiento",
+    "heroes": {
+      "sub": "Materiales de héroe por vía — maestría de equipo, equipo exclusivo y promoción de estrellas. Define el actual y el objetivo en los que quieras.",
+      "mastery": "maestría de equipo",
+      "exclusive": "equipo exclusivo",
+      "stars": "promoción de estrellas"
+    },
+    "helios": {
+      "sub": "Investigación de tropas T11 Helios (War Academy). Cuesta Steel + Fragmentos de Cristal de Fuego. Define actual → objetivo de cada nodo; elige cuántos tipos de tropa vas a maximizar.",
+      "note": "Fuente única, pendiente de contraste. Los tiempos de investigación por nivel no se publican (sin tiempo). El costo de entrenar la tropa Helios no se publica.",
+      "troopTypes": "tipos de tropa",
+      "flameSquad": "Flame Squad",
+      "health": "Salud",
+      "lethality": "Letalidad",
+      "attack": "Ataque",
+      "defense": "Defensa",
+      "flameLegion": "Flame Legion",
+      "unlock": "Helios (desbloqueo)"
+    },
+    "experts": {
+      "sub": "Expertos de Dawn Academy — vía de Afinidad. Añade un experto y define su nivel de afinidad actual → objetivo para ver los Sigilos necesarios.",
+      "note": "Solo la vía de Afinidad (Sigilos) — la vía de habilidades (\"Books of Knowledge\") aún no está modelada. Datos de wostools/woscalculator."
+    },
+    "timePartial": "Los tiempos de los niveles Fire Crystal no se publican, así que esto los excluye — el tiempo real es mayor.",
+    "zimanCut": "Zinman: −{pct}% en recursos básicos (carne/madera/carbón/hierro, no Fire Crystals).",
+    "plan": {
+      "sub": "Todo lo que configuraste en las calculadoras, sumado en un total.",
+      "empty": "Nada planeado aún — abre una calculadora y define un objetivo.",
+      "includes": "incluye",
+      "parallel": "Los tiempos son por cola (construcción, investigación y entrenamiento corren en paralelo) — no se suman."
     }
   }
 }
