@@ -291,7 +291,8 @@
         "alliance": "alliance",
         "hero": "hero",
         "island": "island",
-        "position": "chief"
+        "position": "chief",
+        "president": "president"
       },
       "vicePresident": "Vice President",
       "mercantilism": "Mercantilism",
@@ -301,7 +302,9 @@
       "mechanisms": "Mechanisms",
       "advancedTraining": "Advanced Training",
       "vip": "VIP (while active)",
-      "hotSpring": "Natural Hot Spring"
+      "hotSpring": "Natural Hot Spring",
+      "researchAdvancement": "Research Advancement",
+      "mobilize": "Mobilize"
     },
     "researchTime": "research time",
     "trainTime": "training time",

@@ -291,7 +291,8 @@
         "alliance": "alianza",
         "hero": "héroe",
         "island": "isla",
-        "position": "cargo"
+        "position": "cargo",
+        "president": "presidente"
       },
       "vicePresident": "Vicepresidente",
       "mercantilism": "Mercantilismo",
@@ -301,7 +302,9 @@
       "mechanisms": "Mechanisms",
       "advancedTraining": "Advanced Training",
       "vip": "VIP (cuando activo)",
-      "hotSpring": "Fuente Termal Natural"
+      "hotSpring": "Fuente Termal Natural",
+      "researchAdvancement": "Avance de Investigación",
+      "mobilize": "Movilizar"
     },
     "researchTime": "tiempo de investigación",
     "trainTime": "tiempo de entrenamiento",
