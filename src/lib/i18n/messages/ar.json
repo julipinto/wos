@@ -293,7 +293,8 @@
         "island": "الجزيرة",
         "position": "منصب",
         "president": "الرئيس",
-        "expert": "خبير"
+        "expert": "خبير",
+        "pet": "حيوان أليف"
       },
       "vicePresident": "نائب الرئيس",
       "mercantilism": "المذهب التجاري",
@@ -306,7 +307,8 @@
       "hotSpring": "ينبوع حار طبيعي",
       "researchAdvancement": "تطوير البحث",
       "mobilize": "تعبئة",
-      "agnes": "Agnes"
+      "agnes": "Agnes",
+      "hyena": "ضبع"
     },
     "researchTime": "وقت البحث",
     "trainTime": "وقت التدريب",

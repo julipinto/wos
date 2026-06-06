@@ -17,7 +17,7 @@
 import { readJson, writeJson } from '$lib/utils/storage';
 
 export type BoosterCategory = 'construction' | 'research' | 'training';
-export type BoosterSource = 'alliance' | 'hero' | 'island' | 'president' | 'expert';
+export type BoosterSource = 'alliance' | 'hero' | 'island' | 'president' | 'expert' | 'pet';
 
 export interface BoosterDef {
   id: string;
@@ -95,6 +95,15 @@ export const BOOSTER_DEFS: BoosterDef[] = [
     i18n: 'mercantilism',
     source: 'president',
     tiers: [0, 10]
+  },
+  // Hyena pet skill — construction speed % by pet level (user-provided in-game).
+  {
+    id: 'hyena',
+    category: 'construction',
+    i18n: 'hyena',
+    source: 'pet',
+    tierUnit: 'Lv',
+    tiers: [0, 5, 7, 9, 12, 15]
   },
   // Agnes expert skill — FLAT construction-time cut (seconds), not a %.
   {
