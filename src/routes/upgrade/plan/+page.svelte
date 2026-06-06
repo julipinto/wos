@@ -3,6 +3,7 @@
   import { i18n } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import Boosters from '$lib/tools/upgrade/Boosters.svelte';
+  import DeficitPanel from '$lib/tools/upgrade/DeficitPanel.svelte';
   import {
     addBags,
     applySpeed,
@@ -76,6 +77,8 @@
         </div>
       {/each}
     </div>
+
+    <DeficitPanel needed={grand} />
 
     {#if timeRows.length > 0}
       <div class="meta-row">
