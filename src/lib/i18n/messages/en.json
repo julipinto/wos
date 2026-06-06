@@ -24,6 +24,10 @@
       "title": "time tool",
       "desc": "UTC ↔ any timezone, both ways. Drag a pin to align the whole alliance."
     },
+    "upgrade": {
+      "title": "upgrade planner",
+      "desc": "Resources and time for any upgrade. Pick what you have and your target — get the exact cost."
+    },
     "gingado": {
       "title": "penguin wobble",
       "desc": "Pachinko sandbox for the penguin event. Estimates the payout per ball and which penguin to drop from."
@@ -166,6 +170,165 @@
       "modeCaption": "reset returns to now",
       "tagsTitle": "tag people",
       "tagsCaption": "drop names on each timezone"
+    }
+  },
+  "upgrade": {
+    "title": "upgrade planner",
+    "sub": "Plan any upgrade — set where you are and where you're headed, get the exact resources and time.",
+    "hubEyebrow": "calculators",
+    "soon": "soon",
+    "preview": "preview",
+    "unverified": "unverified data",
+    "unverifiedNote": "Not yet cross-checked against multiple sources — don't rely on it for big spends.",
+    "from": "current",
+    "to": "target",
+    "totalEyebrow": "total needed",
+    "pickRange": "Pick a target higher than your current level.",
+    "buildTime": "build time",
+    "levelUps": "level-ups",
+    "cat": {
+      "buildings": "buildings",
+      "gear": "chief gear",
+      "charms": "chief charms",
+      "research": "research",
+      "heroes": "heroes",
+      "pets": "pets",
+      "troops": "troops",
+      "helios": "Helios",
+      "experts": "experts",
+      "plan": "my plan"
+    },
+    "res": {
+      "meat": "meat",
+      "wood": "wood",
+      "coal": "coal",
+      "iron": "iron",
+      "crystal": "crystal",
+      "fireCrystal": "fire crystal",
+      "refinedFireCrystal": "refined fire crystal",
+      "hardenedAlloy": "hardened alloy",
+      "polishingSolution": "polishing solution",
+      "designPlans": "design plans",
+      "lunarAmber": "lunar amber",
+      "charmDesign": "charm design",
+      "charmGuide": "charm guide",
+      "charmSecret": "charm secret",
+      "steel": "steel",
+      "petFood": "pet food",
+      "tamingManual": "taming manual",
+      "energizingPotion": "energizing potion",
+      "strengtheningSerum": "strengthening serum",
+      "essenceStones": "essence stones",
+      "mythicHeroGear": "mythic hero gear",
+      "widget": "widgets",
+      "heroShard": "hero shards",
+      "fcShard": "fire crystal shards",
+      "expertSigil": "expert sigils"
+    },
+    "buildings": {
+      "sub": "Resource & time cost between two building levels.",
+      "pick": "building"
+    },
+    "setAll": "set all",
+    "apply": "apply",
+    "gear": {
+      "sub": "Materials to upgrade your 6 chief gear pieces. Set each piece's current and target tier."
+    },
+    "charms": {
+      "sub": "Materials for all 18 chief charm slots (3 per gear piece). Set each charm's current and target level."
+    },
+    "troops": {
+      "sub": "Resources to train troops. Add a row per troop type, tier and quantity.",
+      "type": "type",
+      "tier": "tier",
+      "quantity": "quantity",
+      "add": "add row",
+      "remove": "remove",
+      "infantry": "infantry",
+      "marksman": "marksman",
+      "lancer": "lancer"
+    },
+    "research": {
+      "sub": "Total resources to max each research tree from zero. Toggle the trees you want.",
+      "growth": "Growth",
+      "economy": "Economy",
+      "battle": "Battle",
+      "note": "Single-source data, pending cross-check. Assumes maxing every node from scratch; War Academy / Fire Crystal research not included yet.",
+      "nodes": "nodes"
+    },
+    "pets": {
+      "sub": "Pet Food and advancement materials to level your pets. Add a row per pet.",
+      "note": "Single-source data (whiteoutsurvival.wiki), pending cross-check. Costs are keyed by max-level tier.",
+      "pet": "pet"
+    },
+    "add": "add",
+    "addHint": "Add what you want to start — only what you care about.",
+    "boosters": {
+      "title": "boosters",
+      "hint": "Enable each booster you've unlocked and set its value — they stack and reduce the times below. Either enter your in-game total in one row OR break it into sources, not both. Per-timer effects (Chief Orders, Alliance Help) aren't included.",
+      "construction": "construction speed",
+      "research": "research speed",
+      "training": "training speed",
+      "base": "base",
+      "zinman": "Zinman (skill lvl)",
+      "alliance": "alliance tech",
+      "total": "total",
+      "level": "skill level",
+      "skiResort": "Ski Resort",
+      "barbecue": "Barbecue Stand",
+      "minister": "Minister of Education",
+      "adaptiveTools1": "Adaptive Tools I",
+      "adaptiveTools2": "Adaptive Tools II",
+      "mechanisms1": "Mechanisms I",
+      "mechanisms2": "Mechanisms II",
+      "advancedTraining1": "Advanced Training I",
+      "advancedTraining2": "Advanced Training II",
+      "skatingRink": "Skating Rink",
+      "src": {
+        "alliance": "alliance",
+        "hero": "hero",
+        "island": "island",
+        "position": "chief"
+      },
+      "vicePresident": "Vice President",
+      "mercantilism": "Mercantilism",
+      "position": "position",
+      "none": "none",
+      "adaptiveTools": "Adaptive Tools",
+      "mechanisms": "Mechanisms",
+      "advancedTraining": "Advanced Training"
+    },
+    "researchTime": "research time",
+    "trainTime": "training time",
+    "heroes": {
+      "sub": "Hero materials by track — gear mastery, exclusive gear and star promotion. Set current and target on the ones you want.",
+      "mastery": "gear mastery",
+      "exclusive": "exclusive gear",
+      "stars": "star promotion"
+    },
+    "helios": {
+      "sub": "T11 Helios troop research (War Academy). Costs Steel + Fire Crystal Shards. Set each node current → target; pick how many troop types you are maxing.",
+      "note": "Single-source data, pending cross-check. Per-level research times are not published (no time shown). Helios troop training cost is not published.",
+      "troopTypes": "troop types",
+      "flameSquad": "Flame Squad",
+      "health": "Health",
+      "lethality": "Lethality",
+      "attack": "Attack",
+      "defense": "Defense",
+      "flameLegion": "Flame Legion",
+      "unlock": "Helios (unlock)"
+    },
+    "experts": {
+      "sub": "Dawn Academy experts — Affinity track. Add an expert and set its current → target affinity level to see the Expert Sigils needed.",
+      "note": "Affinity (Expert Sigils) track only — the skill \"Books of Knowledge\" track isn't modelled yet. Data from wostools/woscalculator."
+    },
+    "timePartial": "Fire Crystal level times aren’t published, so this excludes them — the real time is higher.",
+    "zimanCut": "Zinman: −{pct}% on base resources (meat/wood/coal/iron, not Fire Crystals).",
+    "plan": {
+      "sub": "Everything you've set across the calculators, summed into one total.",
+      "empty": "Nothing planned yet — open a calculator and set a target.",
+      "includes": "includes",
+      "parallel": "Times are per queue (construction, research and training run in parallel) — not added together."
     }
   }
 }

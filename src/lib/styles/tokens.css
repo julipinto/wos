@@ -2,6 +2,11 @@
  * Canon: STYLE_GUIDE.md. Don't deviate without an entry in the guide. */
 
 :root {
+  /* Dark-themed app: tells the browser to render native UI (select option
+   * popups, scrollbars, form controls) in dark mode instead of the OS light
+   * scheme — otherwise native <select> dropdowns render white. */
+  color-scheme: dark;
+
   /* Surfaces — slightly blue/violet tint (matches the legacy slush bg). */
   --bg: #0b0d1f;
   --bg-soft: #0f1230;

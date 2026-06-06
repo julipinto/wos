@@ -18,7 +18,129 @@
   <PageHeader title={i18n.m.landing.title} sub={i18n.m.landing.sub} backHref={null} large />
 
   <div class="tools">
-    <h2 class="section-label">{i18n.m.landing.sectionEvents}</h2>
+    <h2 class="section-label">{i18n.m.landing.sectionEveryday}</h2>
+    <a href="{base}/upgrade" class="tool-card">
+      <div class="tool-visual" aria-hidden="true">
+        <svg viewBox="0 0 132 60" xmlns="http://www.w3.org/2000/svg">
+          {#each [10, 38, 66, 94] as x, i (i)}
+            {@const h = 12 + i * 11}
+            <rect
+              {x}
+              y={50 - h}
+              width="22"
+              height={h}
+              rx="2"
+              fill={i === 3 ? 'rgba(255,209,102,0.18)' : 'rgba(147,212,255,0.10)'}
+              stroke={i === 3 ? 'rgba(255,209,102,0.55)' : 'rgba(147,212,255,0.3)'}
+            />
+          {/each}
+          <g class="t-bob" style="transform-origin: 105px 8px;">
+            <path
+              d="M105 3 L108 9 L114 9 L109 13 L111 19 L105 15 L99 19 L101 13 L96 9 L102 9 Z"
+              fill="rgba(255,209,102,0.7)"
+            />
+          </g>
+        </svg>
+      </div>
+      <div class="tool-body">
+        <h2 class="tool-name">{i18n.m.landing.upgrade.title}</h2>
+        <p class="tool-desc">{i18n.m.landing.upgrade.desc}</p>
+      </div>
+      <svg
+        class="tool-arrow"
+        width="20"
+        height="20"
+        viewBox="0 0 20 20"
+        fill="none"
+        aria-hidden="true"
+      >
+        <path
+          d="M5 10 H14 M10 6 L14 10 L10 14"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </a>
+
+    <a href="{base}/tz" class="tool-card">
+      <div class="tool-visual" aria-hidden="true">
+        <svg viewBox="0 0 132 60" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="tz-track" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="rgba(255,255,255,0.05)" />
+              <stop offset="50%" stop-color="rgba(255,255,255,0.15)" />
+              <stop offset="100%" stop-color="rgba(255,255,255,0.05)" />
+            </linearGradient>
+          </defs>
+          <rect x="8" y="28" width="116" height="4" rx="2" fill="url(#tz-track)" />
+          <line x1="8" y1="24" x2="8" y2="36" stroke="rgba(255,255,255,0.18)" />
+          <line x1="37" y1="26" x2="37" y2="34" stroke="rgba(255,255,255,0.10)" />
+          <line x1="66" y1="24" x2="66" y2="36" stroke="rgba(255,255,255,0.18)" />
+          <line x1="95" y1="26" x2="95" y2="34" stroke="rgba(255,255,255,0.10)" />
+          <line x1="124" y1="24" x2="124" y2="36" stroke="rgba(255,255,255,0.18)" />
+          <g class="t-bob" style="animation-delay: 0s; transform-origin: 66px 30px;">
+            <line
+              x1="66"
+              y1="16"
+              x2="66"
+              y2="44"
+              stroke="#93d4ff"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            />
+            <circle cx="66" cy="14" r="3.5" fill="#93d4ff" />
+          </g>
+          <g class="t-bob" style="animation-delay: 0.25s; transform-origin: 42px 32px;">
+            <line
+              x1="42"
+              y1="20"
+              x2="42"
+              y2="44"
+              stroke="#fb923c"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            />
+            <circle cx="42" cy="18" r="3" fill="#fb923c" />
+          </g>
+          <g class="t-bob" style="animation-delay: 0.5s; transform-origin: 100px 32px;">
+            <line
+              x1="100"
+              y1="20"
+              x2="100"
+              y2="44"
+              stroke="#4ade80"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            />
+            <circle cx="100" cy="18" r="3" fill="#4ade80" />
+          </g>
+        </svg>
+      </div>
+      <div class="tool-body">
+        <h2 class="tool-name">{i18n.m.landing.tz.title}</h2>
+        <p class="tool-desc">{i18n.m.landing.tz.desc}</p>
+      </div>
+      <svg
+        class="tool-arrow"
+        width="20"
+        height="20"
+        viewBox="0 0 20 20"
+        fill="none"
+        aria-hidden="true"
+      >
+        <path
+          d="M5 10 H14 M10 6 L14 10 L10 14"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </a>
+
+    <h2 class="section-label section-label--later">{i18n.m.landing.sectionEvents}</h2>
     <a href="{base}/slush" class="tool-card">
       <div class="tool-visual" aria-hidden="true">
         <svg viewBox="0 0 132 60" xmlns="http://www.w3.org/2000/svg">
@@ -99,83 +221,6 @@
       <div class="tool-body">
         <h2 class="tool-name">{i18n.m.landing.gingado.title}</h2>
         <p class="tool-desc">{i18n.m.landing.gingado.desc}</p>
-      </div>
-      <svg
-        class="tool-arrow"
-        width="20"
-        height="20"
-        viewBox="0 0 20 20"
-        fill="none"
-        aria-hidden="true"
-      >
-        <path
-          d="M5 10 H14 M10 6 L14 10 L10 14"
-          stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
-    </a>
-
-    <h2 class="section-label section-label--later">{i18n.m.landing.sectionEveryday}</h2>
-    <a href="{base}/tz" class="tool-card">
-      <div class="tool-visual" aria-hidden="true">
-        <svg viewBox="0 0 132 60" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="tz-track" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stop-color="rgba(255,255,255,0.05)" />
-              <stop offset="50%" stop-color="rgba(255,255,255,0.15)" />
-              <stop offset="100%" stop-color="rgba(255,255,255,0.05)" />
-            </linearGradient>
-          </defs>
-          <rect x="8" y="28" width="116" height="4" rx="2" fill="url(#tz-track)" />
-          <line x1="8" y1="24" x2="8" y2="36" stroke="rgba(255,255,255,0.18)" />
-          <line x1="37" y1="26" x2="37" y2="34" stroke="rgba(255,255,255,0.10)" />
-          <line x1="66" y1="24" x2="66" y2="36" stroke="rgba(255,255,255,0.18)" />
-          <line x1="95" y1="26" x2="95" y2="34" stroke="rgba(255,255,255,0.10)" />
-          <line x1="124" y1="24" x2="124" y2="36" stroke="rgba(255,255,255,0.18)" />
-          <g class="t-bob" style="animation-delay: 0s; transform-origin: 66px 30px;">
-            <line
-              x1="66"
-              y1="16"
-              x2="66"
-              y2="44"
-              stroke="#93d4ff"
-              stroke-width="1.8"
-              stroke-linecap="round"
-            />
-            <circle cx="66" cy="14" r="3.5" fill="#93d4ff" />
-          </g>
-          <g class="t-bob" style="animation-delay: 0.25s; transform-origin: 42px 32px;">
-            <line
-              x1="42"
-              y1="20"
-              x2="42"
-              y2="44"
-              stroke="#fb923c"
-              stroke-width="1.8"
-              stroke-linecap="round"
-            />
-            <circle cx="42" cy="18" r="3" fill="#fb923c" />
-          </g>
-          <g class="t-bob" style="animation-delay: 0.5s; transform-origin: 100px 32px;">
-            <line
-              x1="100"
-              y1="20"
-              x2="100"
-              y2="44"
-              stroke="#4ade80"
-              stroke-width="1.8"
-              stroke-linecap="round"
-            />
-            <circle cx="100" cy="18" r="3" fill="#4ade80" />
-          </g>
-        </svg>
-      </div>
-      <div class="tool-body">
-        <h2 class="tool-name">{i18n.m.landing.tz.title}</h2>
-        <p class="tool-desc">{i18n.m.landing.tz.desc}</p>
       </div>
       <svg
         class="tool-arrow"
