@@ -23,6 +23,17 @@
   const rows = $derived(presentResources(result.totals));
   const effTime = $derived(applySpeed(result.time, boosters.total('construction')));
 
+  // FC building levels have no published per-level time, so any range that
+  // climbs through them under-reports — flag it instead of showing a bare 0.
+  const timeUnsourced = $derived.by(() => {
+    const lv = building.levels;
+    const fromI = lv.findIndex((l) => l.label === buildingsCalc.from);
+    const toI = lv.findIndex((l) => l.label === buildingsCalc.to);
+    for (let i = fromI + 1; i <= toI; i++)
+      if (lv[i].time === 0 && Object.keys(lv[i].cost).length > 0) return true;
+    return false;
+  });
+
   // Zinman's skill (set in the boosters panel) also cuts base-resource cost for
   // construction by the same %, applied to meat/wood/coal/iron only.
   const ZIMAN_BASE = ['meat', 'wood', 'coal', 'iron'];
@@ -103,11 +114,14 @@
     <div class="meta-row">
       <div class="meta">
         <span class="meta-label">{i18n.m.upgrade.buildTime}</span>
-        <span class="meta-val">{formatDuration(effTime)}</span>
-        {#if boosters.total('construction') > 0}
+        <span class="meta-val">{result.time > 0 ? formatDuration(effTime) : '—'}</span>
+        {#if result.time > 0 && boosters.total('construction') > 0}
           <span class="meta-base"
             >{i18n.m.upgrade.boosters.base}: {formatDuration(result.time)}</span
           >
+        {/if}
+        {#if timeUnsourced}
+          <span class="meta-base">{i18n.m.upgrade.timePartial}</span>
         {/if}
       </div>
       <div class="meta">

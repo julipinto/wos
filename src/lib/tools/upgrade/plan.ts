@@ -18,8 +18,8 @@ import {
 import type { ResourceBag } from './types';
 import type { BoosterCategory } from './boosters-store.svelte';
 import { buildingById } from './data/buildings';
-import { GEAR_LADDER } from './data/gear';
-import { CHARM_LADDER } from './data/charms';
+import { GEAR_LADDER, GEAR_PIECES } from './data/gear';
+import { CHARM_LADDER, CHARM_PIECES } from './data/charms';
 import { TROOP_COST } from './data/troops';
 import { RESEARCH_TREES } from './data/research';
 import { PETS, petLadder } from './data/pets';
@@ -35,7 +35,12 @@ export interface PlanLine {
   time: number;
   /** Which booster category reduces this line's time (null = no time). */
   timeCategory: BoosterCategory | null;
+  /** Human-readable summary of what was configured, e.g. "Furnace 25 → 30". */
+  detail: string[];
 }
+
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+const range = (from: string, to: string) => `${from} → ${to}`;
 
 const has = (b: ResourceBag) => presentResources(b).length > 0;
 
@@ -43,11 +48,33 @@ interface Pair {
   from: string;
   to: string;
 }
-function ladderLine(key: string, ladder: LevelCost[], id: string): PlanLine | null {
+function ladderLine(
+  key: string,
+  ladder: LevelCost[],
+  id: string,
+  nameFor: (sid: string) => string
+): PlanLine | null {
   const arr = readJson<({ sid: string } & Pair)[]>(key);
   if (!Array.isArray(arr) || arr.length === 0) return null;
-  const r = combine(arr.map((p) => sumLadder(ladder, p.from, p.to)));
-  return has(r.totals) ? { id, totals: r.totals, time: 0, timeCategory: null } : null;
+  const valid = arr.filter(
+    (p) => ladder.some((l) => l.label === p.from) && ladder.some((l) => l.label === p.to)
+  );
+  const r = combine(valid.map((p) => sumLadder(ladder, p.from, p.to)));
+  if (!has(r.totals)) return null;
+  return {
+    id,
+    totals: r.totals,
+    time: 0,
+    timeCategory: null,
+    detail: valid.map((p) => `${nameFor(p.sid)} ${range(p.from, p.to)}`)
+  };
+}
+
+const gearName = (sid: string) => GEAR_PIECES.find((p) => p.id === sid)?.name ?? sid;
+function charmName(sid: string): string {
+  const i = sid.lastIndexOf('_');
+  const nm = CHARM_PIECES.find((p) => p.id === sid.slice(0, i))?.name ?? sid;
+  return `${nm} · ${sid.slice(i + 1)}`;
 }
 
 function buildingsLine(): PlanLine | null {
@@ -56,7 +83,13 @@ function buildingsLine(): PlanLine | null {
   if (!s || !b) return null;
   const r = sumRange(b, s.from, s.to);
   return has(r.totals)
-    ? { id: 'buildings', totals: r.totals, time: r.time, timeCategory: 'construction' }
+    ? {
+        id: 'buildings',
+        totals: r.totals,
+        time: r.time,
+        timeCategory: 'construction',
+        detail: [`${b.name} ${range(s.from, s.to)}`]
+      }
     : null;
 }
 
@@ -65,14 +98,16 @@ function troopsLine(): PlanLine | null {
   if (!Array.isArray(rows)) return null;
   let totals: ResourceBag = {};
   let time = 0;
+  const detail: string[] = [];
   for (const row of rows) {
     const e = TROOP_COST[row.type]?.[row.tier - 1];
     const q = Math.max(0, Math.floor(row.qty) || 0);
     if (!e || q <= 0) continue;
     totals = addBags(totals, scaleBag(e.cost, q));
     time += e.time * q;
+    detail.push(`${cap(row.type)} T${row.tier} ×${q}`);
   }
-  return has(totals) ? { id: 'troops', totals, time, timeCategory: 'training' } : null;
+  return has(totals) ? { id: 'troops', totals, time, timeCategory: 'training', detail } : null;
 }
 
 function researchLine(): PlanLine | null {
@@ -80,37 +115,57 @@ function researchLine(): PlanLine | null {
   if (!sel) return null;
   let totals: ResourceBag = {};
   let time = 0;
+  const detail: string[] = [];
   for (const t of RESEARCH_TREES) {
     if (sel[t.id]) {
       totals = addBags(totals, t.total);
       time += t.time;
+      detail.push(t.id);
     }
   }
-  return has(totals) ? { id: 'research', totals, time, timeCategory: 'research' } : null;
+  return has(totals) ? { id: 'research', totals, time, timeCategory: 'research', detail } : null;
 }
 
 function petsLine(): PlanLine | null {
   const rows = readJson<({ pet: string } & Pair)[]>('upgrade-pets-v2');
   if (!Array.isArray(rows) || rows.length === 0) return null;
+  const valid = rows.filter((r) => PETS.find((p) => p.id === r.pet));
   const r = combine(
-    rows.map((row) => {
-      const p = PETS.find((x) => x.id === row.pet);
-      return p ? sumLadder(petLadder(p.max), row.from, row.to) : emptyResult();
-    })
+    valid.map((row) =>
+      sumLadder(petLadder(PETS.find((x) => x.id === row.pet)!.max), row.from, row.to)
+    )
   );
-  return has(r.totals) ? { id: 'pets', totals: r.totals, time: 0, timeCategory: null } : null;
+  if (!has(r.totals)) return null;
+  return {
+    id: 'pets',
+    totals: r.totals,
+    time: 0,
+    timeCategory: null,
+    detail: valid.map(
+      (row) => `${PETS.find((p) => p.id === row.pet)!.name} ${range(row.from, row.to)}`
+    )
+  };
 }
 
 function expertsLine(): PlanLine | null {
   const rows = readJson<({ expert: string } & Pair)[]>('upgrade-experts-v1');
   if (!Array.isArray(rows) || rows.length === 0) return null;
+  const valid = rows.filter((r) => EXPERTS.find((e) => e.id === r.expert));
   const r = combine(
-    rows.map((row) => {
-      const e = EXPERTS.find((x) => x.id === row.expert);
-      return e ? sumLadder(e.ladder, row.from, row.to) : emptyResult();
-    })
+    valid.map((row) =>
+      sumLadder(EXPERTS.find((x) => x.id === row.expert)!.ladder, row.from, row.to)
+    )
   );
-  return has(r.totals) ? { id: 'experts', totals: r.totals, time: 0, timeCategory: null } : null;
+  if (!has(r.totals)) return null;
+  return {
+    id: 'experts',
+    totals: r.totals,
+    time: 0,
+    timeCategory: null,
+    detail: valid.map(
+      (row) => `${EXPERTS.find((e) => e.id === row.expert)!.name} ${range(row.from, row.to)}`
+    )
+  };
 }
 
 function heliosLine(): PlanLine | null {
@@ -122,26 +177,39 @@ function heliosLine(): PlanLine | null {
       return p ? sumLadder(n.ladder, p.from, p.to) : emptyResult();
     })
   );
-  const totals = scaleBag(r.totals, s.count >= 1 ? s.count : 1);
-  return has(totals) ? { id: 'helios', totals, time: 0, timeCategory: null } : null;
+  const count = s.count >= 1 ? s.count : 1;
+  const totals = scaleBag(r.totals, count);
+  return has(totals)
+    ? { id: 'helios', totals, time: 0, timeCategory: null, detail: [`×${count} troop types`] }
+    : null;
 }
 
+const HERO_NAME: Record<string, string> = {
+  mastery: 'Gear Mastery',
+  exclusive: 'Exclusive Gear',
+  stars: 'Star Promotion'
+};
 function heroesLine(): PlanLine | null {
+  const detail: string[] = [];
   const r = combine(
     HERO_TRACKS.map((t) => {
       const p = readJson<Pair>(t.storageKey);
-      return p ? sumLadder(t.ladder, p.from, p.to) : emptyResult();
+      if (!p) return emptyResult();
+      if (p.from !== p.to) detail.push(`${HERO_NAME[t.id] ?? t.id} ${range(p.from, p.to)}`);
+      return sumLadder(t.ladder, p.from, p.to);
     })
   );
-  return has(r.totals) ? { id: 'heroes', totals: r.totals, time: 0, timeCategory: null } : null;
+  return has(r.totals)
+    ? { id: 'heroes', totals: r.totals, time: 0, timeCategory: null, detail }
+    : null;
 }
 
 /** All non-empty calculator totals from saved state (resources raw, no boosters). */
 export function planLines(): PlanLine[] {
   return [
     buildingsLine(),
-    ladderLine('upgrade-gear-v1', GEAR_LADDER, 'gear'),
-    ladderLine('upgrade-charms-v1', CHARM_LADDER, 'charms'),
+    ladderLine('upgrade-gear-v1', GEAR_LADDER, 'gear', gearName),
+    ladderLine('upgrade-charms-v1', CHARM_LADDER, 'charms', charmName),
     troopsLine(),
     researchLine(),
     petsLine(),
