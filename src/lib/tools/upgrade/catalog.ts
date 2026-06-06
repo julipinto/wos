@@ -42,7 +42,7 @@ export const HUB_CARDS: HubCard[] = [
   { id: 'research', route: '/upgrade/research', icon: '🔬', i18n: 'research', status: 'preview' },
   { id: 'helios', route: '/upgrade/helios', icon: '🔆', i18n: 'helios', status: 'available' },
   { id: 'pets', route: '/upgrade/pets', icon: '🐺', i18n: 'pets', status: 'available' },
-  { id: 'experts', route: '/upgrade/experts', icon: '🎓', i18n: 'experts', status: 'preview' },
+  { id: 'experts', route: '/upgrade/experts', icon: '🎓', i18n: 'experts', status: 'available' },
   { id: 'heroes', route: '/upgrade/heroes', icon: '🦸', i18n: 'heroes', status: 'available' }
 ];
 

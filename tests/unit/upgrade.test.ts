@@ -212,7 +212,8 @@ describe('camps and research', () => {
     expect(r.totals.iron).toBe(111555465);
     expect(r.totals.fireCrystal).toBe(5215);
     expect(r.totals.refinedFireCrystal).toBe(383);
-    expect(r.time).toBe(2780589);
+    // FC times now sourced: the 46 shared-camp FC levels add 8,644,320 s.
+    expect(r.time).toBe(11424909);
   });
 
   it('research center has no FC levels and locks its 1→30 total', () => {

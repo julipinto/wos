@@ -31,7 +31,7 @@
   function addExpert(id: string) {
     const e = byId(id);
     if (!e) return;
-    rows.push({ expert: id, from: '0', to: e.ladder[e.ladder.length - 1].label });
+    rows.push({ expert: id, from: e.ladder[0].label, to: e.ladder[e.ladder.length - 1].label });
     persist();
   }
   function removeRow(i: number) {
@@ -57,11 +57,6 @@
     sub={i18n.m.upgrade.experts.sub}
     backHref="/upgrade"
   />
-
-  <div class="warn" role="note">
-    <strong>⚠ {i18n.m.upgrade.unverified}</strong>
-    <span>{i18n.m.upgrade.experts.note}</span>
-  </div>
 
   {#if rows.length > 0}
     <div class="rows">
@@ -135,24 +130,6 @@
     letter-spacing: 2px;
     text-transform: uppercase;
     color: var(--text-dim);
-  }
-  .warn {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    background: rgba(251, 146, 60, 0.08);
-    border: 1px solid rgba(251, 146, 60, 0.35);
-    border-radius: var(--r-card);
-    padding: 14px 16px;
-    margin-bottom: 22px;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    line-height: 1.5;
-    color: var(--text-mid);
-  }
-  .warn strong {
-    color: #fb923c;
-    font-weight: 600;
   }
   .rows {
     display: grid;

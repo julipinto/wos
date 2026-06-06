@@ -1,12 +1,33 @@
-// Dawn Academy "Experts" — Affinity track. Each expert levels its Affinity 1→10,
-// spending Expert Sigils per level. Source: wostools.net experts-calculator data
-// bundle (cross-checked vs woscalculator.com/experts; per-expert totals verified).
-// The separate Skill track (Books of Knowledge) isn't modelled yet.
+// Dawn Academy "Experts" — Affinity track. In-game the affinity bar runs through
+// 11 NAMED relationship tiers (Stranger → Intimate); the first (Stranger) is the
+// free starting state and the other 10 each cost Expert Sigils to advance into.
+// So the ladder is the base "Stranger" + 10 paid steps. Source: wostools.net
+// experts-calculator data bundle, cross-checked vs wos-guide.com (byte-identical
+// sigil arrays) and the named-tier table on outof.games — per-expert totals
+// VERIFIED across 3 independent sources (Cyrille/Agnes 275 … Romulus 1820, incl.
+// Romulus's irregular 3rd step of 80). The separate Skill track (Books of
+// Knowledge) isn't modelled yet.
 import type { LevelCost } from '../types';
 
+// The 11 affinity tiers, in order. TIERS[0] = Stranger (free start); the rest are
+// the 10 Expert-Sigil advancements.
+const TIERS = [
+  'Stranger',
+  'Acquaintance 1',
+  'Acquaintance 2',
+  'Acquaintance 3',
+  'Casual 1',
+  'Casual 2',
+  'Casual 3',
+  'Close 1',
+  'Close 2',
+  'Close 3',
+  'Intimate'
+];
+
 function ladder(sigil: number[]): LevelCost[] {
-  const out: LevelCost[] = [{ label: '0', cost: {}, time: 0 }];
-  sigil.forEach((c, i) => out.push({ label: String(i + 1), cost: { expertSigil: c }, time: 0 }));
+  const out: LevelCost[] = [{ label: TIERS[0], cost: {}, time: 0 }];
+  sigil.forEach((c, i) => out.push({ label: TIERS[i + 1], cost: { expertSigil: c }, time: 0 }));
   return out;
 }
 

@@ -3,18 +3,12 @@
  * what every community calculator uses. Each table records its provenance and
  * is only `verified: true` once cross-checked across 2+ independent sources.
  *
- * VERIFIED:
- *   - Furnace 1→FC10 (3 sources: BSD/destructoid/whiteoutdata+wiki for 1–30;
- *     handbook/wiki/deepfriedmind for FC).
- *   - Infantry / Marksman / Lancer Camp 1→FC10 (one shared ladder; BSD vs
- *     whiteoutdata for 1–30, deepfriedmind vs wiki for FC).
- *   - Research Center 1→30 (BSD == whiteoutdata exactly; no FC levels).
- *
- * NOT YET MODELLED (next phases): Embassy, Command Center, Infirmary, War
- * Academy (deepfriedmind has their FC; the BSD 1–30 for Command Center /
- * Infirmary / Storehouse / Barricade looked synthetic and Embassy had a coal
- * typo, so those need a real 1–30 source). Build times for FC levels are not
- * yet reliably sourced, so every FC entry uses time:0.
+ * VERIFIED (resources + FC build times, base/no-speedups): Furnace, Embassy,
+ * Command Center, Infirmary, War Academy and the shared Infantry/Marksman/
+ * Lancer Camp ladder are all cross-checked across 2–3 sources (BSD/destructoid/
+ * whiteoutdata/wiki for 1–30; handbook/wiki/deepfriedmind for FC resources;
+ * whiteoutsurvival.wiki + whiteoutdata for FC times). Research Center is 1→30
+ * only (no FC levels). Storehouse caps at level 30 (no Fire Crystal upgrades).
  *
  * Attribution: numbers are game facts; we transcribed our own structures.
  * Sources consulted include djmzsamantha/whiteout-survival-calculator
@@ -33,7 +27,7 @@ const FURNACE: UpgradeTable = {
     verified: true,
     verifiedAt: '2026-06-05',
     notes:
-      'Resources verified end-to-end: levels 1–30 (3 sources) and FC1–FC10 incl. in-tier sub-steps (3 sources: handbook=main levels, wiki=sub-steps, deepfriedmind=both; meat/wood/coal/iron agree across all). Figures are as shown in-game (rounded). FC build TIMES now sourced too (base, no speedups): whiteoutsurvival.wiki + WOS Handbook agree value-for-value (incl. the FC8.x/FC9 dip to 13d); sub-levels share the next tier’s time. Non-Furnace buildings’ FC times are still time:0.'
+      'Resources verified end-to-end: levels 1–30 (3 sources) and FC1–FC10 incl. in-tier sub-steps (3 sources: handbook=main levels, wiki=sub-steps, deepfriedmind=both; meat/wood/coal/iron agree across all). Figures are as shown in-game (rounded). FC build TIMES now sourced too (base, no speedups): whiteoutsurvival.wiki + WOS Handbook agree value-for-value (incl. the FC8.x/FC9 dip to 13d); sub-levels share the next tier’s time. Every other FC-capable building (Embassy/Command Center/Infirmary/War Academy/Camps) has its own FC time table too.'
   },
   levels: [
     { label: '1', cost: {}, time: 0 },
@@ -644,107 +638,107 @@ const CAMP_LEVELS: LevelCost[] = [
   {
     label: 'FC1',
     cost: { meat: 23000000, wood: 23000000, coal: 4700000, iron: 1100000, fireCrystal: 59 },
-    time: 0
+    time: 90720
   },
   {
     label: 'FC1-1',
     cost: { meat: 25000000, wood: 25000000, coal: 5000000, iron: 1200000, fireCrystal: 71 },
-    time: 0
+    time: 116640
   },
   {
     label: 'FC1-2',
     cost: { meat: 25000000, wood: 25000000, coal: 5000000, iron: 1200000, fireCrystal: 71 },
-    time: 0
+    time: 116640
   },
   {
     label: 'FC1-3',
     cost: { meat: 25000000, wood: 25000000, coal: 5000000, iron: 1200000, fireCrystal: 71 },
-    time: 0
+    time: 116640
   },
   {
     label: 'FC1-4',
     cost: { meat: 25000000, wood: 25000000, coal: 5000000, iron: 1200000, fireCrystal: 71 },
-    time: 0
+    time: 116640
   },
   {
     label: 'FC2',
     cost: { meat: 25000000, wood: 25000000, coal: 5000000, iron: 1200000, fireCrystal: 71 },
-    time: 0
+    time: 116640
   },
   {
     label: 'FC2-1',
     cost: { meat: 27000000, wood: 27000000, coal: 5500000, iron: 1300000, fireCrystal: 107 },
-    time: 0
+    time: 142560
   },
   {
     label: 'FC2-2',
     cost: { meat: 27000000, wood: 27000000, coal: 5500000, iron: 1300000, fireCrystal: 107 },
-    time: 0
+    time: 142560
   },
   {
     label: 'FC2-3',
     cost: { meat: 27000000, wood: 27000000, coal: 5500000, iron: 1300000, fireCrystal: 107 },
-    time: 0
+    time: 142560
   },
   {
     label: 'FC2-4',
     cost: { meat: 27000000, wood: 27000000, coal: 5500000, iron: 1300000, fireCrystal: 107 },
-    time: 0
+    time: 142560
   },
   {
     label: 'FC3',
     cost: { meat: 27000000, wood: 27000000, coal: 5500000, iron: 1300000, fireCrystal: 107 },
-    time: 0
+    time: 142560
   },
   {
     label: 'FC3-1',
     cost: { meat: 28000000, wood: 28000000, coal: 5700000, iron: 1400000, fireCrystal: 126 },
-    time: 0
+    time: 155520
   },
   {
     label: 'FC3-2',
     cost: { meat: 28000000, wood: 28000000, coal: 5700000, iron: 1400000, fireCrystal: 126 },
-    time: 0
+    time: 155520
   },
   {
     label: 'FC3-3',
     cost: { meat: 28000000, wood: 28000000, coal: 5700000, iron: 1400000, fireCrystal: 126 },
-    time: 0
+    time: 155520
   },
   {
     label: 'FC3-4',
     cost: { meat: 28000000, wood: 28000000, coal: 5700000, iron: 1400000, fireCrystal: 126 },
-    time: 0
+    time: 155520
   },
   {
     label: 'FC4',
     cost: { meat: 28000000, wood: 28000000, coal: 5700000, iron: 1400000, fireCrystal: 126 },
-    time: 0
+    time: 155520
   },
   {
     label: 'FC4-1',
     cost: { meat: 29000000, wood: 29000000, coal: 5900000, iron: 1400000, fireCrystal: 150 },
-    time: 0
+    time: 181440
   },
   {
     label: 'FC4-2',
     cost: { meat: 29000000, wood: 29000000, coal: 5900000, iron: 1400000, fireCrystal: 150 },
-    time: 0
+    time: 181440
   },
   {
     label: 'FC4-3',
     cost: { meat: 29000000, wood: 29000000, coal: 5900000, iron: 1400000, fireCrystal: 150 },
-    time: 0
+    time: 181440
   },
   {
     label: 'FC4-4',
     cost: { meat: 29000000, wood: 29000000, coal: 5900000, iron: 1400000, fireCrystal: 150 },
-    time: 0
+    time: 181440
   },
   {
     label: 'FC5',
     cost: { meat: 29000000, wood: 29000000, coal: 5900000, iron: 1400000, fireCrystal: 150 },
-    time: 0
+    time: 181440
   },
   {
     label: 'FC5-1',
@@ -756,7 +750,7 @@ const CAMP_LEVELS: LevelCost[] = [
       fireCrystal: 90,
       refinedFireCrystal: 4
     },
-    time: 0
+    time: 194400
   },
   {
     label: 'FC5-2',
@@ -768,7 +762,7 @@ const CAMP_LEVELS: LevelCost[] = [
       fireCrystal: 90,
       refinedFireCrystal: 4
     },
-    time: 0
+    time: 194400
   },
   {
     label: 'FC5-3',
@@ -780,7 +774,7 @@ const CAMP_LEVELS: LevelCost[] = [
       fireCrystal: 90,
       refinedFireCrystal: 4
     },
-    time: 0
+    time: 194400
   },
   {
     label: 'FC5-4',
@@ -792,7 +786,7 @@ const CAMP_LEVELS: LevelCost[] = [
       fireCrystal: 90,
       refinedFireCrystal: 4
     },
-    time: 0
+    time: 194400
   },
   {
     label: 'FC6',
@@ -804,7 +798,7 @@ const CAMP_LEVELS: LevelCost[] = [
       fireCrystal: 45,
       refinedFireCrystal: 9
     },
-    time: 0
+    time: 194400
   },
   {
     label: 'FC6-1',
@@ -816,7 +810,7 @@ const CAMP_LEVELS: LevelCost[] = [
       fireCrystal: 108,
       refinedFireCrystal: 6
     },
-    time: 0
+    time: 233280
   },
   {
     label: 'FC6-2',
@@ -828,7 +822,7 @@ const CAMP_LEVELS: LevelCost[] = [
       fireCrystal: 108,
       refinedFireCrystal: 6
     },
-    time: 0
+    time: 233280
   },
   {
     label: 'FC6-3',
@@ -840,7 +834,7 @@ const CAMP_LEVELS: LevelCost[] = [
       fireCrystal: 108,
       refinedFireCrystal: 6
     },
-    time: 0
+    time: 233280
   },
   {
     label: 'FC6-4',
@@ -852,7 +846,7 @@ const CAMP_LEVELS: LevelCost[] = [
       fireCrystal: 108,
       refinedFireCrystal: 6
     },
-    time: 0
+    time: 233280
   },
   {
     label: 'FC7',
@@ -864,7 +858,7 @@ const CAMP_LEVELS: LevelCost[] = [
       fireCrystal: 54,
       refinedFireCrystal: 13
     },
-    time: 0
+    time: 233280
   },
   {
     label: 'FC7-1',
@@ -876,7 +870,7 @@ const CAMP_LEVELS: LevelCost[] = [
       fireCrystal: 108,
       refinedFireCrystal: 9
     },
-    time: 0
+    time: 259200
   },
   {
     label: 'FC7-2',
@@ -888,7 +882,7 @@ const CAMP_LEVELS: LevelCost[] = [
       fireCrystal: 108,
       refinedFireCrystal: 9
     },
-    time: 0
+    time: 259200
   },
   {
     label: 'FC7-3',
@@ -900,7 +894,7 @@ const CAMP_LEVELS: LevelCost[] = [
       fireCrystal: 108,
       refinedFireCrystal: 9
     },
-    time: 0
+    time: 259200
   },
   {
     label: 'FC7-4',
@@ -912,7 +906,7 @@ const CAMP_LEVELS: LevelCost[] = [
       fireCrystal: 108,
       refinedFireCrystal: 9
     },
-    time: 0
+    time: 259200
   },
   {
     label: 'FC8',
@@ -924,7 +918,7 @@ const CAMP_LEVELS: LevelCost[] = [
       fireCrystal: 54,
       refinedFireCrystal: 19
     },
-    time: 0
+    time: 259200
   },
   {
     label: 'FC8-1',
@@ -936,7 +930,7 @@ const CAMP_LEVELS: LevelCost[] = [
       fireCrystal: 126,
       refinedFireCrystal: 13
     },
-    time: 0
+    time: 168480
   },
   {
     label: 'FC8-2',
@@ -948,7 +942,7 @@ const CAMP_LEVELS: LevelCost[] = [
       fireCrystal: 126,
       refinedFireCrystal: 13
     },
-    time: 0
+    time: 168480
   },
   {
     label: 'FC8-3',
@@ -960,7 +954,7 @@ const CAMP_LEVELS: LevelCost[] = [
       fireCrystal: 126,
       refinedFireCrystal: 13
     },
-    time: 0
+    time: 168480
   },
   {
     label: 'FC8-4',
@@ -972,7 +966,7 @@ const CAMP_LEVELS: LevelCost[] = [
       fireCrystal: 126,
       refinedFireCrystal: 13
     },
-    time: 0
+    time: 168480
   },
   {
     label: 'FC9',
@@ -984,7 +978,7 @@ const CAMP_LEVELS: LevelCost[] = [
       fireCrystal: 63,
       refinedFireCrystal: 27
     },
-    time: 0
+    time: 168480
   },
   {
     label: 'FC9-1',
@@ -996,7 +990,7 @@ const CAMP_LEVELS: LevelCost[] = [
       fireCrystal: 157,
       refinedFireCrystal: 31
     },
-    time: 0
+    time: 259200
   },
   {
     label: 'FC9-2',
@@ -1008,7 +1002,7 @@ const CAMP_LEVELS: LevelCost[] = [
       fireCrystal: 157,
       refinedFireCrystal: 31
     },
-    time: 0
+    time: 259200
   },
   {
     label: 'FC9-3',
@@ -1020,7 +1014,7 @@ const CAMP_LEVELS: LevelCost[] = [
       fireCrystal: 157,
       refinedFireCrystal: 31
     },
-    time: 0
+    time: 259200
   },
   {
     label: 'FC9-4',
@@ -1032,7 +1026,7 @@ const CAMP_LEVELS: LevelCost[] = [
       fireCrystal: 157,
       refinedFireCrystal: 31
     },
-    time: 0
+    time: 259200
   },
   {
     label: 'FC10',
@@ -1044,7 +1038,7 @@ const CAMP_LEVELS: LevelCost[] = [
       fireCrystal: 78,
       refinedFireCrystal: 63
     },
-    time: 0
+    time: 259200
   }
 ];
 
@@ -1058,7 +1052,7 @@ function campTable(id: string, name: string): UpgradeTable {
       verified: true,
       verifiedAt: '2026-06-06',
       notes:
-        'Resources verified. Levels 1–30 match BSD & whiteoutdata except L23 iron (780k) and L30 iron (5.8M), where the live whiteoutdata value is used. 30-1..30-4 are the level-30 sub-steps before FC1. FC build times not sourced (time:0).'
+        'Resources verified. Levels 1–30 match BSD & whiteoutdata except L23 iron (780k) and L30 iron (5.8M), where the live whiteoutdata value is used. 30-1..30-4 are the level-30 sub-steps. Research Center has no Fire Crystal levels.'
     },
     levels: CAMP_LEVELS
   };
