@@ -44,10 +44,10 @@ export const ZIMAN_PCT = [0, 3, 6, 9, 12, 15];
 /** Alliance speed tech (I+II combined): up to +10%, +1% per merged level. */
 const ALLIANCE = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 /**
- * VIP construction speed by VIP level (index = VIP level, 0–12). Cross-checked
- * across sources: 0% at VIP 0–3, +10% at VIP 4–8, +20% at VIP 9–12. The bonus
- * only applies while VIP status is active. (VIP research/training speed could
- * NOT be confirmed by sources, so only construction is modelled.)
+ * VIP construction speed by VIP level (index = VIP level, 0–12): 0% at VIP 0–3,
+ * +10% at VIP 4–8, +20% at VIP 9–12. Confirmed in-game by the user (2026-06-06):
+ * VIP grants construction speed ONLY — no research/training speed — so only
+ * construction is modelled. The bonus applies only while VIP status is active.
  */
 export const VIP_CONSTRUCTION = [0, 0, 0, 0, 10, 10, 10, 10, 10, 20, 20, 20, 20];
 
