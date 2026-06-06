@@ -7,12 +7,21 @@
     TERRITORY_TYPES,
     computeTerritory,
     footprintCells,
+    coverageCells,
     type PlacedObject,
     type TerritoryType
   } from '$lib/tools/territory/territory';
 
   const N = 30; // grid is N×N cells
   const STORAGE = 'territory-layout-v1';
+  const VIEW_KEY = 'territory-view-v1';
+
+  type View = 'flat' | 'tilt';
+  let view = $state<View>(readJson<View>(VIEW_KEY) === 'tilt' ? 'tilt' : 'flat');
+  function setView(v: View) {
+    view = v;
+    writeJson(VIEW_KEY, v);
+  }
 
   function load(): PlacedObject[] {
     const raw = readJson<PlacedObject[]>(STORAGE);
@@ -39,6 +48,7 @@
     };
   }
   function onGrid(e: MouseEvent) {
+    if (view === 'tilt') return; // camera view is read-only; edit in flat
     const { x, y } = cellFromEvent(e);
     if (x < 0 || y < 0 || x >= N || y >= N) return;
     // Clicking an existing object removes it; empty cell places the current tool.
@@ -64,13 +74,21 @@
     persist();
   }
 
-  // Parse territory cells into {x,y} for rendering.
-  const territoryCells = $derived(
-    [...territory.cells].map((c) => {
+  const toCells = (s: Iterable<string>) =>
+    [...s].map((c) => {
       const [x, y] = c.split(',').map(Number);
       return { x, y };
-    })
-  );
+    });
+
+  // Parse territory cells into {x,y} for rendering.
+  const territoryCells = $derived(toCells(territory.cells));
+
+  // Union of every banner's 7×7 reach (deduped so overlaps don't darken).
+  const reachCells = $derived.by(() => {
+    const s = new Set<string>();
+    for (const o of objects) if (o.type === 'banner') for (const c of coverageCells(o)) s.add(c);
+    return toCells(s);
+  });
 </script>
 
 <svelte:head>
@@ -79,6 +97,24 @@
 
 <div class="wrap">
   <PageHeader title={i18n.m.landing.territory.title} sub={i18n.m.territory.sub} backHref="/" />
+
+  <div class="viewbar" role="group" aria-label={i18n.m.territory.view.label}>
+    <span class="viewbar-label">{i18n.m.territory.view.label}</span>
+    <div class="seg">
+      <button
+        class="seg-btn"
+        class:active={view === 'flat'}
+        type="button"
+        onclick={() => setView('flat')}>{i18n.m.territory.view.flat}</button
+      >
+      <button
+        class="seg-btn"
+        class:active={view === 'tilt'}
+        type="button"
+        onclick={() => setView('tilt')}>{i18n.m.territory.view.tilt}</button
+      >
+    </div>
+  </div>
 
   <div class="palette" role="toolbar" aria-label={i18n.m.territory.place}>
     {#each TERRITORY_TYPES as t (t)}
@@ -97,7 +133,7 @@
     {/each}
   </div>
 
-  <div class="board">
+  <div class="board" class:tilted={view === 'tilt'}>
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <svg viewBox="0 0 {N} {N}" class="grid" onclick={onGrid} role="application" aria-label="grid">
@@ -113,6 +149,10 @@
         </pattern>
       </defs>
       <rect width={N} height={N} fill="var(--bg-soft)" />
+      <!-- banner reach (7×7), subtle amber under everything -->
+      {#each reachCells as c (c.x + '_' + c.y)}
+        <rect x={c.x} y={c.y} width="1" height="1" fill="rgba(251,191,36,0.1)" />
+      {/each}
       <!-- connected territory -->
       {#each territoryCells as c (c.x + '_' + c.y)}
         <rect x={c.x} y={c.y} width="1" height="1" fill="rgba(147,212,255,0.16)" />
@@ -137,8 +177,13 @@
     </svg>
   </div>
 
+  <div class="legend">
+    <span class="leg"><span class="dot reach"></span>{i18n.m.territory.legend.reach}</span>
+    <span class="leg"><span class="dot terr"></span>{i18n.m.territory.legend.connected}</span>
+  </div>
+
   <div class="footer">
-    <p class="hint">{i18n.m.territory.hint}</p>
+    <p class="hint">{view === 'tilt' ? i18n.m.territory.tiltHint : i18n.m.territory.hint}</p>
     <button class="reset" type="button" onclick={reset} disabled={objects.length === 0}>
       {i18n.m.common.reset}
     </button>
@@ -151,6 +196,44 @@
     max-width: 640px;
     margin: 0 auto;
     padding: 32px 24px 96px;
+  }
+  .viewbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .viewbar-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .seg {
+    display: inline-flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    padding: 3px;
+    gap: 2px;
+  }
+  .seg-btn {
+    background: none;
+    border: none;
+    border-radius: var(--r-pill);
+    color: var(--text-mid);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 5px 14px;
+    cursor: pointer;
+    transition:
+      background 0.2s ease,
+      color 0.2s ease;
+  }
+  .seg-btn.active {
+    background: var(--bg-soft);
+    color: var(--text);
   }
   .palette {
     display: flex;
@@ -200,6 +283,50 @@
     height: auto;
     touch-action: manipulation;
     cursor: crosshair;
+    transition: transform 0.4s ease;
+    transform-origin: center center;
+  }
+  /* Camera view: tilt the board back like the in-game map camera. */
+  .board.tilted {
+    overflow: visible;
+    border: none;
+    background: none;
+    perspective: 1100px;
+    margin: 8% 0 14%;
+  }
+  .board.tilted .grid {
+    transform: rotateX(55deg) scale(0.92);
+    cursor: default;
+    border-radius: var(--r-card);
+    box-shadow: 0 40px 70px rgba(0, 0, 0, 0.45);
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 14px;
+  }
+  .leg {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .dot.reach {
+    background: rgba(251, 191, 36, 0.35);
+    border: 1px solid rgba(251, 191, 36, 0.5);
+  }
+  .dot.terr {
+    background: rgba(147, 212, 255, 0.35);
+    border: 1px solid rgba(147, 212, 255, 0.5);
   }
   .footer {
     display: flex;

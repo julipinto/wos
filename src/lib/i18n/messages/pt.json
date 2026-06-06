@@ -346,6 +346,16 @@
       "bearTrap": "Armadilha",
       "farm": "Fazenda",
       "obstacle": "Obstáculo"
+    },
+    "view": {
+      "label": "Visão",
+      "flat": "Plano",
+      "tilt": "Câmera"
+    },
+    "tiltHint": "Modo câmera — volte para Plano para editar.",
+    "legend": {
+      "reach": "Alcance do banner (7×7)",
+      "connected": "Território conectado"
     }
   }
 }
