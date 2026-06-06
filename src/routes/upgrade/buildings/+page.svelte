@@ -4,6 +4,7 @@
   import Select from '$lib/components/Select.svelte';
   import RangeSelect from '$lib/tools/upgrade/RangeSelect.svelte';
   import Boosters from '$lib/tools/upgrade/Boosters.svelte';
+  import StepList from '$lib/tools/upgrade/StepList.svelte';
   import { buildingsCalc } from '$lib/tools/upgrade/store.svelte';
   import {
     sumRange,
@@ -47,6 +48,15 @@
   const zimanPct = $derived(boosters.contribution('zinman'));
   const effRes = (key: string, amt: number) =>
     zimanPct > 0 && ZIMAN_BASE.includes(key) ? Math.round(amt * (1 - zimanPct / 100)) : amt;
+
+  // The individual levels in the chosen range (from exclusive → to inclusive),
+  // for the collapsible step-by-step breakdown.
+  const steps = $derived.by(() => {
+    const lv = building.levels;
+    const fromI = lv.findIndex((l) => l.label === buildingsCalc.from);
+    const toI = lv.findIndex((l) => l.label === buildingsCalc.to);
+    return fromI < 0 || toI < 0 ? [] : lv.slice(fromI + 1, toI + 1);
+  });
 
   // Dropdown options for the building picker.
   const buildingOptions = $derived(buildingsCalc.list.map((b) => ({ value: b.id, label: b.name })));
@@ -136,6 +146,8 @@
         <span class="meta-val">{result.steps}</span>
       </div>
     </div>
+
+    <StepList {steps} />
   {/if}
 </div>
 

@@ -341,6 +341,10 @@
       "empty": "Nothing planned yet — open a calculator and set a target.",
       "includes": "includes",
       "parallel": "Times are per queue (construction, research and training run in parallel) — not added together."
+    },
+    "steps": {
+      "title": "steps",
+      "base": "base per-level values — the total above applies your boosters"
     }
   },
   "territory": {

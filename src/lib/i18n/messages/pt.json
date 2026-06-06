@@ -341,6 +341,10 @@
       "empty": "Nada planejado ainda — abra uma calculadora e defina um alvo.",
       "includes": "inclui",
       "parallel": "Tempos são por fila (construção, pesquisa e treino rodam em paralelo) — não somados."
+    },
+    "steps": {
+      "title": "etapas",
+      "base": "valores base por nível — o total acima já aplica seus boosters"
     }
   },
   "territory": {
