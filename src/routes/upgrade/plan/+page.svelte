@@ -90,12 +90,24 @@
     <div class="lines">
       {#each adjLines as l (l.id)}
         <a class="line" href="{base}/upgrade/{l.id}">
-          <span class="line-name">{catName(l.id)}</span>
-          <span class="line-res">
-            {#each presentResources(l.totals).slice(0, 4) as k (k)}
-              <span class="chip">{resDef(k).icon} {formatQty(l.totals[k] ?? 0)}</span>
-            {/each}
-          </span>
+          <div class="line-head">
+            <span class="line-name">{catName(l.id)}</span>
+            <span class="line-res">
+              {#each presentResources(l.totals).slice(0, 4) as k (k)}
+                <span class="chip">{resDef(k).icon} {formatQty(l.totals[k] ?? 0)}</span>
+              {/each}
+            </span>
+          </div>
+          {#if l.detail.length > 0}
+            <div class="line-detail">
+              {#each l.detail.slice(0, 6) as d, i (i)}
+                <span class="dchip">{d}</span>
+              {/each}
+              {#if l.detail.length > 6}
+                <span class="dchip more">+{l.detail.length - 6}</span>
+              {/if}
+            </div>
+          {/if}
         </a>
       {/each}
     </div>
@@ -210,9 +222,8 @@
   }
   .line {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
+    flex-direction: column;
+    gap: 8px;
     padding: 12px 16px;
     background: var(--surface);
     border: 1px solid var(--border);
@@ -223,6 +234,12 @@
   }
   .line:hover {
     border-color: var(--border-accent);
+  }
+  .line-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
   }
   .line-name {
     font-family: var(--font-display);
@@ -239,6 +256,23 @@
   .chip {
     font-family: var(--font-mono);
     font-size: 11px;
+    color: var(--text-mid);
+  }
+  .line-detail {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .dchip {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    padding: 2px 8px;
+  }
+  .dchip.more {
     color: var(--text-mid);
   }
   @media (max-width: 540px) {
