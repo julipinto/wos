@@ -346,6 +346,16 @@
       "bearTrap": "Bear Trap",
       "farm": "Farm",
       "obstacle": "Obstacle"
+    },
+    "view": {
+      "label": "View",
+      "flat": "Flat",
+      "tilt": "Camera"
+    },
+    "tiltHint": "Camera view — switch to Flat to edit.",
+    "legend": {
+      "reach": "Banner reach (7×7)",
+      "connected": "Connected territory"
     }
   }
 }

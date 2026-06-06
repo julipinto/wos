@@ -346,6 +346,16 @@
       "bearTrap": "Trampa de Oso",
       "farm": "Granja",
       "obstacle": "Obstáculo"
+    },
+    "view": {
+      "label": "Vista",
+      "flat": "Plano",
+      "tilt": "Cámara"
+    },
+    "tiltHint": "Vista de cámara — cambia a Plano para editar.",
+    "legend": {
+      "reach": "Alcance del banner (7×7)",
+      "connected": "Territorio conectado"
     }
   }
 }
