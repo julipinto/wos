@@ -300,7 +300,8 @@
       "none": "لا شيء",
       "adaptiveTools": "Adaptive Tools",
       "mechanisms": "Mechanisms",
-      "advancedTraining": "Advanced Training"
+      "advancedTraining": "Advanced Training",
+      "vip": "VIP (عند التفعيل)"
     },
     "researchTime": "وقت البحث",
     "trainTime": "وقت التدريب",

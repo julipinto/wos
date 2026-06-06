@@ -33,8 +33,12 @@
   );
 
   // Dropdown options for a tiered booster: index 0 = off, others show the %.
-  const tierOptions = (tiers: number[]) =>
-    tiers.map((pct, i) => ({ value: String(i), label: i === 0 ? '—' : `+${pct}%` }));
+  // With a `unit` (e.g. VIP) the index is an in-game level, so show "VIP 4 · +10%".
+  const tierOptions = (tiers: number[], unit?: string) =>
+    tiers.map((pct, i) => ({
+      value: String(i),
+      label: unit ? `${unit} ${i}${pct > 0 ? ` · +${pct}%` : ''}` : i === 0 ? '—' : `+${pct}%`
+    }));
 
   // Single held position (mutually exclusive) — only shown where it applies.
   const showPosition = $derived(boosters.positionAffects(categories));
@@ -78,7 +82,7 @@
                   <span class="field-label">{i18n.m.upgrade.boosters.level}</span>
                   <Select
                     value={String(boosters.value(def.id))}
-                    options={tierOptions(def.tiers)}
+                    options={tierOptions(def.tiers, def.tierUnit)}
                     onChange={(v) => boosters.set(def.id, Number(v))}
                     ariaLabel={label(def.i18n)}
                   />

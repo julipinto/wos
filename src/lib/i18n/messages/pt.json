@@ -300,7 +300,8 @@
       "none": "nenhum",
       "adaptiveTools": "Adaptive Tools",
       "mechanisms": "Mechanisms",
-      "advancedTraining": "Advanced Training"
+      "advancedTraining": "Advanced Training",
+      "vip": "VIP (quando ativo)"
     },
     "researchTime": "tempo de pesquisa",
     "trainTime": "tempo de treinamento",

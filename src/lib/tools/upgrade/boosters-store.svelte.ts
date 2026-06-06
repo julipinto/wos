@@ -32,12 +32,24 @@ export interface BoosterDef {
    * it's a free percent the user types.
    */
   tiers?: number[];
+  /**
+   * When set, tier options read as "<unit> <index>" (e.g. "VIP 4 · +10%") since
+   * the index is an in-game level whose percent can repeat across levels.
+   */
+  tierUnit?: string;
 }
 
 /** Zinman "Bastionist" passive construction speed by skill level (index 0–5). */
 export const ZIMAN_PCT = [0, 3, 6, 9, 12, 15];
 /** Alliance speed tech (I+II combined): up to +10%, +1% per merged level. */
 const ALLIANCE = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+/**
+ * VIP construction speed by VIP level (index = VIP level, 0–12). Cross-checked
+ * across sources: 0% at VIP 0–3, +10% at VIP 4–8, +20% at VIP 9–12. The bonus
+ * only applies while VIP status is active. (VIP research/training speed could
+ * NOT be confirmed by sources, so only construction is modelled.)
+ */
+export const VIP_CONSTRUCTION = [0, 0, 0, 0, 10, 10, 10, 10, 10, 20, 20, 20, 20];
 
 export const BOOSTER_DEFS: BoosterDef[] = [
   // Construction
@@ -50,6 +62,7 @@ export const BOOSTER_DEFS: BoosterDef[] = [
     source: 'alliance',
     tiers: ALLIANCE
   },
+  { id: 'vip', category: 'construction', i18n: 'vip', tierUnit: 'VIP', tiers: VIP_CONSTRUCTION },
   // Research
   { id: 'researchSpeed', category: 'research', i18n: 'research' },
   {
