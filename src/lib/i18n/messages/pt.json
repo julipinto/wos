@@ -35,6 +35,10 @@
     "upgrade": {
       "title": "planejador de upgrade",
       "desc": "Recursos e tempo para qualquer upgrade. Diga onde você está e o alvo — receba o custo exato."
+    },
+    "territory": {
+      "title": "planejador de território",
+      "desc": "Planeje a colmeia da aliança — posicione o HQ e as banners e veja o território coberto."
     }
   },
   "slush": {
@@ -329,6 +333,19 @@
       "empty": "Nada planejado ainda — abra uma calculadora e defina um alvo.",
       "includes": "inclui",
       "parallel": "Tempos são por fila (construção, pesquisa e treino rodam em paralelo) — não somados."
+    }
+  },
+  "territory": {
+    "sub": "Posicione no grid; banners cobrem 7×7 e precisam conectar ao HQ pra segurar território.",
+    "hint": "Toque numa célula pra colocar o item; toque num item pra remover. Banners apagadas/vermelhas não estão conectadas ao HQ.",
+    "place": "colocar",
+    "obj": {
+      "hq": "HQ",
+      "banner": "Banner",
+      "city": "Cidade",
+      "bearTrap": "Armadilha",
+      "farm": "Fazenda",
+      "obstacle": "Obstáculo"
     }
   }
 }

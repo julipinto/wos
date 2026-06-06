@@ -35,6 +35,10 @@
     "upgrade": {
       "title": "planificador de mejoras",
       "desc": "Recursos y tiempo para cualquier mejora. Indica dónde estás y tu objetivo — obtén el costo exacto."
+    },
+    "territory": {
+      "title": "planificador de territorio",
+      "desc": "Planifica la colmena de tu alianza — coloca el HQ y las banderas y ve el territorio cubierto."
     }
   },
   "slush": {
@@ -329,6 +333,19 @@
       "empty": "Nada planeado aún — abre una calculadora y define un objetivo.",
       "includes": "incluye",
       "parallel": "Los tiempos son por cola (construcción, investigación y entrenamiento corren en paralelo) — no se suman."
+    }
+  },
+  "territory": {
+    "sub": "Coloca en la cuadrícula; las banderas cubren 7×7 y deben conectarse al HQ para mantener territorio.",
+    "hint": "Toca una celda para colocar; toca un objeto para quitarlo. Las banderas atenuadas/rojas no están conectadas al HQ.",
+    "place": "colocar",
+    "obj": {
+      "hq": "HQ",
+      "banner": "Bandera",
+      "city": "Ciudad",
+      "bearTrap": "Trampa de Oso",
+      "farm": "Granja",
+      "obstacle": "Obstáculo"
     }
   }
 }
