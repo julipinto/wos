@@ -9,7 +9,13 @@
   import Icon from '$lib/components/Icon.svelte';
   import Select from '$lib/components/Select.svelte';
   import { i18n } from '$lib/i18n/index.svelte';
-  import { boosters, POSITIONS, type BoosterCategory } from './boosters-store.svelte';
+  import { formatDuration } from './engine';
+  import {
+    boosters,
+    POSITIONS,
+    type BoosterCategory,
+    type BoosterDef
+  } from './boosters-store.svelte';
 
   interface Props {
     categories: BoosterCategory[];
@@ -23,22 +29,48 @@
   const label = (k: string) => (i18n.m.upgrade.boosters as unknown as Record<string, string>)[k];
   const srcLabel = (k: string) => (i18n.m.upgrade.boosters.src as Record<string, string>)[k] ?? k;
 
-  // Collapsed summary: per-category totals, e.g. "+35% · +12%".
+  // Collapsed summary: per-category totals, e.g. "+35% · −2h".
   const summary = $derived(
     categories
-      .map((c) => boosters.total(c))
-      .filter((v) => v > 0)
-      .map((v) => `+${v}%`)
+      .map((c) => {
+        const parts: string[] = [];
+        if (boosters.total(c) > 0) parts.push(`+${boosters.total(c)}%`);
+        if (boosters.flatTotal(c) > 0) parts.push(`−${formatDuration(boosters.flatTotal(c))}`);
+        return parts.join(' ');
+      })
+      .filter(Boolean)
       .join(' · ')
   );
 
-  // Dropdown options for a tiered booster: index 0 = off, others show the %.
-  // With a `unit` (e.g. VIP) the index is an in-game level, so show "VIP 4 · +10%".
-  const tierOptions = (tiers: number[], unit?: string) =>
-    tiers.map((pct, i) => ({
-      value: String(i),
-      label: unit ? `${unit} ${i}${pct > 0 ? ` · +${pct}%` : ''}` : i === 0 ? '—' : `+${pct}%`
-    }));
+  // Combined flat reduction across the shown categories (for the total line).
+  const flatSum = $derived(categories.reduce((s, c) => s + boosters.flatTotal(c), 0));
+
+  // Dropdown options for a tiered booster. index 0 = off. `unit:'time'` shows a
+  // flat reduction ("Lv 1 · −2h"); a `tierUnit` on a % booster shows the level
+  // ("VIP 4 · +10%"); otherwise just the percent.
+  const tierOptions = (def: BoosterDef) =>
+    (def.tiers ?? []).map((v, i) => {
+      const named = def.tierLabels?.[i];
+      let label: string;
+      if (def.unit === 'time') {
+        const prefix = named ?? (def.tierUnit ? `${def.tierUnit} ${i}` : '');
+        label = i === 0 && !named ? '—' : `${prefix ? `${prefix} · ` : ''}−${formatDuration(v)}`;
+      } else if (named) {
+        label = `${named}${v > 0 ? ` · +${v}%` : ''}`;
+      } else if (def.tierUnit) {
+        label = `${def.tierUnit} ${i}${v > 0 ? ` · +${v}%` : ''}`;
+      } else {
+        label = i === 0 ? '—' : `+${v}%`;
+      }
+      return { value: String(i), label };
+    });
+
+  // The collapsed/active value chip for one booster.
+  const valLabel = (def: BoosterDef) => {
+    if (!boosters.isActive(def.id)) return '—';
+    const c = boosters.contribution(def.id);
+    return def.unit === 'time' ? `−${formatDuration(c)}` : `+${c}%`;
+  };
 
   // Single held position (mutually exclusive) — only shown where it applies.
   const showPosition = $derived(boosters.positionAffects(categories));
@@ -73,7 +105,7 @@
               <span class="dot" class:lit={on} aria-hidden="true"></span>
               <span class="item-name">{label(def.i18n)}</span>
               {#if def.source}<span class="src">{srcLabel(def.source)}</span>{/if}
-              <span class="item-val">{on ? `+${boosters.contribution(def.id)}%` : '—'}</span>
+              <span class="item-val">{valLabel(def)}</span>
               <Icon name="chevron-down" size={12} class="caret {expanded[def.id] ? 'up' : ''}" />
             </button>
             {#if expanded[def.id]}
@@ -82,7 +114,7 @@
                   <span class="field-label">{i18n.m.upgrade.boosters.level}</span>
                   <Select
                     value={String(boosters.value(def.id))}
-                    options={tierOptions(def.tiers, def.tierUnit)}
+                    options={tierOptions(def)}
                     onChange={(v) => boosters.set(def.id, Number(v))}
                     ariaLabel={label(def.i18n)}
                   />
@@ -117,7 +149,10 @@
 
       <div class="total">
         <span class="field-label">{i18n.m.upgrade.boosters.total}</span>
-        <span class="total-val">+{categories.reduce((s, c) => s + boosters.total(c), 0)}%</span>
+        <span class="total-val">
+          +{categories.reduce((s, c) => s + boosters.total(c), 0)}%{#if flatSum > 0}
+            <span class="total-flat">· −{formatDuration(flatSum)}</span>{/if}
+        </span>
       </div>
     </div>
   {/if}
@@ -292,5 +327,9 @@
     font-weight: 700;
     font-size: 18px;
     color: var(--accent);
+  }
+  .total-flat {
+    font-size: 13px;
+    color: var(--text-mid);
   }
 </style>

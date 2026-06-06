@@ -292,7 +292,8 @@
         "hero": "بطل",
         "island": "الجزيرة",
         "position": "منصب",
-        "president": "الرئيس"
+        "president": "الرئيس",
+        "expert": "خبير"
       },
       "vicePresident": "نائب الرئيس",
       "mercantilism": "المذهب التجاري",
@@ -304,7 +305,8 @@
       "vip": "VIP (عند التفعيل)",
       "hotSpring": "ينبوع حار طبيعي",
       "researchAdvancement": "تطوير البحث",
-      "mobilize": "تعبئة"
+      "mobilize": "تعبئة",
+      "agnes": "Agnes"
     },
     "researchTime": "وقت البحث",
     "trainTime": "وقت التدريب",

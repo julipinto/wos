@@ -17,7 +17,7 @@
 import { readJson, writeJson } from '$lib/utils/storage';
 
 export type BoosterCategory = 'construction' | 'research' | 'training';
-export type BoosterSource = 'alliance' | 'hero' | 'island' | 'president';
+export type BoosterSource = 'alliance' | 'hero' | 'island' | 'president' | 'expert';
 
 export interface BoosterDef {
   id: string;
@@ -37,19 +37,38 @@ export interface BoosterDef {
    * the index is an in-game level whose percent can repeat across levels.
    */
   tierUnit?: string;
+  /**
+   * Custom label per tier index, overriding the generated one. Lets us collapse
+   * a redundant per-level dropdown into a few ranges (e.g. VIP "0–3 / 4–8 /
+   * 9–12") — the percent is still appended automatically.
+   */
+  tierLabels?: string[];
+  /**
+   * 'pct' (default) = a speed % that stacks into the category total. 'time' = a
+   * FLAT reduction in SECONDS subtracted from the (already speed-adjusted) time,
+   * clamped at 0 — never a percent, never negative. Agnes works this way.
+   */
+  unit?: 'pct' | 'time';
 }
 
 /** Zinman "Bastionist" passive construction speed by skill level (index 0–5). */
 export const ZIMAN_PCT = [0, 3, 6, 9, 12, 15];
 /** Alliance speed tech (I+II combined): up to +10%, +1% per merged level. */
 const ALLIANCE = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+/** Agnes (City Economy expert) FLAT construction-time cut by skill level 0–5, in
+ *  SECONDS: 0 / 2h / 3h / 4h / 6h / 8h (user-provided in-game values). Subtracted
+ *  from the time, not a percent — and clamped so the time never goes negative. */
+export const AGNES_FLAT = [0, 7200, 10800, 14400, 21600, 28800];
 /**
- * VIP construction speed by VIP level (index = VIP level, 0–12): 0% at VIP 0–3,
- * +10% at VIP 4–8, +20% at VIP 9–12. Confirmed in-game by the user (2026-06-06):
- * VIP grants construction speed ONLY — no research/training speed — so only
- * construction is modelled. The bonus applies only while VIP status is active.
+ * VIP construction speed, grouped into the 3 ranges that actually matter (the
+ * percent is flat within each): 0% at VIP 0–3, +10% at VIP 4–8, +20% at VIP
+ * 9–12. Confirmed in-game by the user (2026-06-06): VIP grants construction
+ * speed ONLY — no research/training — so only construction is modelled. The
+ * bonus applies only while VIP status is active. Grouped (not per-level) so the
+ * dropdown is 3 choices instead of 13, with no loss of accuracy.
  */
-export const VIP_CONSTRUCTION = [0, 0, 0, 0, 10, 10, 10, 10, 10, 20, 20, 20, 20];
+export const VIP_CONSTRUCTION = [0, 10, 20];
+const VIP_LABELS = ['VIP 0–3', 'VIP 4–8', 'VIP 9–12'];
 
 export const BOOSTER_DEFS: BoosterDef[] = [
   // Construction
@@ -62,7 +81,13 @@ export const BOOSTER_DEFS: BoosterDef[] = [
     source: 'alliance',
     tiers: ALLIANCE
   },
-  { id: 'vip', category: 'construction', i18n: 'vip', tierUnit: 'VIP', tiers: VIP_CONSTRUCTION },
+  {
+    id: 'vip',
+    category: 'construction',
+    i18n: 'vip',
+    tiers: VIP_CONSTRUCTION,
+    tierLabels: VIP_LABELS
+  },
   // President "Mercantilism" — castable +10% construction for 24h.
   {
     id: 'mercantilism',
@@ -70,6 +95,16 @@ export const BOOSTER_DEFS: BoosterDef[] = [
     i18n: 'mercantilism',
     source: 'president',
     tiers: [0, 10]
+  },
+  // Agnes expert skill — FLAT construction-time cut (seconds), not a %.
+  {
+    id: 'agnes',
+    category: 'construction',
+    i18n: 'agnes',
+    source: 'expert',
+    tierUnit: 'Lv',
+    unit: 'time',
+    tiers: AGNES_FLAT
   },
   // Research
   { id: 'researchSpeed', category: 'research', i18n: 'research' },
@@ -206,13 +241,22 @@ export const boosters = {
   positionAffects(cats: BoosterCategory[]): boolean {
     return POSITIONS.some((p) => cats.some((c) => (p[c] ?? 0) > 0));
   },
-  /** Summed effective bonus % for a category (additive boosters + held position). */
+  /** Summed effective speed % for a category (percent boosters + held position).
+   *  Flat (unit:'time') boosters are NOT percentages, so they're excluded here. */
   total(cat: BoosterCategory): number {
     return (
-      BOOSTER_DEFS.filter((d) => d.category === cat).reduce(
+      BOOSTER_DEFS.filter((d) => d.category === cat && d.unit !== 'time').reduce(
         (sum, d) => sum + contribution(d.id),
         0
       ) + positionBonus(cat)
+    );
+  },
+  /** Summed FLAT time reduction (seconds) for a category — subtract from the
+   *  speed-adjusted time, then clamp at 0. Currently only Agnes (construction). */
+  flatTotal(cat: BoosterCategory): number {
+    return BOOSTER_DEFS.filter((d) => d.category === cat && d.unit === 'time').reduce(
+      (sum, d) => sum + contribution(d.id),
+      0
     );
   }
 };
