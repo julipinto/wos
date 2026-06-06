@@ -158,8 +158,9 @@ describe('seeded building data integrity', () => {
     expect(r.totals.iron).toBe(309935660);
     expect(r.totals.fireCrystal).toBe(11082);
     expect(r.totals.refinedFireCrystal).toBe(870);
-    // FC build times aren't sourced yet (time:0), so the time total is unchanged.
-    expect(r.time).toBe(18589626);
+    // FC build times are now sourced (base, no speedups): the 46 FC levels add
+    // 667 days, so the full 1→FC10 base time total is 76,218,426 s.
+    expect(r.time).toBe(76218426);
   });
 });
 

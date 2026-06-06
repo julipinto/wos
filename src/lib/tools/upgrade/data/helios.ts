@@ -1,9 +1,11 @@
 // Helios (T11) troop research — the "Ardent" tree in the War Academy. Symmetric
 // across Infantry / Lancer / Marksman, so one set of nodes models any troop type
 // (multiply by how many branches you're maxing). Costs are Steel + Fire Crystal
-// Shards only. Source: wos.h5joy-games.com per-level charts, corroborated by the
-// wostools.net and woscalculator.com War Academy calculators. Single source
-// family, so the calculator marks this preview. Per-level research TIMES aren't
+// Shards only. Source: wos.h5joy-games.com per-level charts, corroborated by
+// whiteoutdata.com + heaven-guardian + the wostools.net War Academy calculator,
+// and VERIFIED against a player's in-game read-outs (single-level anchors 136 /
+// 83 / 54 shards + the 2236-shard Helios unlock all match exactly; per-type
+// total = 13,415 shards + 3,990,000 steel). Per-level research TIMES aren't
 // published (only a ~271-day per-type total), so times are 0 here.
 import type { LevelCost } from '../types';
 

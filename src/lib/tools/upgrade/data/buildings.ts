@@ -33,7 +33,7 @@ const FURNACE: UpgradeTable = {
     verified: true,
     verifiedAt: '2026-06-05',
     notes:
-      'Resources verified end-to-end: levels 1–30 (3 sources) and FC1–FC10 incl. in-tier sub-steps (3 sources: handbook=main levels, wiki=sub-steps, deepfriedmind=both; meat/wood/coal/iron agree across all). Figures are as shown in-game (rounded). Caveat: FC build times not yet sourced — FC entries use time:0, so the build-time total covers 1→30 only.'
+      'Resources verified end-to-end: levels 1–30 (3 sources) and FC1–FC10 incl. in-tier sub-steps (3 sources: handbook=main levels, wiki=sub-steps, deepfriedmind=both; meat/wood/coal/iron agree across all). Figures are as shown in-game (rounded). FC build TIMES now sourced too (base, no speedups): whiteoutsurvival.wiki + WOS Handbook agree value-for-value (incl. the FC8.x/FC9 dip to 13d); sub-levels share the next tier’s time. Non-Furnace buildings’ FC times are still time:0.'
   },
   levels: [
     { label: '1', cost: {}, time: 0 },
@@ -142,112 +142,113 @@ const FURNACE: UpgradeTable = {
     // Resource costs cross-checked across 3 sources: the per-tier main levels
     // (FCn) match whiteoutsurvivalhandbook, the in-tier sub-steps (FCn-1..4)
     // match the wiki, and both match deepfriedmind/wos-tools' structured data;
-    // meat/wood/coal/iron agree across all three. Build times for FC are NOT
-    // yet reliably sourced, so they're 0 for now (resource totals are exact).
+    // meat/wood/coal/iron agree across all three. Build TIMES (base, no speedups)
+    // are sourced from whiteoutsurvival.wiki + WOS Handbook (exact match): main
+    // tier FCn, and each FCn-x sub-step shares the next tier's time.
     {
       label: 'FC1',
       cost: { meat: 67000000, wood: 67000000, coal: 13000000, iron: 3300000, fireCrystal: 132 },
-      time: 0
+      time: 604800
     },
     {
       label: 'FC1-1',
       cost: { meat: 72000000, wood: 72000000, coal: 14000000, iron: 3600000, fireCrystal: 158 },
-      time: 0
+      time: 777600
     },
     {
       label: 'FC1-2',
       cost: { meat: 72000000, wood: 72000000, coal: 14000000, iron: 3600000, fireCrystal: 158 },
-      time: 0
+      time: 777600
     },
     {
       label: 'FC1-3',
       cost: { meat: 72000000, wood: 72000000, coal: 14000000, iron: 3600000, fireCrystal: 158 },
-      time: 0
+      time: 777600
     },
     {
       label: 'FC1-4',
       cost: { meat: 72000000, wood: 72000000, coal: 14000000, iron: 3600000, fireCrystal: 158 },
-      time: 0
+      time: 777600
     },
     {
       label: 'FC2',
       cost: { meat: 72000000, wood: 72000000, coal: 14000000, iron: 3600000, fireCrystal: 158 },
-      time: 0
+      time: 777600
     },
     {
       label: 'FC2-1',
       cost: { meat: 79000000, wood: 79000000, coal: 15000000, iron: 3900000, fireCrystal: 238 },
-      time: 0
+      time: 950400
     },
     {
       label: 'FC2-2',
       cost: { meat: 79000000, wood: 79000000, coal: 15000000, iron: 3900000, fireCrystal: 238 },
-      time: 0
+      time: 950400
     },
     {
       label: 'FC2-3',
       cost: { meat: 79000000, wood: 79000000, coal: 15000000, iron: 3900000, fireCrystal: 238 },
-      time: 0
+      time: 950400
     },
     {
       label: 'FC2-4',
       cost: { meat: 79000000, wood: 79000000, coal: 15000000, iron: 3900000, fireCrystal: 238 },
-      time: 0
+      time: 950400
     },
     {
       label: 'FC3',
       cost: { meat: 79000000, wood: 79000000, coal: 15000000, iron: 3900000, fireCrystal: 238 },
-      time: 0
+      time: 950400
     },
     {
       label: 'FC3-1',
       cost: { meat: 82000000, wood: 82000000, coal: 16000000, iron: 4100000, fireCrystal: 280 },
-      time: 0
+      time: 1036800
     },
     {
       label: 'FC3-2',
       cost: { meat: 82000000, wood: 82000000, coal: 16000000, iron: 4100000, fireCrystal: 280 },
-      time: 0
+      time: 1036800
     },
     {
       label: 'FC3-3',
       cost: { meat: 82000000, wood: 82000000, coal: 16000000, iron: 4100000, fireCrystal: 280 },
-      time: 0
+      time: 1036800
     },
     {
       label: 'FC3-4',
       cost: { meat: 82000000, wood: 82000000, coal: 16000000, iron: 4100000, fireCrystal: 280 },
-      time: 0
+      time: 1036800
     },
     {
       label: 'FC4',
       cost: { meat: 82000000, wood: 82000000, coal: 16000000, iron: 4100000, fireCrystal: 280 },
-      time: 0
+      time: 1036800
     },
     {
       label: 'FC4-1',
       cost: { meat: 84000000, wood: 84000000, coal: 16000000, iron: 4200000, fireCrystal: 335 },
-      time: 0
+      time: 1209600
     },
     {
       label: 'FC4-2',
       cost: { meat: 84000000, wood: 84000000, coal: 16000000, iron: 4200000, fireCrystal: 335 },
-      time: 0
+      time: 1209600
     },
     {
       label: 'FC4-3',
       cost: { meat: 84000000, wood: 84000000, coal: 16000000, iron: 4200000, fireCrystal: 335 },
-      time: 0
+      time: 1209600
     },
     {
       label: 'FC4-4',
       cost: { meat: 84000000, wood: 84000000, coal: 16000000, iron: 4200000, fireCrystal: 335 },
-      time: 0
+      time: 1209600
     },
     {
       label: 'FC5',
       cost: { meat: 84000000, wood: 84000000, coal: 16000000, iron: 4200000, fireCrystal: 335 },
-      time: 0
+      time: 1209600
     },
     {
       label: 'FC5-1',
@@ -259,7 +260,7 @@ const FURNACE: UpgradeTable = {
         fireCrystal: 200,
         refinedFireCrystal: 10
       },
-      time: 0
+      time: 1296000
     },
     {
       label: 'FC5-2',
@@ -271,7 +272,7 @@ const FURNACE: UpgradeTable = {
         fireCrystal: 200,
         refinedFireCrystal: 10
       },
-      time: 0
+      time: 1296000
     },
     {
       label: 'FC5-3',
@@ -283,7 +284,7 @@ const FURNACE: UpgradeTable = {
         fireCrystal: 200,
         refinedFireCrystal: 10
       },
-      time: 0
+      time: 1296000
     },
     {
       label: 'FC5-4',
@@ -295,7 +296,7 @@ const FURNACE: UpgradeTable = {
         fireCrystal: 200,
         refinedFireCrystal: 10
       },
-      time: 0
+      time: 1296000
     },
     {
       label: 'FC6',
@@ -307,7 +308,7 @@ const FURNACE: UpgradeTable = {
         fireCrystal: 100,
         refinedFireCrystal: 20
       },
-      time: 0
+      time: 1296000
     },
     {
       label: 'FC6-1',
@@ -319,7 +320,7 @@ const FURNACE: UpgradeTable = {
         fireCrystal: 240,
         refinedFireCrystal: 15
       },
-      time: 0
+      time: 1555200
     },
     {
       label: 'FC6-2',
@@ -331,7 +332,7 @@ const FURNACE: UpgradeTable = {
         fireCrystal: 240,
         refinedFireCrystal: 15
       },
-      time: 0
+      time: 1555200
     },
     {
       label: 'FC6-3',
@@ -343,7 +344,7 @@ const FURNACE: UpgradeTable = {
         fireCrystal: 240,
         refinedFireCrystal: 15
       },
-      time: 0
+      time: 1555200
     },
     {
       label: 'FC6-4',
@@ -355,7 +356,7 @@ const FURNACE: UpgradeTable = {
         fireCrystal: 240,
         refinedFireCrystal: 15
       },
-      time: 0
+      time: 1555200
     },
     {
       label: 'FC7',
@@ -367,7 +368,7 @@ const FURNACE: UpgradeTable = {
         fireCrystal: 120,
         refinedFireCrystal: 30
       },
-      time: 0
+      time: 1555200
     },
     {
       label: 'FC7-1',
@@ -379,7 +380,7 @@ const FURNACE: UpgradeTable = {
         fireCrystal: 240,
         refinedFireCrystal: 20
       },
-      time: 0
+      time: 1728000
     },
     {
       label: 'FC7-2',
@@ -391,7 +392,7 @@ const FURNACE: UpgradeTable = {
         fireCrystal: 240,
         refinedFireCrystal: 20
       },
-      time: 0
+      time: 1728000
     },
     {
       label: 'FC7-3',
@@ -403,7 +404,7 @@ const FURNACE: UpgradeTable = {
         fireCrystal: 240,
         refinedFireCrystal: 20
       },
-      time: 0
+      time: 1728000
     },
     {
       label: 'FC7-4',
@@ -415,7 +416,7 @@ const FURNACE: UpgradeTable = {
         fireCrystal: 240,
         refinedFireCrystal: 20
       },
-      time: 0
+      time: 1728000
     },
     {
       label: 'FC8',
@@ -427,7 +428,7 @@ const FURNACE: UpgradeTable = {
         fireCrystal: 120,
         refinedFireCrystal: 40
       },
-      time: 0
+      time: 1728000
     },
     {
       label: 'FC8-1',
@@ -439,7 +440,7 @@ const FURNACE: UpgradeTable = {
         fireCrystal: 280,
         refinedFireCrystal: 30
       },
-      time: 0
+      time: 1123200
     },
     {
       label: 'FC8-2',
@@ -451,7 +452,7 @@ const FURNACE: UpgradeTable = {
         fireCrystal: 280,
         refinedFireCrystal: 30
       },
-      time: 0
+      time: 1123200
     },
     {
       label: 'FC8-3',
@@ -463,7 +464,7 @@ const FURNACE: UpgradeTable = {
         fireCrystal: 280,
         refinedFireCrystal: 30
       },
-      time: 0
+      time: 1123200
     },
     {
       label: 'FC8-4',
@@ -475,7 +476,7 @@ const FURNACE: UpgradeTable = {
         fireCrystal: 280,
         refinedFireCrystal: 30
       },
-      time: 0
+      time: 1123200
     },
     {
       label: 'FC9',
@@ -487,7 +488,7 @@ const FURNACE: UpgradeTable = {
         fireCrystal: 140,
         refinedFireCrystal: 60
       },
-      time: 0
+      time: 1123200
     },
     {
       label: 'FC9-1',
@@ -499,7 +500,7 @@ const FURNACE: UpgradeTable = {
         fireCrystal: 350,
         refinedFireCrystal: 70
       },
-      time: 0
+      time: 1728000
     },
     {
       label: 'FC9-2',
@@ -511,7 +512,7 @@ const FURNACE: UpgradeTable = {
         fireCrystal: 350,
         refinedFireCrystal: 70
       },
-      time: 0
+      time: 1728000
     },
     {
       label: 'FC9-3',
@@ -523,7 +524,7 @@ const FURNACE: UpgradeTable = {
         fireCrystal: 350,
         refinedFireCrystal: 70
       },
-      time: 0
+      time: 1728000
     },
     {
       label: 'FC9-4',
@@ -535,7 +536,7 @@ const FURNACE: UpgradeTable = {
         fireCrystal: 350,
         refinedFireCrystal: 70
       },
-      time: 0
+      time: 1728000
     },
     {
       label: 'FC10',
@@ -547,7 +548,7 @@ const FURNACE: UpgradeTable = {
         fireCrystal: 175,
         refinedFireCrystal: 140
       },
-      time: 0
+      time: 1728000
     }
   ]
 };
