@@ -52,12 +52,20 @@ function ladderLine(
   key: string,
   ladder: LevelCost[],
   id: string,
-  nameFor: (sid: string) => string
+  nameFor: (sid: string) => string | undefined
 ): PlanLine | null {
   const arr = readJson<({ sid: string } & Pair)[]>(key);
   if (!Array.isArray(arr) || arr.length === 0) return null;
+  // Drop stale/blank entries the way SlotLadder does: the slot must still
+  // resolve to a name, the range must be real (from ≠ to) and both labels must
+  // exist on the ladder. Otherwise old localStorage leaks ghost lines here.
   const valid = arr.filter(
-    (p) => ladder.some((l) => l.label === p.from) && ladder.some((l) => l.label === p.to)
+    (p) =>
+      p &&
+      p.from !== p.to &&
+      nameFor(p.sid) !== undefined &&
+      ladder.some((l) => l.label === p.from) &&
+      ladder.some((l) => l.label === p.to)
   );
   const r = combine(valid.map((p) => sumLadder(ladder, p.from, p.to)));
   if (!has(r.totals)) return null;
@@ -70,11 +78,12 @@ function ladderLine(
   };
 }
 
-const gearName = (sid: string) => GEAR_PIECES.find((p) => p.id === sid)?.name ?? sid;
-function charmName(sid: string): string {
+const gearName = (sid: string): string | undefined => GEAR_PIECES.find((p) => p.id === sid)?.name;
+function charmName(sid: string): string | undefined {
+  if (!sid) return undefined;
   const i = sid.lastIndexOf('_');
-  const nm = CHARM_PIECES.find((p) => p.id === sid.slice(0, i))?.name ?? sid;
-  return `${nm} · ${sid.slice(i + 1)}`;
+  const piece = CHARM_PIECES.find((p) => p.id === sid.slice(0, i));
+  return piece ? `${piece.name} · ${sid.slice(i + 1)}` : undefined;
 }
 
 function buildingsLine(): PlanLine | null {

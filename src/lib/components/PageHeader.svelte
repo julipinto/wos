@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import { base } from '$app/paths';
+  import { page } from '$app/stores';
   import { i18n } from '$lib/i18n/index.svelte';
   import Icon from './Icon.svelte';
   import LocaleSwitcher from './LocaleSwitcher.svelte';
@@ -22,6 +23,12 @@
   let { title, sub, backHref = '/', actions, large = false }: Props = $props();
 
   const back = $derived(backHref === null ? null : `${base}${backHref}`);
+
+  // On any upgrade sub-tool (but not the plan page itself), offer a quick jump
+  // to the combined overview so users can hop straight to "My Plan".
+  const showPlanLink = $derived(
+    $page.url.pathname.includes('/upgrade/') && !$page.url.pathname.endsWith('/upgrade/plan')
+  );
 </script>
 
 <header class="page-header">
@@ -46,6 +53,12 @@
       <span></span>
     {/if}
     <div class="actions">
+      {#if showPlanLink}
+        <a class="plan-link" href="{base}/upgrade/plan">
+          <Icon name="clipboard-list" size={13} />
+          <span>{i18n.m.upgrade.cat.plan}</span>
+        </a>
+      {/if}
       {#if actions}{@render actions()}{/if}
     </div>
   </div>
@@ -112,6 +125,27 @@
     gap: 8px;
     flex-wrap: wrap;
     justify-content: flex-end;
+  }
+  .plan-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    color: var(--text-mid);
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    transition:
+      color 0.2s ease,
+      border-color 0.2s ease;
+  }
+  .plan-link:hover {
+    color: var(--text);
+    border-color: var(--border-accent);
   }
   .hero {
     text-align: center;
