@@ -300,7 +300,8 @@
       "none": "нет",
       "adaptiveTools": "Adaptive Tools",
       "mechanisms": "Mechanisms",
-      "advancedTraining": "Advanced Training"
+      "advancedTraining": "Advanced Training",
+      "vip": "VIP (когда активен)"
     },
     "researchTime": "время исследования",
     "trainTime": "время обучения",
