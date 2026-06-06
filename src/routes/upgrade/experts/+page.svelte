@@ -1,7 +1,7 @@
 <script lang="ts">
   import { i18n } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
-  import Select from '$lib/components/Select.svelte';
+  import RangeSelect from '$lib/tools/upgrade/RangeSelect.svelte';
   import { sumLadder, combine, formatQty, presentResources } from '$lib/tools/upgrade/engine';
   import { RESOURCES } from '$lib/tools/upgrade/types';
   import { EXPERTS } from '$lib/tools/upgrade/data/experts';
@@ -26,8 +26,7 @@
     );
 
   const available = $derived(EXPERTS.filter((e) => !rows.some((r) => r.expert === e.id)));
-  const options = (id: string) =>
-    (byId(id)?.ladder ?? []).map((l) => ({ value: l.label, label: l.label }));
+  const labels = (id: string) => (byId(id)?.ladder ?? []).map((l) => l.label);
 
   function addExpert(id: string) {
     const e = byId(id);
@@ -71,24 +70,17 @@
         <div class="row">
           <span class="ex-name">{e?.name}<span class="focus">{e?.focus}</span></span>
           <div class="row-controls">
-            <Select
-              value={row.from}
-              options={options(row.expert)}
-              onChange={(v) => {
-                rows[i].from = v;
+            <RangeSelect
+              labels={labels(row.expert)}
+              from={row.from}
+              to={row.to}
+              onChange={(f, t) => {
+                rows[i].from = f;
+                rows[i].to = t;
                 persist();
               }}
-              ariaLabel="{e?.name} {i18n.m.upgrade.from}"
-            />
-            <span class="arrow" aria-hidden="true">→</span>
-            <Select
-              value={row.to}
-              options={options(row.expert)}
-              onChange={(v) => {
-                rows[i].to = v;
-                persist();
-              }}
-              ariaLabel="{e?.name} {i18n.m.upgrade.to}"
+              ariaFrom="{e?.name} {i18n.m.upgrade.from}"
+              ariaTo="{e?.name} {i18n.m.upgrade.to}"
             />
             <button
               class="remove"
@@ -192,10 +184,6 @@
     display: flex;
     align-items: center;
     gap: 8px;
-  }
-  .arrow {
-    color: var(--text-dim);
-    flex-shrink: 0;
   }
   .remove {
     flex-shrink: 0;
