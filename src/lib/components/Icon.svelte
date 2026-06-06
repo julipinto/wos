@@ -26,6 +26,7 @@
   import circleCheck from '@iconify-icons/lucide/check-circle';
   import circleDot from '@iconify-icons/lucide/circle-dot';
   import circleHelp from '@iconify-icons/lucide/help-circle';
+  import clipboardList from '@iconify-icons/lucide/clipboard-list';
   import copy from '@iconify-icons/lucide/copy';
   import crown from '@iconify-icons/lucide/crown';
   import download from '@iconify-icons/lucide/download';
@@ -55,6 +56,7 @@
     'circle-check': circleCheck,
     'circle-dot': circleDot,
     'circle-help': circleHelp,
+    'clipboard-list': clipboardList,
     copy,
     crown,
     download,
