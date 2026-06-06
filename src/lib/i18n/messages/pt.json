@@ -344,7 +344,13 @@
       "sub": "Tudo que você configurou nas calculadoras, somado num total só.",
       "empty": "Nada planejado ainda — abra uma calculadora e defina um alvo.",
       "includes": "inclui",
-      "parallel": "Tempos são por fila (construção, pesquisa e treino rodam em paralelo) — não somados."
+      "parallel": "Tempos são por fila (construção, pesquisa e treino rodam em paralelo) — não somados.",
+      "stock": {
+        "title": "o que falta",
+        "have": "tenho",
+        "left": "falta",
+        "hint": "Informe o que você já tem; o que falta atualiza na hora."
+      }
     },
     "steps": {
       "title": "etapas",

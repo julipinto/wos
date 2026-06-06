@@ -344,7 +344,13 @@
       "sub": "Everything you've set across the calculators, summed into one total.",
       "empty": "Nothing planned yet — open a calculator and set a target.",
       "includes": "includes",
-      "parallel": "Times are per queue (construction, research and training run in parallel) — not added together."
+      "parallel": "Times are per queue (construction, research and training run in parallel) — not added together.",
+      "stock": {
+        "title": "what's left",
+        "have": "you have",
+        "left": "missing",
+        "hint": "Enter what you already have; the shortfall updates live."
+      }
     },
     "steps": {
       "title": "steps",

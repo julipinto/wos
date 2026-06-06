@@ -344,7 +344,13 @@
       "sub": "Todo lo que configuraste en las calculadoras, sumado en un total.",
       "empty": "Nada planeado aún — abre una calculadora y define un objetivo.",
       "includes": "incluye",
-      "parallel": "Los tiempos son por cola (construcción, investigación y entrenamiento corren en paralelo) — no se suman."
+      "parallel": "Los tiempos son por cola (construcción, investigación y entrenamiento corren en paralelo) — no se suman.",
+      "stock": {
+        "title": "lo que falta",
+        "have": "tengo",
+        "left": "falta",
+        "hint": "Indica lo que ya tienes; el faltante se actualiza al instante."
+      }
     },
     "steps": {
       "title": "pasos",
