@@ -294,7 +294,8 @@
         "position": "منصب",
         "president": "الرئيس",
         "expert": "خبير",
-        "pet": "حيوان أليف"
+        "pet": "حيوان أليف",
+        "chief": "الزعيم"
       },
       "vicePresident": "نائب الرئيس",
       "mercantilism": "المذهب التجاري",
@@ -310,7 +311,8 @@
       "agnes": "Agnes",
       "hyena": "ضبع",
       "jasser": "Jasser (مستوى المهارة)",
-      "lingXue": "Ling Xue (مستوى المهارة)"
+      "lingXue": "Ling Xue (مستوى المهارة)",
+      "doubleTime": "Double Time"
     },
     "researchTime": "وقت البحث",
     "trainTime": "وقت التدريب",
