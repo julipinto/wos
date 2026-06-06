@@ -291,17 +291,20 @@
         "alliance": "التحالف",
         "hero": "بطل",
         "island": "الجزيرة",
-        "position": "منصب"
+        "position": "منصب",
+        "president": "الرئيس"
       },
       "vicePresident": "نائب الرئيس",
-      "mercantilism": "المركنتيلية",
+      "mercantilism": "المذهب التجاري",
       "position": "منصب",
       "none": "لا شيء",
       "adaptiveTools": "Adaptive Tools",
       "mechanisms": "Mechanisms",
       "advancedTraining": "Advanced Training",
       "vip": "VIP (عند التفعيل)",
-      "hotSpring": "ينبوع حار طبيعي"
+      "hotSpring": "ينبوع حار طبيعي",
+      "researchAdvancement": "تطوير البحث",
+      "mobilize": "تعبئة"
     },
     "researchTime": "وقت البحث",
     "trainTime": "وقت التدريب",

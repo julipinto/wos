@@ -291,7 +291,8 @@
         "alliance": "альянс",
         "hero": "герой",
         "island": "остров",
-        "position": "пост"
+        "position": "пост",
+        "president": "президент"
       },
       "vicePresident": "Вице-президент",
       "mercantilism": "Меркантилизм",
@@ -301,7 +302,9 @@
       "mechanisms": "Mechanisms",
       "advancedTraining": "Advanced Training",
       "vip": "VIP (когда активен)",
-      "hotSpring": "Природный горячий источник"
+      "hotSpring": "Природный горячий источник",
+      "researchAdvancement": "Развитие исследований",
+      "mobilize": "Мобилизация"
     },
     "researchTime": "время исследования",
     "trainTime": "время обучения",

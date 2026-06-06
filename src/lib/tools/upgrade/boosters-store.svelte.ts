@@ -17,7 +17,7 @@
 import { readJson, writeJson } from '$lib/utils/storage';
 
 export type BoosterCategory = 'construction' | 'research' | 'training';
-export type BoosterSource = 'alliance' | 'hero' | 'island';
+export type BoosterSource = 'alliance' | 'hero' | 'island' | 'president';
 
 export interface BoosterDef {
   id: string;
@@ -63,6 +63,14 @@ export const BOOSTER_DEFS: BoosterDef[] = [
     tiers: ALLIANCE
   },
   { id: 'vip', category: 'construction', i18n: 'vip', tierUnit: 'VIP', tiers: VIP_CONSTRUCTION },
+  // President "Mercantilism" — castable +10% construction for 24h.
+  {
+    id: 'mercantilism',
+    category: 'construction',
+    i18n: 'mercantilism',
+    source: 'president',
+    tiers: [0, 10]
+  },
   // Research
   { id: 'researchSpeed', category: 'research', i18n: 'research' },
   {
@@ -71,6 +79,14 @@ export const BOOSTER_DEFS: BoosterDef[] = [
     i18n: 'mechanisms',
     source: 'alliance',
     tiers: ALLIANCE
+  },
+  // President "Research Advancement" — castable +10% research for 24h.
+  {
+    id: 'researchAdvancement',
+    category: 'research',
+    i18n: 'researchAdvancement',
+    source: 'president',
+    tiers: [0, 10]
   },
   {
     // Natural Hot Spring: user-confirmed in-game +0.8% research per level, 4% at
@@ -83,6 +99,8 @@ export const BOOSTER_DEFS: BoosterDef[] = [
   },
   // Training
   { id: 'trainingSpeed', category: 'training', i18n: 'training' },
+  // President "Mobilize" — castable +30% training for 24h.
+  { id: 'mobilize', category: 'training', i18n: 'mobilize', source: 'president', tiers: [0, 30] },
   {
     id: 'advancedTraining',
     category: 'training',
