@@ -293,7 +293,8 @@
         "island": "остров",
         "position": "пост",
         "president": "президент",
-        "expert": "эксперт"
+        "expert": "эксперт",
+        "pet": "питомец"
       },
       "vicePresident": "Вице-президент",
       "mercantilism": "Меркантилизм",
@@ -306,7 +307,8 @@
       "hotSpring": "Природный горячий источник",
       "researchAdvancement": "Развитие исследований",
       "mobilize": "Мобилизация",
-      "agnes": "Agnes"
+      "agnes": "Agnes",
+      "hyena": "Гиена"
     },
     "researchTime": "время исследования",
     "trainTime": "время обучения",

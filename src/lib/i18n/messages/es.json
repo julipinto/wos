@@ -293,7 +293,8 @@
         "island": "isla",
         "position": "cargo",
         "president": "presidente",
-        "expert": "experto"
+        "expert": "experto",
+        "pet": "mascota"
       },
       "vicePresident": "Vicepresidente",
       "mercantilism": "Mercantilismo",
@@ -306,7 +307,8 @@
       "hotSpring": "Fuente Termal Natural",
       "researchAdvancement": "Avance de Investigación",
       "mobilize": "Movilizar",
-      "agnes": "Agnes"
+      "agnes": "Agnes",
+      "hyena": "Hiena"
     },
     "researchTime": "tiempo de investigación",
     "trainTime": "tiempo de entrenamiento",
