@@ -2,6 +2,7 @@
   import { i18n, fmt } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import Select from '$lib/components/Select.svelte';
+  import RangeSelect from '$lib/tools/upgrade/RangeSelect.svelte';
   import Boosters from '$lib/tools/upgrade/Boosters.svelte';
   import { buildingsCalc } from '$lib/tools/upgrade/store.svelte';
   import {
@@ -29,9 +30,8 @@
   const effRes = (key: string, amt: number) =>
     zimanPct > 0 && ZIMAN_BASE.includes(key) ? Math.round(amt * (1 - zimanPct / 100)) : amt;
 
-  // Dropdown option lists.
+  // Dropdown options for the building picker.
   const buildingOptions = $derived(buildingsCalc.list.map((b) => ({ value: b.id, label: b.name })));
-  const levelOptions = $derived(building.levels.map((l) => ({ value: l.label, label: l.label })));
 </script>
 
 <svelte:head>
@@ -64,25 +64,18 @@
     </div>
 
     <div class="range">
-      <div class="field">
-        <span class="field-label">{i18n.m.upgrade.from}</span>
-        <Select
-          value={buildingsCalc.from}
-          options={levelOptions}
-          onChange={(v) => buildingsCalc.setFrom(v)}
-          ariaLabel={i18n.m.upgrade.from}
-        />
-      </div>
-      <span class="arrow" aria-hidden="true">→</span>
-      <div class="field">
-        <span class="field-label">{i18n.m.upgrade.to}</span>
-        <Select
-          value={buildingsCalc.to}
-          options={levelOptions}
-          onChange={(v) => buildingsCalc.setTo(v)}
-          ariaLabel={i18n.m.upgrade.to}
-        />
-      </div>
+      <span class="field-label">{i18n.m.upgrade.from} → {i18n.m.upgrade.to}</span>
+      <RangeSelect
+        labels={building.levels.map((l) => l.label)}
+        from={buildingsCalc.from}
+        to={buildingsCalc.to}
+        onChange={(f, t) => {
+          buildingsCalc.setFrom(f);
+          buildingsCalc.setTo(t);
+        }}
+        ariaFrom={i18n.m.upgrade.from}
+        ariaTo={i18n.m.upgrade.to}
+      />
     </div>
   </div>
 
@@ -173,13 +166,9 @@
   }
   .range {
     display: flex;
-    align-items: flex-end;
-    gap: 12px;
-  }
-  .arrow {
-    padding-bottom: 12px;
-    color: var(--text-dim);
-    font-size: 18px;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
   }
 
   .section-label {

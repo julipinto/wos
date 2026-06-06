@@ -1,7 +1,7 @@
 <script lang="ts">
   import { i18n } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
-  import Select from '$lib/components/Select.svelte';
+  import RangeSelect from '$lib/tools/upgrade/RangeSelect.svelte';
   import { sumLadder, combine, formatQty, presentResources } from '$lib/tools/upgrade/engine';
   import { RESOURCES } from '$lib/tools/upgrade/types';
   import { PETS, petLadder } from '$lib/tools/upgrade/data/pets';
@@ -27,8 +27,7 @@
     );
 
   const available = $derived(PETS.filter((p) => !rows.some((r) => r.pet === p.id)));
-  const levelOptions = (max: number) =>
-    Array.from({ length: max }, (_, i) => ({ value: String(i + 1), label: String(i + 1) }));
+  const levels = (max: number) => Array.from({ length: max }, (_, i) => String(i + 1));
 
   function addPet(id: string) {
     const p = petById(id);
@@ -63,24 +62,17 @@
         <div class="row">
           <span class="pet-name">{petById(row.pet)?.name}</span>
           <div class="row-controls">
-            <Select
-              value={row.from}
-              options={levelOptions(max)}
-              onChange={(v) => {
-                rows[i].from = v;
+            <RangeSelect
+              labels={levels(max)}
+              from={row.from}
+              to={row.to}
+              onChange={(f, t) => {
+                rows[i].from = f;
+                rows[i].to = t;
                 persist();
               }}
-              ariaLabel={i18n.m.upgrade.from}
-            />
-            <span class="arrow" aria-hidden="true">→</span>
-            <Select
-              value={row.to}
-              options={levelOptions(max)}
-              onChange={(v) => {
-                rows[i].to = v;
-                persist();
-              }}
-              ariaLabel={i18n.m.upgrade.to}
+              ariaFrom={i18n.m.upgrade.from}
+              ariaTo={i18n.m.upgrade.to}
             />
             <button
               class="remove"
@@ -159,10 +151,6 @@
     display: flex;
     align-items: center;
     gap: 8px;
-  }
-  .arrow {
-    color: var(--text-dim);
-    flex-shrink: 0;
   }
   .remove {
     flex-shrink: 0;

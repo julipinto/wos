@@ -5,7 +5,7 @@
    * the same upgrade ladder from a current to a target tier. Shows the combined
    * material total. Used by the gear and charm calculators. Persists per `storageKey`.
    */
-  import Select from '$lib/components/Select.svelte';
+  import RangeSelect from './RangeSelect.svelte';
   import { i18n } from '$lib/i18n/index.svelte';
   import { sumLadder, combine, formatQty, presentResources } from './engine';
   import { RESOURCES, type LevelCost } from './types';
@@ -22,7 +22,7 @@
   }
   let { ladder, slots, storageKey }: Props = $props();
 
-  const options = $derived(ladder.map((l) => ({ value: l.label, label: l.label })));
+  const labels = $derived(ladder.map((l) => l.label));
   const firstLabel = () => ladder[0]?.label ?? '';
   const lastLabel = () => ladder[ladder.length - 1]?.label ?? '';
   const slotName = (sid: string) => slots.find((s) => s.id === sid)?.name ?? sid;
@@ -83,24 +83,17 @@
       <div class="slot">
         <span class="slot-name">{slotName(a.sid)}</span>
         <div class="slot-controls">
-          <Select
-            value={a.from}
-            {options}
-            onChange={(v) => {
-              a.from = v;
+          <RangeSelect
+            {labels}
+            from={a.from}
+            to={a.to}
+            onChange={(f, t) => {
+              a.from = f;
+              a.to = t;
               persist();
             }}
-            ariaLabel="{slotName(a.sid)} {i18n.m.upgrade.from}"
-          />
-          <span class="arrow" aria-hidden="true">→</span>
-          <Select
-            value={a.to}
-            {options}
-            onChange={(v) => {
-              a.to = v;
-              persist();
-            }}
-            ariaLabel="{slotName(a.sid)} {i18n.m.upgrade.to}"
+            ariaFrom="{slotName(a.sid)} {i18n.m.upgrade.from}"
+            ariaTo="{slotName(a.sid)} {i18n.m.upgrade.to}"
           />
           <button
             class="remove"
@@ -118,14 +111,17 @@
   <div class="setall">
     <span class="field-label">{i18n.m.upgrade.setAll}</span>
     <div class="setall-row">
-      <Select
-        value={allFrom}
-        {options}
-        onChange={(v) => (allFrom = v)}
-        ariaLabel={i18n.m.upgrade.from}
+      <RangeSelect
+        {labels}
+        from={allFrom}
+        to={allTo}
+        onChange={(f, t) => {
+          allFrom = f;
+          allTo = t;
+        }}
+        ariaFrom={i18n.m.upgrade.from}
+        ariaTo={i18n.m.upgrade.to}
       />
-      <span class="arrow" aria-hidden="true">→</span>
-      <Select value={allTo} {options} onChange={(v) => (allTo = v)} ariaLabel={i18n.m.upgrade.to} />
       <button class="apply" type="button" onclick={applyAll}>{i18n.m.upgrade.apply}</button>
     </div>
   </div>
@@ -189,10 +185,6 @@
     display: flex;
     align-items: center;
     gap: 8px;
-  }
-  .arrow {
-    color: var(--text-dim);
-    flex-shrink: 0;
   }
   .remove {
     flex-shrink: 0;

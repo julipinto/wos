@@ -2,6 +2,7 @@
   import { i18n } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import Select from '$lib/components/Select.svelte';
+  import RangeSelect from '$lib/tools/upgrade/RangeSelect.svelte';
   import {
     sumLadder,
     combine,
@@ -79,28 +80,20 @@
 
   <div class="nodes">
     {#each HELIOS_NODES as node (node.id)}
-      {@const options = node.ladder.map((l) => ({ value: l.label, label: l.label }))}
       <div class="node">
         <span class="node-name">{nodeName(node.i18n)}</span>
         <div class="node-controls">
-          <Select
-            value={state.nodes[node.id].from}
-            {options}
-            onChange={(v) => {
-              state.nodes[node.id].from = v;
+          <RangeSelect
+            labels={node.ladder.map((l) => l.label)}
+            from={state.nodes[node.id].from}
+            to={state.nodes[node.id].to}
+            onChange={(f, t) => {
+              state.nodes[node.id].from = f;
+              state.nodes[node.id].to = t;
               persist();
             }}
-            ariaLabel="{nodeName(node.i18n)} {i18n.m.upgrade.from}"
-          />
-          <span class="arrow" aria-hidden="true">→</span>
-          <Select
-            value={state.nodes[node.id].to}
-            {options}
-            onChange={(v) => {
-              state.nodes[node.id].to = v;
-              persist();
-            }}
-            ariaLabel="{nodeName(node.i18n)} {i18n.m.upgrade.to}"
+            ariaFrom="{nodeName(node.i18n)} {i18n.m.upgrade.from}"
+            ariaTo="{nodeName(node.i18n)} {i18n.m.upgrade.to}"
           />
         </div>
       </div>
@@ -186,10 +179,6 @@
     display: flex;
     align-items: center;
     gap: 8px;
-  }
-  .arrow {
-    color: var(--text-dim);
-    flex-shrink: 0;
   }
   .section-label {
     font-family: var(--font-mono);

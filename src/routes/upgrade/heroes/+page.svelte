@@ -1,7 +1,7 @@
 <script lang="ts">
   import { i18n } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
-  import Select from '$lib/components/Select.svelte';
+  import RangeSelect from '$lib/tools/upgrade/RangeSelect.svelte';
   import { sumLadder, formatQty, presentResources } from '$lib/tools/upgrade/engine';
   import { RESOURCES } from '$lib/tools/upgrade/types';
   import { HERO_TRACKS } from '$lib/tools/upgrade/data/heroes';
@@ -45,30 +45,22 @@
   />
 
   {#each HERO_TRACKS as track (track.id)}
-    {@const options = track.ladder.map((l) => ({ value: l.label, label: l.label }))}
     {@const result = sumLadder(track.ladder, state[track.id].from, state[track.id].to)}
     {@const rows = presentResources(result.totals)}
     <section class="track">
       <h2 class="section-label">{trackName(track.i18n)}</h2>
       <div class="controls">
-        <Select
-          value={state[track.id].from}
-          {options}
-          onChange={(v) => {
-            state[track.id].from = v;
+        <RangeSelect
+          labels={track.ladder.map((l) => l.label)}
+          from={state[track.id].from}
+          to={state[track.id].to}
+          onChange={(f, t) => {
+            state[track.id].from = f;
+            state[track.id].to = t;
             persist(track.id);
           }}
-          ariaLabel="{trackName(track.i18n)} {i18n.m.upgrade.from}"
-        />
-        <span class="arrow" aria-hidden="true">→</span>
-        <Select
-          value={state[track.id].to}
-          {options}
-          onChange={(v) => {
-            state[track.id].to = v;
-            persist(track.id);
-          }}
-          ariaLabel="{trackName(track.i18n)} {i18n.m.upgrade.to}"
+          ariaFrom="{trackName(track.i18n)} {i18n.m.upgrade.from}"
+          ariaTo="{trackName(track.i18n)} {i18n.m.upgrade.to}"
         />
       </div>
       {#if rows.length > 0}
@@ -120,10 +112,6 @@
     align-items: center;
     gap: 10px;
     margin-bottom: 12px;
-  }
-  .arrow {
-    color: var(--text-dim);
-    flex-shrink: 0;
   }
   .totals {
     display: grid;
