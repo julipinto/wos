@@ -341,6 +341,10 @@
       "empty": "Nada planeado aún — abre una calculadora y define un objetivo.",
       "includes": "incluye",
       "parallel": "Los tiempos son por cola (construcción, investigación y entrenamiento corren en paralelo) — no se suman."
+    },
+    "steps": {
+      "title": "pasos",
+      "base": "valores base por nivel — el total de arriba ya aplica tus boosters"
     }
   },
   "territory": {
