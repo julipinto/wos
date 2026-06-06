@@ -11,13 +11,23 @@
  *   - a single POSITION (`POSITIONS`): you can hold only ONE state position at
  *     a time, so it's a mutually-exclusive choice that adds to its categories.
  *
- * Per-timer effects (Chief Orders, Alliance Help, pet Builder's Aide) act on a
- * single running timer, not a planned total, so they're intentionally excluded.
+ * Some sources are TEMPORARY (activated for minutes, like the Hyena's Builder's
+ * Aide, the "Double Time" Chief Order, and the held Position which lasts ~30 min)
+ * rather than permanent passives. They're still offered as toggles — the player
+ * knows they're momentary and enables them only when modelling an active push.
+ * Alliance Help (per-build) stays out as it doesn't map to a planned total.
  */
 import { readJson, writeJson } from '$lib/utils/storage';
 
 export type BoosterCategory = 'construction' | 'research' | 'training';
-export type BoosterSource = 'alliance' | 'hero' | 'island' | 'president' | 'expert' | 'pet';
+export type BoosterSource =
+  | 'alliance'
+  | 'hero'
+  | 'island'
+  | 'president'
+  | 'expert'
+  | 'pet'
+  | 'chief';
 
 export interface BoosterDef {
   id: string;
@@ -95,6 +105,14 @@ export const BOOSTER_DEFS: BoosterDef[] = [
     i18n: 'mercantilism',
     source: 'president',
     tiers: [0, 10]
+  },
+  // Chief Order "Double Time" — castable +20% construction (5-min, temporary).
+  {
+    id: 'doubleTime',
+    category: 'construction',
+    i18n: 'doubleTime',
+    source: 'chief',
+    tiers: [0, 20]
   },
   // Hyena pet skill — construction speed % by pet level (user-provided in-game).
   {

@@ -294,7 +294,8 @@
         "position": "пост",
         "president": "президент",
         "expert": "эксперт",
-        "pet": "питомец"
+        "pet": "питомец",
+        "chief": "вождь"
       },
       "vicePresident": "Вице-президент",
       "mercantilism": "Меркантилизм",
@@ -310,7 +311,8 @@
       "agnes": "Agnes",
       "hyena": "Гиена",
       "jasser": "Jasser (ур. навыка)",
-      "lingXue": "Ling Xue (ур. навыка)"
+      "lingXue": "Ling Xue (ур. навыка)",
+      "doubleTime": "Double Time"
     },
     "researchTime": "время исследования",
     "trainTime": "время обучения",

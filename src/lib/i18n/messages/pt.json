@@ -294,7 +294,8 @@
         "position": "cargo",
         "president": "presidente",
         "expert": "perito",
-        "pet": "pet"
+        "pet": "pet",
+        "chief": "chefe"
       },
       "vicePresident": "Vice-presidente",
       "mercantilism": "Mercantilismo",
@@ -310,7 +311,8 @@
       "agnes": "Agnes",
       "hyena": "Hiena",
       "jasser": "Jasser (nível skill)",
-      "lingXue": "Ling Xue (nível skill)"
+      "lingXue": "Ling Xue (nível skill)",
+      "doubleTime": "Double Time"
     },
     "researchTime": "tempo de pesquisa",
     "trainTime": "tempo de treinamento",
