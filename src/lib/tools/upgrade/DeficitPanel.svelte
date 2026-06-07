@@ -5,6 +5,7 @@
    * the stock persists so it survives navigation.
    */
   import Icon from '$lib/components/Icon.svelte';
+  import NumberInput from '$lib/components/NumberInput.svelte';
   import { i18n } from '$lib/i18n/index.svelte';
   import { formatQty, presentResources } from './engine';
   import { RESOURCES, type ResourceBag } from './types';
@@ -55,14 +56,13 @@
               <span class="name"
                 >{resName(k)}<span class="need">/ {formatQty(needed[k] ?? 0)}</span></span
               >
-              <input
-                type="number"
-                min="0"
-                inputmode="numeric"
-                value={stock[k] ?? 0}
-                oninput={(e) => set(k, Number(e.currentTarget.value))}
-                aria-label="{resName(k)} — {i18n.m.upgrade.plan.stock.have}"
-              />
+              <span class="num">
+                <NumberInput
+                  value={stock[k] ?? 0}
+                  onChange={(n) => set(k, n)}
+                  ariaLabel="{resName(k)} — {i18n.m.upgrade.plan.stock.have}"
+                />
+              </span>
               <span class="left" class:ok={d === 0}>
                 {d > 0 ? formatQty(d) : '✓'}
               </span>
@@ -160,20 +160,9 @@
     font-size: 10px;
     color: var(--text-dim);
   }
-  input {
-    width: 96px;
-    background: var(--bg-soft);
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text);
-    font-family: var(--font-mono);
-    font-size: 13px;
-    padding: 7px 10px;
-    text-align: end;
-  }
-  input:focus-visible {
-    outline: none;
-    border-color: var(--accent);
+  .num {
+    width: 116px;
+    flex-shrink: 0;
   }
   .left {
     min-width: 64px;
