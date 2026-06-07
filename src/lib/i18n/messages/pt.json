@@ -8,7 +8,9 @@
     "help": "ajuda",
     "settings": "config",
     "reset": "limpar",
-    "numbers": "Números"
+    "numbers": "Números",
+    "confirm": "Confirmar",
+    "cancel": "Cancelar"
   },
   "landing": {
     "kicker": "whiteout survival",
@@ -405,7 +407,8 @@
     },
     "legend": {
       "reach": "Alcance do banner (7×7)",
-      "connected": "Território conectado"
+      "connected": "Território conectado",
+      "orphan": "sem conexão (expira)"
     },
     "labels": "rótulos",
     "heatmap": "heatmap",
@@ -425,7 +428,9 @@
       "save": "Salvar",
       "name": "nome do mapa",
       "load": "carregar",
-      "empty": "Nenhum mapa salvo ainda."
+      "empty": "Nenhum mapa salvo ainda.",
+      "update": "atualizar",
+      "overwrite": "Sobrescrever o mapa “{name}”?"
     },
     "share": "Compartilhar",
     "modes": {
@@ -435,6 +440,29 @@
       "state": "Estado"
     },
     "bearFocus": "urso",
-    "bearAll": "todos"
+    "bearAll": "todos",
+    "labelFurnace": "fornalha",
+    "labelName": "nome",
+    "copyCode": "copiar código",
+    "codeCopied": "código copiado",
+    "urlLong": "Link longo — alguns apps podem cortar. Use “copiar código” + Importar.",
+    "boardMode": {
+      "label": "Modo",
+      "edit": "Editar",
+      "view": "Ver"
+    },
+    "selectedN": "{n} selecionados",
+    "help": {
+      "title": "Como funciona",
+      "items": [
+        "✏️ Editar: toque no vazio para colocar a peça selecionada; toque numa peça para selecioná-la; arraste para mover.",
+        "🖐 Ver: arraste em qualquer lugar para navegar pelo mapa (ótimo com zoom).",
+        "Selecionar vários: no Editar, arraste sobre o vazio para selecionar em caixa e depois arraste para mover o grupo.",
+        "Toque duplo numa peça para apagar. Cidades podem ter nome, fornalha, poder e em quais ursos participam.",
+        "Os ursos são numerados; use o foco 🐻 para destacar um urso e suas cidades.",
+        "Construções não podem se sobrepor (a área 7×7 do banner pode). Banners sem conexão com a HQ ficam vermelhos — expirariam.",
+        "Compartilhe um link, ou “copiar código” + Importar se o link ficar grande. Salve mapas com nome e sobrescreva com ↻."
+      ]
+    }
   }
 }

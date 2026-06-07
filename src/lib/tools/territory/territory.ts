@@ -93,11 +93,12 @@ export interface PlacedObject {
   x: number;
   y: number;
   /** Optional tags (mainly for cities): owner name, furnace level, power, and
-   *  which bear trap (1..3) the city joins. */
+   *  which bear traps (1..3) the city joins — a city can take part in several
+   *  (on different days). */
   name?: string;
   furnace?: string;
   power?: number;
-  bear?: number;
+  bear?: number[];
 }
 
 /** Furnace levels for tagging — plain in-game display: 1–30 then FC1–FC11. */
@@ -149,13 +150,13 @@ function encodeLayout(mode: string, objects: PlacedObject[]): string {
     MODES.findIndex((m) => m.id === mode)
   );
   const o = objects.map((ob) => {
-    const base: (string | number)[] = [TYPE_ORDER.indexOf(ob.type), ob.x, ob.y];
-    if (ob.name || ob.furnace || (ob.power ?? 0) > 0 || (ob.bear ?? 0) > 0)
+    const base: (string | number | number[])[] = [TYPE_ORDER.indexOf(ob.type), ob.x, ob.y];
+    if (ob.name || ob.furnace || (ob.power ?? 0) > 0 || (ob.bear?.length ?? 0) > 0)
       base.push(
         ob.name ?? '',
         ob.furnace ? FURNACE_LEVELS.indexOf(ob.furnace) + 1 : 0,
         ob.power ?? 0,
-        ob.bear ?? 0
+        ob.bear?.length ? ob.bear : 0
       );
     return base;
   });
@@ -214,7 +215,13 @@ export async function importLayout(code: string): Promise<ImportedLayout | null>
       const furnace = typeof fur === 'number' ? FURNACE_LEVELS[fur - 1] : fur;
       if (furnace) ob.furnace = String(furnace);
       if (typeof power === 'number' && power > 0) ob.power = power;
-      if (typeof bear === 'number' && bear > 0) ob.bear = bear;
+      // bear may be an array (current) or a single number (older codes).
+      const bears = Array.isArray(bear)
+        ? bear.filter((n) => typeof n === 'number' && n > 0)
+        : typeof bear === 'number' && bear > 0
+          ? [bear]
+          : [];
+      if (bears.length) ob.bear = [...new Set(bears)].sort((a, b) => a - b);
       objects.push(ob);
     }
     return { mode: mode.id, objects };
@@ -241,6 +248,18 @@ export function coverageCells(o: PlacedObject): string[] {
   for (let dx = -r; dx <= r; dx++)
     for (let dy = -r; dy <= r; dy++) out.push(key(o.x + dx, o.y + dy));
   return out;
+}
+
+/**
+ * True if `o`'s footprint shares any cell with another object's footprint.
+ * Buildings can't overlap; a banner's 7×7 coverage is alliance *area* (not a
+ * footprint), so it isn't considered here and may freely overlap.
+ */
+export function collides(objects: PlacedObject[], o: PlacedObject, ignoreId?: string): boolean {
+  const mine = new Set(footprintCells(o));
+  return objects.some(
+    (x) => x.id !== (ignoreId ?? o.id) && footprintCells(x).some((c) => mine.has(c))
+  );
 }
 
 export interface TerritoryResult {

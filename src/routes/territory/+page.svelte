@@ -1,10 +1,13 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { i18n } from '$lib/i18n/index.svelte';
+  import { i18n, fmt } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import Icon from '$lib/components/Icon.svelte';
   import Select from '$lib/components/Select.svelte';
   import NumberInput from '$lib/components/NumberInput.svelte';
+  import Modal from '$lib/components/Modal.svelte';
+  import Segmented from '$lib/components/Segmented.svelte';
+  import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import { readJson, writeJson } from '$lib/utils/storage';
   import {
     OBJECT_DEFS,
@@ -16,6 +19,7 @@
     coverageCells,
     exportLayout,
     importLayout,
+    collides,
     type PlacedObject,
     type TerritoryType
   } from '$lib/tools/territory/territory';
@@ -87,34 +91,84 @@
     mode = m;
     writeJson(MODE_KEY, m);
     objects.splice(0, objects.length, ...loadLayout(m));
-    selectedId = null;
+    selectedIds = [];
     bearFocus = 0;
     tool = modeById(m).types[0];
   }
 
   let tool = $state<TerritoryType>(modeById(initialMode).types[0]);
-  let selectedId = $state<string | null>(null);
+  // Selection is a set so several objects can be moved/removed together. The tag
+  // editor only shows when exactly one is selected.
+  let selectedIds = $state<string[]>([]);
+  const selected = $derived(
+    selectedIds.length === 1 ? (objects.find((o) => o.id === selectedIds[0]) ?? null) : null
+  );
+  // Edit ⟷ View, like Excalidraw: Edit places/moves/marquee-selects; View just
+  // pans the board by dragging (so drag-to-pan and marquee don't fight).
+  const BOARDMODE_KEY = 'territory-boardmode-v1';
+  let boardMode = $state<'edit' | 'view'>(
+    readJson<'edit' | 'view'>(BOARDMODE_KEY) === 'view' ? 'view' : 'edit'
+  );
+  function setBoardMode(b: 'edit' | 'view') {
+    boardMode = b;
+    writeJson(BOARDMODE_KEY, b);
+    if (b === 'view') selectedIds = [];
+  }
   let zoom = $state(1);
   let showLabels = $state(false);
+  const LABELBY_KEY = 'territory-labelby-v1';
+  let labelField = $state<'furnace' | 'name'>(
+    readJson<'furnace' | 'name'>(LABELBY_KEY) === 'name' ? 'name' : 'furnace'
+  );
+  function setLabelField(f: 'furnace' | 'name') {
+    labelField = f;
+    writeJson(LABELBY_KEY, f);
+  }
   let heatmap = $state(false);
+  let scroller: HTMLDivElement | undefined = $state();
   let importOpen = $state(false);
   let importText = $state('');
   let copied = $state(false);
   let mapsOpen = $state(false);
   let mapName = $state('');
+  const HELP_KEY = 'territory-help-seen-v1';
+  let helpOpen = $state(false);
+
+  // A confirm dialog (e.g. before overwriting a saved map).
+  let confirmMsg = $state('');
+  let confirmAction = $state<(() => void) | null>(null);
+  function askConfirm(message: string, onYes: () => void) {
+    confirmMsg = message;
+    confirmAction = onYes;
+  }
+  function doConfirm() {
+    confirmAction?.();
+    confirmAction = null;
+    confirmMsg = '';
+  }
 
   function saveMap() {
-    if (!mapName.trim()) return;
-    savedMaps.save(mode, mapName, objects);
-    mapName = '';
+    const name = mapName.trim();
+    if (!name || objects.length === 0) return;
+    const existing = savedMaps.all(mode).find((m) => m.name.toLowerCase() === name.toLowerCase());
+    const commit = () => {
+      savedMaps.save(mode, name, objects);
+      mapName = '';
+    };
+    if (existing) askConfirm(fmt(i18n.m.territory.maps.overwrite, { name }), commit);
+    else commit();
+  }
+  function updateMap(id: string, name: string) {
+    askConfirm(fmt(i18n.m.territory.maps.overwrite, { name }), () =>
+      savedMaps.update(mode, id, objects)
+    );
   }
   function loadMap(id: string) {
     objects.splice(0, objects.length, ...savedMaps.objectsOf(mode, id));
-    selectedId = null;
+    selectedIds = [];
     persist();
   }
 
-  const selected = $derived(objects.find((o) => o.id === selectedId) ?? null);
   const furnaceOptions = [
     { value: '', label: '—' },
     ...FURNACE_LEVELS.map((l) => ({ value: l, label: l }))
@@ -141,71 +195,176 @@
   // Map a screen click to a grid cell by inverting the plane's CTM. This works
   // in both views because the iso projection is a plain 2D affine on the <g>,
   // so getScreenCTM() captures it (plus the viewBox) and stays invertible.
-  function cellFromEvent(e: MouseEvent): { x: number; y: number } | null {
+  function pointFromEvent(e: MouseEvent): { x: number; y: number } | null {
     const ctm = plane?.getScreenCTM();
     if (!ctm) return null;
     const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse());
-    return { x: Math.floor(p.x), y: Math.floor(p.y) };
+    return { x: p.x, y: p.y };
   }
-  // Pointer interaction: tap empty = place · tap object = select · drag object
-  // = move · drag empty = pan (when zoomed) · (double-tap removes, see below).
+  function cellFromEvent(e: MouseEvent): { x: number; y: number } | null {
+    const p = pointFromEvent(e);
+    return p ? { x: Math.floor(p.x), y: Math.floor(p.y) } : null;
+  }
+  // Pointer interaction depends on the board mode:
+  //  · View: drag anywhere = pan the board · tap object = inspect.
+  //  · Edit: tap empty = place · tap object = select · drag object = move (the
+  //    whole selection if several are picked) · drag empty = marquee-select.
+  // Double-tap always removes (see onGridRemove).
   let dragId: string | null = null;
   let dragOff = { x: 0, y: 0 };
   let pendingPlace: { x: number; y: number } | null = null;
   let moved = false;
+  let pan: { cx: number; cy: number; left: number; top: number } | null = null;
+  // Group move: starting positions of every selected object + the start cell.
+  let group: { start: Map<string, { x: number; y: number }>; cx: number; cy: number } | null = null;
+  // Marquee (rubber-band) rectangle in grid coords, while drag-selecting.
+  let marquee = $state<{ x0: number; y0: number; x1: number; y1: number } | null>(null);
 
+  function startPan(e: PointerEvent) {
+    pan = scroller
+      ? { cx: e.clientX, cy: e.clientY, left: scroller.scrollLeft, top: scroller.scrollTop }
+      : null;
+  }
   function onPointerDown(e: PointerEvent) {
     const cell = cellFromEvent(e);
     if (!cell) return;
     const { x, y } = cell;
     if (x < 0 || y < 0 || x >= N || y >= N) return;
     moved = false;
+    dragId = null;
+    pendingPlace = null;
+    pan = null;
+    group = null;
+    marquee = null;
     const hit = objects.find((o) => footprintCells(o).includes(`${x},${y}`));
-    if (hit) {
+
+    if (boardMode === 'view') {
+      // Drag = pan; remember the hit so a tap can still select it.
+      dragId = hit?.id ?? null;
+      dragOff = hit ? { x: x - hit.x, y: y - hit.y } : { x: 0, y: 0 };
+      if (!hit) startPan(e);
+    } else if (hit) {
       dragId = hit.id;
       dragOff = { x: x - hit.x, y: y - hit.y };
-      pendingPlace = null;
+      // If the grabbed object is part of a multi-selection, move the whole group.
+      if (selectedIds.length > 1 && selectedIds.includes(hit.id)) {
+        const start = new Map(
+          objects.filter((o) => selectedIds.includes(o.id)).map((o) => [o.id, { x: o.x, y: o.y }])
+        );
+        group = { start, cx: x, cy: y };
+      }
     } else {
-      dragId = null;
       pendingPlace = { x, y };
+      marquee = { x0: x, y0: y, x1: x, y1: y }; // edit-mode drag = marquee
     }
     (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
   }
   function onPointerMove(e: PointerEvent) {
-    if (dragId) {
+    // Panning (view mode, dragging empty space).
+    if (pan && scroller) {
+      const dx = e.clientX - pan.cx;
+      const dy = e.clientY - pan.cy;
+      if (!moved && Math.hypot(dx, dy) < 4) return;
+      moved = true;
+      scroller.scrollLeft = pan.left - dx;
+      scroller.scrollTop = pan.top - dy;
+      e.preventDefault();
+      return;
+    }
+    // Group move: shift every selected object by the same (clamped) delta.
+    if (group) {
+      const cell = cellFromEvent(e);
+      if (!cell) return;
+      let dx = cell.x - group.cx;
+      let dy = cell.y - group.cy;
+      for (const [id, s] of group.start) {
+        const def = OBJECT_DEFS[objects.find((o) => o.id === id)!.type];
+        dx = Math.min(Math.max(dx, -s.x), N - def.w - s.x);
+        dy = Math.min(Math.max(dy, -s.y), N - def.h - s.y);
+      }
+      const moving = new Set(group.start.keys());
+      const others = objects.filter((o) => !moving.has(o.id));
+      const next = [...group.start].map(([id, s]) => ({ id, x: s.x + dx, y: s.y + dy }));
+      const ok = next.every(
+        (n) => !collides(others, { ...objects.find((o) => o.id === n.id)!, ...n })
+      );
+      if (ok) {
+        for (const n of next) {
+          const o = objects.find((p) => p.id === n.id)!;
+          if (o.x !== n.x || o.y !== n.y) {
+            o.x = n.x;
+            o.y = n.y;
+            moved = true;
+          }
+        }
+      }
+      e.preventDefault();
+      return;
+    }
+    // Single object move.
+    if (dragId && boardMode === 'edit') {
       const cell = cellFromEvent(e);
       const o = objects.find((x) => x.id === dragId);
       if (!cell || !o) return;
       const def = OBJECT_DEFS[o.type];
       const nx = Math.min(Math.max(0, cell.x - dragOff.x), N - def.w);
       const ny = Math.min(Math.max(0, cell.y - dragOff.y), N - def.h);
-      if (nx !== o.x || ny !== o.y) {
+      // Buildings can't overlap (a banner's 7×7 coverage may; footprints can't).
+      if ((nx !== o.x || ny !== o.y) && !collides(objects, { ...o, x: nx, y: ny }, o.id)) {
         o.x = nx;
         o.y = ny;
         moved = true;
       }
-      e.preventDefault(); // don't scroll the board while dragging a piece
-    } else if (pendingPlace) {
-      const cell = cellFromEvent(e);
-      if (cell && (cell.x !== pendingPlace.x || cell.y !== pendingPlace.y)) moved = true;
+      e.preventDefault();
+      return;
+    }
+    // Marquee select (edit mode, dragging empty space).
+    if (marquee) {
+      const p = pointFromEvent(e);
+      if (!p) return;
+      marquee = { ...marquee, x1: p.x, y1: p.y };
+      if (Math.abs(marquee.x1 - marquee.x0) + Math.abs(marquee.y1 - marquee.y0) > 0.3) moved = true;
+      e.preventDefault();
     }
   }
   function onPointerUp() {
-    if (dragId) {
+    if (group) {
       if (moved) persist();
-      else selectedId = dragId; // a tap selects
-    } else if (pendingPlace && !moved) {
+    } else if (marquee && moved) {
+      // Select every object whose footprint intersects the marquee rectangle.
+      const minX = Math.min(marquee.x0, marquee.x1);
+      const maxX = Math.max(marquee.x0, marquee.x1);
+      const minY = Math.min(marquee.y0, marquee.y1);
+      const maxY = Math.max(marquee.y0, marquee.y1);
+      selectedIds = objects
+        .filter((o) => {
+          const def = OBJECT_DEFS[o.type];
+          return o.x < maxX && o.x + def.w > minX && o.y < maxY && o.y + def.h > minY;
+        })
+        .map((o) => o.id);
+    } else if (dragId) {
+      if (moved) persist();
+      else selectedIds = [dragId]; // a tap selects one
+    } else if (pendingPlace && !moved && boardMode === 'edit') {
       const def = OBJECT_DEFS[tool];
-      objects.push({
+      const candidate: PlacedObject = {
         id: `${tool}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         type: tool,
         x: Math.min(pendingPlace.x, N - def.w),
         y: Math.min(pendingPlace.y, N - def.h)
-      });
-      persist();
+      };
+      if (!collides(objects, candidate)) {
+        objects.push(candidate);
+        persist();
+      }
+    } else if (!moved && boardMode === 'view') {
+      selectedIds = []; // tapping empty space in view mode clears the selection
     }
     dragId = null;
     pendingPlace = null;
+    pan = null;
+    group = null;
+    marquee = null;
     moved = false;
   }
 
@@ -215,7 +374,7 @@
     if (!cell) return;
     const i = objects.findIndex((o) => footprintCells(o).includes(`${cell.x},${cell.y}`));
     if (i >= 0) {
-      if (objects[i].id === selectedId) selectedId = null;
+      selectedIds = selectedIds.filter((id) => id !== objects[i].id);
       objects.splice(i, 1);
       persist();
     }
@@ -225,11 +384,6 @@
   const bearTraps = $derived(objects.filter((o) => o.type === 'bearTrap'));
   const bearNum = (o: PlacedObject) => bearTraps.indexOf(o) + 1;
   const hasBears = $derived(activeMode.types.includes('bearTrap'));
-  // Which bear trap a city joins: '—' or 1..N (N = number of placed traps).
-  const bearOptions = $derived([
-    { value: '', label: '—' },
-    ...bearTraps.map((_, i) => ({ value: String(i + 1), label: `🐻 ${i + 1}` }))
-  ]);
   let bearFocus = $state(0); // 0 = show all; 1..3 = highlight that bear's group
   // If the focused trap was removed, fall back to "show all".
   $effect(() => {
@@ -238,25 +392,37 @@
   function inFocus(o: PlacedObject): boolean {
     if (bearFocus === 0) return true;
     if (o.type === 'bearTrap') return bearNum(o) === bearFocus;
-    return o.bear === bearFocus;
+    return o.bear?.includes(bearFocus) ?? false;
+  }
+  // A city can join several bear traps (different days) — toggle each on/off.
+  function toggleBear(n: number) {
+    const o = selected;
+    if (!o) return;
+    const set = new Set(o.bear ?? []);
+    if (set.has(n)) set.delete(n);
+    else set.add(n);
+    if (set.size) o.bear = [...set].sort((a, b) => a - b);
+    else delete o.bear;
+    persist();
   }
 
-  function setTag<K extends 'name' | 'furnace' | 'power' | 'bear'>(k: K, v: PlacedObject[K]) {
-    const o = objects.find((x) => x.id === selectedId);
+  function setTag<K extends 'name' | 'furnace' | 'power'>(k: K, v: PlacedObject[K]) {
+    const o = selected;
     if (!o) return;
     if (v === '' || v === 0 || v === undefined) delete o[k];
     else o[k] = v;
     persist();
   }
   function removeSelected() {
-    const i = objects.findIndex((o) => o.id === selectedId);
-    if (i >= 0) objects.splice(i, 1);
-    selectedId = null;
+    if (!selectedIds.length) return;
+    const ids = new Set(selectedIds);
+    for (let i = objects.length - 1; i >= 0; i--) if (ids.has(objects[i].id)) objects.splice(i, 1);
+    selectedIds = [];
     persist();
   }
   function reset() {
     objects.splice(0, objects.length);
-    selectedId = null;
+    selectedIds = [];
     persist();
   }
 
@@ -264,10 +430,16 @@
   // whenever the layout/mode changes. Compression is async, so doing it here and
   // copying synchronously on click keeps the clipboard gesture valid (Safari).
   let shareUrl = $state('');
+  let shareCode = $state('');
+  let codeCopied = $state(false);
+  // ~2000 chars is the safe cross-app ceiling (Chrome address bar / Discord
+  // message). Past it, nudge users to the code+import path instead of the link.
+  const urlTooLong = $derived(shareUrl.length > 2000);
   $effect(() => {
     const snapshot = objects.map((o) => ({ ...o }));
     const m = mode;
     exportLayout(m, snapshot).then((code) => {
+      shareCode = code;
       shareUrl = `${location.origin}${location.pathname}?t=${encodeURIComponent(code)}`;
     });
   });
@@ -281,12 +453,22 @@
       () => (copied = false)
     );
   }
+  function doCopyCode() {
+    if (!shareCode) return;
+    navigator.clipboard.writeText(shareCode).then(
+      () => {
+        codeCopied = true;
+        setTimeout(() => (codeCopied = false), 1800);
+      },
+      () => (codeCopied = false)
+    );
+  }
   function applyImport(parsed: { mode: string; objects: PlacedObject[] }) {
     mode = parsed.mode;
     writeJson(MODE_KEY, mode);
     objects.splice(0, objects.length, ...parsed.objects);
     tool = modeById(mode).types[0];
-    selectedId = null;
+    selectedIds = [];
     persist();
   }
   async function doImport() {
@@ -298,8 +480,14 @@
     if (parsed) applyImport(parsed);
   }
 
+  function closeHelp() {
+    helpOpen = false;
+    writeJson(HELP_KEY, true);
+  }
+
   // A shared layout link (?t=CODE) loads on open — into its embedded mode.
   onMount(async () => {
+    if (!readJson<boolean>(HELP_KEY)) helpOpen = true; // first visit → quick tour
     const code = new URLSearchParams(location.search).get('t');
     if (!code) return;
     const parsed = await importLayout(code);
@@ -343,40 +531,52 @@
     {/each}
   </div>
 
-  <div class="viewbar" role="group" aria-label={i18n.m.territory.view.label}>
-    <span class="viewbar-label">{i18n.m.territory.view.label}</span>
-    <div class="seg">
-      <button
-        class="seg-btn"
-        class:active={view === 'flat'}
-        type="button"
-        onclick={() => setView('flat')}>{i18n.m.territory.view.flat}</button
-      >
-      <button
-        class="seg-btn"
-        class:active={view === 'iso'}
-        type="button"
-        onclick={() => setView('iso')}>{i18n.m.territory.view.tilt}</button
-      >
-    </div>
+  <div class="viewbar">
+    <Segmented
+      value={boardMode}
+      ariaLabel={i18n.m.territory.boardMode.label}
+      options={[
+        { value: 'edit', label: `✏️ ${i18n.m.territory.boardMode.edit}` },
+        { value: 'view', label: `🖐 ${i18n.m.territory.boardMode.view}` }
+      ]}
+      onChange={(v) => setBoardMode(v as 'edit' | 'view')}
+    />
+    <Segmented
+      value={view}
+      ariaLabel={i18n.m.territory.view.label}
+      options={[
+        { value: 'flat', label: i18n.m.territory.view.flat },
+        { value: 'iso', label: i18n.m.territory.view.tilt }
+      ]}
+      onChange={(v) => setView(v as View)}
+    />
+    <button
+      class="help-btn"
+      type="button"
+      onclick={() => (helpOpen = true)}
+      aria-label={i18n.m.territory.help.title}
+      title={i18n.m.territory.help.title}><Icon name="circle-help" size={16} /></button
+    >
   </div>
 
-  <div class="palette" role="toolbar" aria-label={i18n.m.territory.place}>
-    {#each activeMode.types as t (t)}
-      {@const def = OBJECT_DEFS[t]}
-      <button
-        class="tool"
-        class:active={tool === t}
-        type="button"
-        onclick={() => (tool = t)}
-        style="--c: {def.color}"
-      >
-        <span class="swatch" style="background: {def.color}"></span>
-        <span class="tool-name">{objName(def.i18n)}</span>
-        <span class="tool-count">{count(t)}{def.max ? `/${def.max}` : ''}</span>
-      </button>
-    {/each}
-  </div>
+  {#if boardMode === 'edit'}
+    <div class="palette" role="toolbar" aria-label={i18n.m.territory.place}>
+      {#each activeMode.types as t (t)}
+        {@const def = OBJECT_DEFS[t]}
+        <button
+          class="tool"
+          class:active={tool === t}
+          type="button"
+          onclick={() => (tool = t)}
+          style="--c: {def.color}"
+        >
+          <span class="swatch" style="background: {def.color}"></span>
+          <span class="tool-name">{objName(def.i18n)}</span>
+          <span class="tool-count">{count(t)}{def.max ? `/${def.max}` : ''}</span>
+        </button>
+      {/each}
+    </div>
+  {/if}
 
   <div class="controls">
     <div class="zoom">
@@ -402,33 +602,36 @@
       type="button"
       onclick={() => (showLabels = !showLabels)}>{i18n.m.territory.labels}</button
     >
+    {#if showLabels}
+      <Segmented
+        value={labelField}
+        options={[
+          { value: 'furnace', label: i18n.m.territory.labelFurnace },
+          { value: 'name', label: i18n.m.territory.labelName }
+        ]}
+        onChange={(v) => setLabelField(v as 'furnace' | 'name')}
+      />
+    {/if}
     <button class="toggle" class:on={heatmap} type="button" onclick={() => (heatmap = !heatmap)}
       >{i18n.m.territory.heatmap}</button
     >
     {#if hasBears && bearTraps.length > 0}
       <div class="bear-focus">
         <span class="bf-label">🐻 {i18n.m.territory.bearFocus}</span>
-        <div class="seg">
-          <button
-            class="seg-btn"
-            class:active={bearFocus === 0}
-            type="button"
-            onclick={() => (bearFocus = 0)}>{i18n.m.territory.bearAll}</button
-          >
-          {#each bearTraps as _, i (i)}
-            <button
-              class="seg-btn"
-              class:active={bearFocus === i + 1}
-              type="button"
-              onclick={() => (bearFocus = i + 1)}>{i + 1}</button
-            >
-          {/each}
-        </div>
+        <Segmented
+          value={String(bearFocus)}
+          ariaLabel={i18n.m.territory.bearFocus}
+          options={[
+            { value: '0', label: i18n.m.territory.bearAll },
+            ...bearTraps.map((_, i) => ({ value: String(i + 1), label: String(i + 1) }))
+          ]}
+          onChange={(v) => (bearFocus = Number(v))}
+        />
       </div>
     {/if}
   </div>
 
-  <div class="board-scroll">
+  <div class="board-scroll" bind:this={scroller}>
     <div class="board" class:iso={view === 'iso'} style="width: {zoom * 100}%">
       <svg
         {viewBox}
@@ -470,7 +673,7 @@
           {#each objects as o (o.id)}
             {@const def = OBJECT_DEFS[o.type]}
             {@const orphan = territory.orphaned.has(o.id)}
-            {@const sel = o.id === selectedId}
+            {@const sel = selectedIds.includes(o.id)}
             {@const lit = inFocus(o)}
             <rect
               x={o.x + 0.08}
@@ -496,12 +699,22 @@
                     : 0.05}
             />
           {/each}
+          {#if marquee}
+            <rect
+              class="marquee"
+              x={Math.min(marquee.x0, marquee.x1)}
+              y={Math.min(marquee.y0, marquee.y1)}
+              width={Math.abs(marquee.x1 - marquee.x0)}
+              height={Math.abs(marquee.y1 - marquee.y0)}
+            />
+          {/if}
         </g>
         <!-- Labels live OUTSIDE the transformed group so they stay upright even
              in iso (positioned via the iso projection). -->
         {#if showLabels}
           {#each objects as o (o.id)}
-            {#if o.furnace || o.name}
+            {@const text = labelField === 'name' ? o.name : o.furnace}
+            {#if text}
               {@const def = OBJECT_DEFS[o.type]}
               {@const cx = o.x + def.w / 2}
               {@const cy = o.y + def.h / 2}
@@ -511,7 +724,7 @@
                 x={p.x}
                 y={p.y}
                 text-anchor="middle"
-                dominant-baseline="central">{o.furnace ?? o.name}</text
+                dominant-baseline="central">{text}</text
               >
             {/if}
           {/each}
@@ -536,15 +749,24 @@
     </div>
   </div>
 
+  {#if selectedIds.length > 1}
+    <div class="group-bar">
+      <span class="group-count">{fmt(i18n.m.territory.selectedN, { n: selectedIds.length })}</span>
+      <button class="reset" type="button" onclick={removeSelected}>
+        × {i18n.m.territory.remove}
+      </button>
+      <button class="reset" type="button" onclick={() => (selectedIds = [])}>
+        {i18n.m.common.close}
+      </button>
+    </div>
+  {/if}
+
   {#if selected}
     <div class="editor">
       <div class="ed-head">
         <span class="ed-title">{objName(OBJECT_DEFS[selected.type].i18n)}</span>
-        <button
-          class="ed-close"
-          type="button"
-          onclick={() => (selectedId = null)}
-          aria-label="close">×</button
+        <button class="ed-close" type="button" onclick={() => (selectedIds = [])} aria-label="close"
+          >×</button
         >
       </div>
       <div class="ed-fields">
@@ -575,15 +797,19 @@
             />
           </label>
           {#if hasBears && bearTraps.length > 0}
-            <label class="ed-field">
+            <div class="ed-field">
               <span class="field-label">{i18n.m.territory.tag.bear}</span>
-              <Select
-                value={selected.bear ? String(selected.bear) : ''}
-                options={bearOptions}
-                onChange={(v) => setTag('bear', v ? Number(v) : undefined)}
-                ariaLabel={i18n.m.territory.tag.bear}
-              />
-            </label>
+              <div class="bear-chips">
+                {#each bearTraps as _, i (i)}
+                  <button
+                    type="button"
+                    class="bear-chip"
+                    class:on={selected.bear?.includes(i + 1)}
+                    onclick={() => toggleBear(i + 1)}>🐻 {i + 1}</button
+                  >
+                {/each}
+              </div>
+            </div>
           {/if}
         {/if}
       </div>
@@ -596,6 +822,9 @@
   <div class="legend">
     <span class="leg"><span class="dot reach"></span>{i18n.m.territory.legend.reach}</span>
     <span class="leg"><span class="dot terr"></span>{i18n.m.territory.legend.connected}</span>
+    {#if activeMode.connectivity}
+      <span class="leg"><span class="dot orphan"></span>{i18n.m.territory.legend.orphan}</span>
+    {/if}
   </div>
 
   <div class="footer">
@@ -605,6 +834,10 @@
         <Icon name={copied ? 'check' : 'share-2'} size={13} />
         {copied ? i18n.m.territory.copied : i18n.m.territory.share}
       </button>
+      <button class="act" type="button" onclick={doCopyCode} disabled={objects.length === 0}>
+        <Icon name={codeCopied ? 'check' : 'copy'} size={13} />
+        {codeCopied ? i18n.m.territory.codeCopied : i18n.m.territory.copyCode}
+      </button>
       <button class="act" type="button" onclick={() => (importOpen = !importOpen)}>
         <Icon name="download" size={13} />
         {i18n.m.territory.import}
@@ -613,6 +846,9 @@
         {i18n.m.common.reset}
       </button>
     </div>
+    {#if urlTooLong}
+      <p class="warn">⚠️ {i18n.m.territory.urlLong}</p>
+    {/if}
   </div>
 
   {#if importOpen}
@@ -672,6 +908,14 @@
                   <span class="map-meta">{m.objects.length} · {i18n.m.territory.maps.load}</span>
                 </button>
                 <button
+                  class="map-upd"
+                  type="button"
+                  onclick={() => updateMap(m.id, m.name)}
+                  disabled={objects.length === 0}
+                  aria-label={i18n.m.territory.maps.update}
+                  title={i18n.m.territory.maps.update}>↻</button
+                >
+                <button
                   class="map-del"
                   type="button"
                   onclick={() => savedMaps.remove(mode, m.id)}
@@ -684,6 +928,25 @@
       </div>
     {/if}
   </div>
+
+  <ConfirmDialog
+    open={!!confirmAction}
+    message={confirmMsg}
+    onConfirm={doConfirm}
+    onCancel={() => (confirmAction = null)}
+  />
+
+  <Modal open={helpOpen} onClose={closeHelp} label={i18n.m.territory.help.title} wide>
+    <div class="help">
+      <h2 class="help-title">{i18n.m.territory.help.title}</h2>
+      <ul class="help-list">
+        {#each i18n.m.territory.help.items as item (item)}
+          <li>{item}</li>
+        {/each}
+      </ul>
+      <button class="act" type="button" onclick={closeHelp}>{i18n.m.common.gotIt}</button>
+    </div>
+  </Modal>
 </div>
 
 <style>
@@ -727,38 +990,27 @@
     align-items: center;
     gap: 12px;
     margin-bottom: 16px;
+    flex-wrap: wrap;
   }
-  .viewbar-label {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--text-dim);
-  }
-  .seg {
+  .help-btn {
+    margin-inline-start: auto;
     display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--r-pill);
-    padding: 3px;
-    gap: 2px;
-  }
-  .seg-btn {
-    background: none;
-    border: none;
-    border-radius: var(--r-pill);
     color: var(--text-mid);
-    font-family: var(--font-mono);
-    font-size: 12px;
-    padding: 5px 14px;
     cursor: pointer;
     transition:
-      background 0.2s ease,
-      color 0.2s ease;
+      color 0.2s ease,
+      border-color 0.2s ease;
   }
-  .seg-btn.active {
-    background: var(--bg-soft);
-    color: var(--text);
+  .help-btn:hover {
+    color: var(--accent);
+    border-color: var(--border-accent);
   }
   .palette {
     display: flex;
@@ -858,30 +1110,6 @@
     font-family: var(--font-mono);
     font-size: 11px;
   }
-  .seg {
-    display: inline-flex;
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    overflow: hidden;
-  }
-  .seg-btn {
-    background: var(--surface);
-    border: none;
-    border-left: 1px solid var(--border);
-    color: var(--text-mid);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    padding: 6px 11px;
-    cursor: pointer;
-    transition: color 0.2s ease;
-  }
-  .seg-btn:first-child {
-    border-left: none;
-  }
-  .seg-btn.active {
-    color: var(--accent);
-    background: var(--accent-glow);
-  }
   .board-scroll {
     overflow: auto;
     border: 1px solid var(--border);
@@ -896,8 +1124,15 @@
     display: block;
     width: 100%;
     height: auto;
-    touch-action: manipulation;
+    touch-action: none;
     cursor: crosshair;
+  }
+  .marquee {
+    fill: rgba(147, 212, 255, 0.12);
+    stroke: #93d4ff;
+    stroke-width: 0.08;
+    stroke-dasharray: 0.3 0.2;
+    pointer-events: none;
   }
   .tile-label {
     fill: #fff;
@@ -992,6 +1227,70 @@
     font-size: 11px;
     padding: 7px 14px;
     cursor: pointer;
+  }
+  .bear-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .bear-chip {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    color: var(--text-mid);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 7px 12px;
+    cursor: pointer;
+    transition:
+      color 0.2s ease,
+      border-color 0.2s ease;
+  }
+  .bear-chip.on {
+    color: var(--text);
+    border-color: var(--border-accent);
+    background: var(--accent-glow);
+  }
+  .group-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border-accent);
+    border-radius: var(--r-card);
+  }
+  .group-count {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text);
+    margin-inline-end: auto;
+  }
+  .warn {
+    flex-basis: 100%;
+    margin: 8px 0 0;
+    color: #fbbf24;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.5;
+  }
+  .help-title {
+    margin: 0 0 14px;
+    font-size: 18px;
+    color: var(--text);
+  }
+  .help-list {
+    margin: 0 0 18px;
+    padding-inline-start: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .help-list li {
+    color: var(--text-mid);
+    font-size: 13.5px;
+    line-height: 1.55;
   }
   .footer-actions {
     display: flex;
@@ -1156,6 +1455,7 @@
     text-transform: uppercase;
     letter-spacing: 1px;
   }
+  .map-upd,
   .map-del {
     flex-shrink: 0;
     width: 36px;
@@ -1168,6 +1468,14 @@
     transition:
       color 0.2s ease,
       border-color 0.2s ease;
+  }
+  .map-upd:hover:not(:disabled) {
+    color: var(--accent);
+    border-color: var(--border-accent);
+  }
+  .map-upd:disabled {
+    opacity: 0.4;
+    cursor: default;
   }
   .map-del:hover {
     color: #fb7185;
@@ -1201,6 +1509,10 @@
   .dot.terr {
     background: rgba(147, 212, 255, 0.35);
     border: 1px solid rgba(147, 212, 255, 0.5);
+  }
+  .dot.orphan {
+    background: rgba(251, 113, 133, 0.3);
+    border: 1px solid #fb7185;
   }
   .footer {
     display: flex;
