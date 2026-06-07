@@ -45,9 +45,64 @@ export interface PlacedObject {
   /** top-left grid cell */
   x: number;
   y: number;
+  /** Optional tags (mainly for cities): owner name, furnace level, power. */
+  name?: string;
+  furnace?: string;
+  power?: number;
 }
 
+/** Furnace levels for tagging — plain in-game display: 1–30 then FC1–FC11. */
+export const FURNACE_LEVELS: string[] = [
+  ...Array.from({ length: 30 }, (_, i) => String(i + 1)),
+  ...Array.from({ length: 11 }, (_, i) => `FC${i + 1}`)
+];
+
 const key = (x: number, y: number) => `${x},${y}`;
+
+// --- Import / export (share a layout as a copyable code) -------------------
+const utf8ToB64 = (s: string) => btoa(unescape(encodeURIComponent(s)));
+const b64ToUtf8 = (s: string) => decodeURIComponent(escape(atob(s)));
+
+/** Serialise a layout to a compact, copy-pasteable code (version-prefixed). */
+export function exportLayout(objects: PlacedObject[]): string {
+  const arr = objects.map((o) => {
+    const base: (string | number)[] = [TERRITORY_TYPES.indexOf(o.type), o.x, o.y];
+    if (o.name || o.furnace || (o.power ?? 0) > 0)
+      base.push(o.name ?? '', o.furnace ?? '', o.power ?? 0);
+    return base;
+  });
+  return 'T1' + utf8ToB64(JSON.stringify(arr));
+}
+
+/** Parse an exported code back into placed objects (new ids). Null if invalid. */
+export function importLayout(code: string): PlacedObject[] | null {
+  try {
+    const trimmed = code.trim();
+    if (!trimmed.startsWith('T1')) return null;
+    const arr = JSON.parse(b64ToUtf8(trimmed.slice(2)));
+    if (!Array.isArray(arr)) return null;
+    const out: PlacedObject[] = [];
+    for (const row of arr) {
+      if (!Array.isArray(row)) continue;
+      const [ti, x, y, name, furnace, power] = row;
+      const type = TERRITORY_TYPES[ti];
+      if (!type || typeof x !== 'number' || typeof y !== 'number') continue;
+      const o: PlacedObject = {
+        id: `${type}-${out.length}-${Math.random().toString(36).slice(2, 6)}`,
+        type,
+        x,
+        y
+      };
+      if (name) o.name = String(name);
+      if (furnace) o.furnace = String(furnace);
+      if (typeof power === 'number' && power > 0) o.power = power;
+      out.push(o);
+    }
+    return out;
+  } catch {
+    return null;
+  }
+}
 
 /** Cells occupied by an object's footprint. */
 export function footprintCells(o: PlacedObject): string[] {
