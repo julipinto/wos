@@ -391,7 +391,12 @@
       "city": "Город",
       "bearTrap": "Ловушка",
       "farm": "Ферма",
-      "obstacle": "Препятствие"
+      "obstacle": "Препятствие",
+      "sunCastle": "Замок Sunfire",
+      "sunTurret": "Турель",
+      "sunCity": "Город",
+      "capitol": "Капитолий",
+      "stateCity": "Город"
     },
     "view": {
       "label": "Вид",
@@ -421,6 +426,12 @@
       "load": "загрузить",
       "empty": "Пока нет сохранённых карт."
     },
-    "share": "Поделиться"
+    "share": "Поделиться",
+    "modes": {
+      "label": "режим",
+      "hive": "Улей",
+      "sunfire": "Sunfire Castle",
+      "state": "Штат"
+    }
   }
 }

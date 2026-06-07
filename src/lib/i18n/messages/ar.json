@@ -391,7 +391,12 @@
       "city": "مدينة",
       "bearTrap": "فخ",
       "farm": "مزرعة",
-      "obstacle": "عائق"
+      "obstacle": "عائق",
+      "sunCastle": "قلعة Sunfire",
+      "sunTurret": "برج",
+      "sunCity": "مدينة",
+      "capitol": "الكابيتول",
+      "stateCity": "مدينة"
     },
     "view": {
       "label": "العرض",
@@ -421,6 +426,12 @@
       "load": "تحميل",
       "empty": "لا توجد خرائط محفوظة بعد."
     },
-    "share": "مشاركة"
+    "share": "مشاركة",
+    "modes": {
+      "label": "الوضع",
+      "hive": "الخلية",
+      "sunfire": "Sunfire Castle",
+      "state": "الولاية"
+    }
   }
 }

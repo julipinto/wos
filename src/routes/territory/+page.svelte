@@ -8,7 +8,8 @@
   import { readJson, writeJson } from '$lib/utils/storage';
   import {
     OBJECT_DEFS,
-    TERRITORY_TYPES,
+    MODES,
+    modeById,
     FURNACE_LEVELS,
     computeTerritory,
     footprintCells,
@@ -21,8 +22,8 @@
   import { savedMaps } from '$lib/tools/territory/maps.svelte';
 
   const N = 30; // grid is N×N cells
-  const STORAGE = 'territory-layout-v1';
   const VIEW_KEY = 'territory-view-v1';
+  const MODE_KEY = 'territory-mode-v1';
 
   type View = 'flat' | 'iso';
   let view = $state<View>(readJson<View>(VIEW_KEY) === 'iso' ? 'iso' : 'flat');
@@ -30,6 +31,13 @@
     view = v;
     writeJson(VIEW_KEY, v);
   }
+
+  // Planner mode (hive / sunfire / state) — each has its own palette + storage.
+  const initialMode = modeById(readJson<string>(MODE_KEY) ?? 'hive').id;
+  let mode = $state<string>(initialMode);
+  const activeMode = $derived(modeById(mode));
+  // Hive keeps the original key so existing layouts survive.
+  const layoutKey = (m: string) => (m === 'hive' ? 'territory-layout-v1' : `territory-layout-${m}`);
 
   // The transformed group + the click-mapping CTM source.
   let plane: SVGGElement | undefined = $state();
@@ -40,18 +48,28 @@
   // In iso the diamond only spans y≈3–27, so crop the viewBox to drop the bands.
   const viewBox = $derived(view === 'iso' ? '-1 2.5 32 25' : '0 0 30 30');
 
-  function load(): PlacedObject[] {
-    const raw = readJson<PlacedObject[]>(STORAGE);
-    return Array.isArray(raw) ? raw.filter((o) => OBJECT_DEFS[o.type]) : [];
+  function loadLayout(m: string): PlacedObject[] {
+    const raw = readJson<PlacedObject[]>(layoutKey(m));
+    const allowed = new Set(modeById(m).types);
+    return Array.isArray(raw) ? raw.filter((o) => allowed.has(o.type)) : [];
   }
-  const objects = $state<PlacedObject[]>(load());
+  const objects = $state<PlacedObject[]>(loadLayout(initialMode));
   const persist = () =>
     writeJson(
-      STORAGE,
+      layoutKey(mode),
       objects.map((o) => ({ ...o }))
     );
 
-  let tool = $state<TerritoryType>('banner');
+  function setMode(m: string) {
+    if (m === mode) return;
+    mode = m;
+    writeJson(MODE_KEY, m);
+    objects.splice(0, objects.length, ...loadLayout(m));
+    selectedId = null;
+    tool = modeById(m).types[0];
+  }
+
+  let tool = $state<TerritoryType>(modeById(initialMode).types[0]);
   let selectedId = $state<string | null>(null);
   let zoom = $state(1);
   let showLabels = $state(false);
@@ -64,11 +82,11 @@
 
   function saveMap() {
     if (!mapName.trim()) return;
-    savedMaps.save(mapName, objects);
+    savedMaps.save(mode, mapName, objects);
     mapName = '';
   }
   function loadMap(id: string) {
-    objects.splice(0, objects.length, ...savedMaps.objectsOf(id));
+    objects.splice(0, objects.length, ...savedMaps.objectsOf(mode, id));
     selectedId = null;
     persist();
   }
@@ -88,7 +106,12 @@
     return `hsl(${hue}, 85%, 55%)`;
   }
 
-  const territory = $derived(computeTerritory(objects));
+  const EMPTY = {
+    cells: new Set<string>(),
+    connected: new Set<string>(),
+    orphaned: new Set<string>()
+  };
+  const territory = $derived(activeMode.connectivity ? computeTerritory(objects) : EMPTY);
   const objName = (k: string) => (i18n.m.territory.obj as Record<string, string>)[k];
   const count = (t: TerritoryType) => objects.filter((o) => o.type === t).length;
 
@@ -197,7 +220,7 @@
   // Build a share link off the CURRENT page URL, so it follows whatever host
   // the app is deployed on (no hard-coded base).
   function shareLink(): string {
-    const code = encodeURIComponent(exportLayout(objects));
+    const code = encodeURIComponent(exportLayout(mode, objects));
     return `${location.origin}${location.pathname}?t=${code}`;
   }
   async function doExport() {
@@ -209,31 +232,29 @@
       copied = false;
     }
   }
+  function applyImport(parsed: { mode: string; objects: PlacedObject[] }) {
+    mode = parsed.mode;
+    writeJson(MODE_KEY, mode);
+    objects.splice(0, objects.length, ...parsed.objects);
+    tool = modeById(mode).types[0];
+    selectedId = null;
+    persist();
+  }
   function doImport() {
     // Accept a full share link OR a raw code.
     const m = importText.match(/[?&]t=([^&\s]+)/);
-    const code = m ? decodeURIComponent(m[1]) : importText.trim();
-    const parsed = importLayout(code);
-    if (!parsed) {
-      importText = '';
-      return;
-    }
-    objects.splice(0, objects.length, ...parsed);
-    selectedId = null;
-    importOpen = false;
+    const parsed = importLayout(m ? decodeURIComponent(m[1]) : importText.trim());
     importText = '';
-    persist();
+    importOpen = false;
+    if (parsed) applyImport(parsed);
   }
 
-  // A shared layout link (?t=CODE) loads on open.
+  // A shared layout link (?t=CODE) loads on open — into its embedded mode.
   onMount(() => {
     const code = new URLSearchParams(location.search).get('t');
     if (!code) return;
     const parsed = importLayout(code);
-    if (parsed && parsed.length) {
-      objects.splice(0, objects.length, ...parsed);
-      persist();
-    }
+    if (parsed && parsed.objects.length) applyImport(parsed);
   });
 
   const toCells = (s: Iterable<string>) =>
@@ -260,6 +281,19 @@
 <div class="wrap">
   <PageHeader title={i18n.m.landing.territory.title} sub={i18n.m.territory.sub} backHref="/" />
 
+  <div class="modebar" role="group" aria-label={i18n.m.territory.modes.label}>
+    {#each MODES as m (m.id)}
+      <button
+        class="mode-btn"
+        class:active={mode === m.id}
+        type="button"
+        onclick={() => setMode(m.id)}
+      >
+        {(i18n.m.territory.modes as Record<string, string>)[m.i18n]}
+      </button>
+    {/each}
+  </div>
+
   <div class="viewbar" role="group" aria-label={i18n.m.territory.view.label}>
     <span class="viewbar-label">{i18n.m.territory.view.label}</span>
     <div class="seg">
@@ -279,7 +313,7 @@
   </div>
 
   <div class="palette" role="toolbar" aria-label={i18n.m.territory.place}>
-    {#each TERRITORY_TYPES as t (t)}
+    {#each activeMode.types as t (t)}
       {@const def = OBJECT_DEFS[t]}
       <button
         class="tool"
@@ -414,7 +448,7 @@
             oninput={(e) => setTag('name', e.currentTarget.value)}
           />
         </label>
-        {#if selected.type === 'city'}
+        {#if OBJECT_DEFS[selected.type].city}
           <label class="ed-field">
             <span class="field-label">{i18n.m.territory.tag.furnace}</span>
             <Select
@@ -485,7 +519,9 @@
     >
       <span class="maps-icon" aria-hidden="true">🗺️</span>
       <span class="maps-title">{i18n.m.territory.maps.title}</span>
-      {#if savedMaps.all.length > 0}<span class="maps-count">{savedMaps.all.length}</span>{/if}
+      {#if savedMaps.all(mode).length > 0}<span class="maps-count"
+          >{savedMaps.all(mode).length}</span
+        >{/if}
       <Icon name="chevron-down" size={14} class="caret {mapsOpen ? 'up' : ''}" />
     </button>
     {#if mapsOpen}
@@ -506,11 +542,11 @@
             {i18n.m.territory.maps.save}
           </button>
         </div>
-        {#if savedMaps.all.length === 0}
+        {#if savedMaps.all(mode).length === 0}
           <p class="maps-empty">{i18n.m.territory.maps.empty}</p>
         {:else}
           <ul class="maps-list">
-            {#each savedMaps.all as m (m.id)}
+            {#each savedMaps.all(mode) as m (m.id)}
               <li class="map-row">
                 <button class="map-load" type="button" onclick={() => loadMap(m.id)}>
                   <span class="map-name">{m.name}</span>
@@ -519,7 +555,7 @@
                 <button
                   class="map-del"
                   type="button"
-                  onclick={() => savedMaps.remove(m.id)}
+                  onclick={() => savedMaps.remove(mode, m.id)}
                   aria-label={i18n.m.territory.remove}>×</button
                 >
               </li>
@@ -537,6 +573,35 @@
     max-width: 640px;
     margin: 0 auto;
     padding: 32px 24px 96px;
+  }
+  .modebar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .mode-btn {
+    flex: 1;
+    min-width: 90px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    color: var(--text-mid);
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition:
+      color 0.2s ease,
+      border-color 0.2s ease,
+      background 0.2s ease;
+  }
+  .mode-btn.active {
+    color: var(--accent);
+    border-color: var(--border-accent);
+    background: var(--accent-glow);
   }
   .viewbar {
     display: flex;
