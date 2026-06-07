@@ -19,6 +19,7 @@ import { TROOP_COST } from '../../src/lib/tools/upgrade/data/troops';
 import { petLadder } from '../../src/lib/tools/upgrade/data/pets';
 import { HERO_MASTERY, HERO_STARS, HERO_EXCLUSIVE } from '../../src/lib/tools/upgrade/data/heroes';
 import { HELIOS_NODES } from '../../src/lib/tools/upgrade/data/helios';
+import { fcTier, campForTier, furnaceReqs } from '../../src/lib/tools/upgrade/prereqs';
 import type { UpgradeTable } from '../../src/lib/tools/upgrade/types';
 
 const furnace = buildingById('furnace')!;
@@ -103,6 +104,36 @@ describe('formatQty', () => {
     expect(formatQty(3400000000)).toBe('3.4B');
     expect(formatQty(2000000)).toBe('2M');
     expect(formatQty(120000000)).toBe('120M');
+  });
+});
+
+describe('prereqs', () => {
+  it('reads FC tier from a label', () => {
+    expect(fcTier('30')).toBe(0);
+    expect(fcTier('FC1')).toBe(1);
+    expect(fcTier('FC1-3')).toBe(1);
+    expect(fcTier('FC10')).toBe(10);
+  });
+  it('rotates the gating camp Lancer→Infantry→Marksman', () => {
+    expect(campForTier(2)).toBe('lancerCamp');
+    expect(campForTier(3)).toBe('infantryCamp');
+    expect(campForTier(4)).toBe('marksmanCamp');
+    expect(campForTier(5)).toBe('lancerCamp');
+  });
+  it('gives cumulative Furnace requirements', () => {
+    expect(furnaceReqs(1)).toEqual([]);
+    // Furnace FC5: Embassy FC4 + Lancer FC4 (max gated) + Infantry FC2 + Marksman FC3
+    const r5 = furnaceReqs(5);
+    expect(r5).toContainEqual({ building: 'embassy', tier: 4 });
+    expect(r5).toContainEqual({ building: 'lancerCamp', tier: 4 });
+    expect(r5).toContainEqual({ building: 'infantryCamp', tier: 2 });
+    expect(r5).toContainEqual({ building: 'marksmanCamp', tier: 3 });
+    // FC10 endpoint: Lancer FC7, Infantry FC8, Marksman FC9, Embassy FC9
+    const r10 = furnaceReqs(10);
+    expect(r10).toContainEqual({ building: 'lancerCamp', tier: 7 });
+    expect(r10).toContainEqual({ building: 'infantryCamp', tier: 8 });
+    expect(r10).toContainEqual({ building: 'marksmanCamp', tier: 9 });
+    expect(r10).toContainEqual({ building: 'embassy', tier: 9 });
   });
 });
 

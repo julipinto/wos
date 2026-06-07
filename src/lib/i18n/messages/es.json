@@ -236,7 +236,9 @@
       "sub": "Costo de recursos y tiempo entre dos niveles de un edificio.",
       "pick": "edificio",
       "queues": "colas de construcción",
-      "queuesNote": "La 2ª cola requiere una cola de construcción activa (ventaja VIP o compra)."
+      "queuesNote": "La 2ª cola requiere una cola de construcción activa (ventaja VIP o compra).",
+      "prereqNeed": "{target} requiere {list}",
+      "capWarn": "por encima del Horno ({furnace})"
     },
     "setAll": "definir todos",
     "apply": "aplicar",
