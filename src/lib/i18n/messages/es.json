@@ -446,7 +446,7 @@
     "labelName": "nombre",
     "copyCode": "copiar código",
     "codeCopied": "código copiado",
-    "urlLong": "Enlace largo — algunas apps lo cortan. Usa “copiar código” + Importar.",
+    "urlLong": "Esta colmena es demasiado grande para enlace — algunas apps lo cortarían. Usa “copiar código”, descarga el archivo o Importa.",
     "boardMode": {
       "label": "Modo",
       "edit": "Editar",
@@ -467,6 +467,8 @@
       "selectCaption": "En Editar, arrastra una caja sobre el vacío para seleccionar varios y luego mueve el grupo.",
       "bearsTitle": "Osos y compartir",
       "bearsCaption": "Las ciudades participan en osos (🐻); comparte un enlace o copia el código si es largo."
-    }
+    },
+    "download": "Archivo",
+    "fromFile": "Desde archivo"
   }
 }

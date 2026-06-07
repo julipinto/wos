@@ -446,7 +446,7 @@
     "labelName": "nome",
     "copyCode": "copiar código",
     "codeCopied": "código copiado",
-    "urlLong": "Link longo — alguns apps podem cortar. Use “copiar código” + Importar.",
+    "urlLong": "Esse hive é grande demais pra compartilhar por link — alguns apps cortariam. Use “copiar código”, baixe o arquivo, ou Importe.",
     "boardMode": {
       "label": "Modo",
       "edit": "Editar",
@@ -467,6 +467,8 @@
       "selectCaption": "No Editar, arraste uma caixa sobre o vazio pra selecionar vários e depois mova o grupo.",
       "bearsTitle": "Ursos & compartilhar",
       "bearsCaption": "Cidades participam de ursos (🐻); compartilhe um link, ou copie o código se ficar grande."
-    }
+    },
+    "download": "Arquivo",
+    "fromFile": "De arquivo"
   }
 }

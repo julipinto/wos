@@ -446,7 +446,7 @@
     "labelName": "name",
     "copyCode": "copy code",
     "codeCopied": "code copied",
-    "urlLong": "Link is long — some apps may cut it. Use “copy code” + Import instead.",
+    "urlLong": "This hive is too big to share by link — some apps would cut it. Use “copy code”, download the file, or Import instead.",
     "boardMode": {
       "label": "Mode",
       "edit": "Edit",
@@ -467,6 +467,8 @@
       "selectCaption": "In Edit, drag a box over empty space to select several, then drag to move the group.",
       "bearsTitle": "Bears & sharing",
       "bearsCaption": "Cities join bear traps (🐻); share a link, or copy the code if it gets long."
-    }
+    },
+    "download": "File",
+    "fromFile": "From file"
   }
 }
