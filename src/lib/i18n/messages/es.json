@@ -453,16 +453,19 @@
     },
     "selectedN": "{n} seleccionados",
     "help": {
-      "title": "Cómo funciona",
-      "items": [
-        "✏️ Editar: toca el vacío para colocar la pieza; toca una pieza para seleccionarla; arrastra para moverla.",
-        "🖐 Ver: arrastra en cualquier lugar para desplazarte por el mapa (ideal con zoom).",
-        "Seleccionar varios: en Editar, arrastra sobre el vacío para seleccionar en caja y luego arrastra para mover el grupo.",
-        "Doble toque en una pieza para borrarla. Las ciudades llevan nombre, horno, poder y en qué osos participan.",
-        "Las trampas de oso están numeradas; usa el foco 🐻 para resaltar un oso y sus ciudades.",
-        "Los edificios no pueden solaparse (el área 7×7 del banner sí). Los banners sin conexión a la HQ se ponen rojos — expirarían.",
-        "Comparte un enlace, o “copiar código” + Importar si el enlace es largo. Guarda mapas con nombre y sobrescribe con ↻."
-      ]
+      "title": "Cómo funciona"
+    },
+    "tour": {
+      "welcomeTitle": "Planificador de territorio",
+      "welcomeCaption": "Planifica tu colmena, sunfire castle o state — HQ, banners, ciudades, osos.",
+      "modesTitle": "Editar y Ver",
+      "modesCaption": "Editar coloca y mueve piezas; Ver arrastra para desplazar. Dos dedos también en Editar.",
+      "placeTitle": "Colocar, mover, quitar",
+      "placeCaption": "Toca el vacío para colocar, arrastra para mover. Los edificios no se solapan. Doble toque quita.",
+      "selectTitle": "Seleccionar varios",
+      "selectCaption": "En Editar, arrastra una caja sobre el vacío para seleccionar varios y luego mueve el grupo.",
+      "bearsTitle": "Osos y compartir",
+      "bearsCaption": "Las ciudades participan en osos (🐻); comparte un enlace o copia el código si es largo."
     }
   }
 }

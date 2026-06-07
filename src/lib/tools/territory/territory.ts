@@ -38,8 +38,9 @@ const HIVE_OBJECTS: Record<string, TerritoryDef> = {
   hq: { w: 15, h: 15, seed: true, max: 1, i18n: 'hq', color: '#93d4ff' },
   banner: { w: 1, h: 1, coverage: 7, i18n: 'banner', color: '#fbbf24' },
   city: { w: 2, h: 2, city: true, i18n: 'city', color: '#4ade80' },
-  // Officially 2 bear traps; 3 is reachable by teaming with another alliance.
-  bearTrap: { w: 3, h: 3, max: 3, i18n: 'bearTrap', color: '#fb7185' },
+  // Officially 2 bear traps (the counter caps at 2); a 3rd is an extraordinary
+  // case (teaming with another alliance) and shows as 3/2 — placement isn't blocked.
+  bearTrap: { w: 3, h: 3, max: 2, i18n: 'bearTrap', color: '#fb7185' },
   farm: { w: 2, h: 2, i18n: 'farm', color: '#c084fc' },
   obstacle: { w: 1, h: 1, i18n: 'obstacle', color: '#64748b' }
 };

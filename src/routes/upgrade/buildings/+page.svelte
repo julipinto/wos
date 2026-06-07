@@ -1,6 +1,7 @@
 <script lang="ts">
   import { i18n, fmt } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
+  import Segmented from '$lib/components/Segmented.svelte';
   import RangeSelect from '$lib/tools/upgrade/RangeSelect.svelte';
   import Boosters from '$lib/tools/upgrade/Boosters.svelte';
   import StepList from '$lib/tools/upgrade/StepList.svelte';
@@ -190,16 +191,14 @@
 
     <div class="queues">
       <span class="field-label">{i18n.m.upgrade.buildings.queues}</span>
-      <div class="seg">
-        {#each [1, 2] as q (q)}
-          <button
-            class="seg-btn"
-            class:active={buildingsCalc.queues === q}
-            type="button"
-            onclick={() => buildingsCalc.setQueues(q)}>{q}</button
-          >
-        {/each}
-      </div>
+      <Segmented
+        value={String(buildingsCalc.queues)}
+        options={[
+          { value: '1', label: '1' },
+          { value: '2', label: '2' }
+        ]}
+        onChange={(v) => buildingsCalc.setQueues(Number(v))}
+      />
     </div>
     {#if buildingsCalc.queues > 1}
       <p class="queues-note">{i18n.m.upgrade.buildings.queuesNote}</p>
@@ -276,32 +275,6 @@
     align-items: center;
     gap: 12px;
     margin-top: 18px;
-  }
-  .seg {
-    display: inline-flex;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    padding: 3px;
-    gap: 2px;
-  }
-  .seg-btn {
-    width: 38px;
-    background: none;
-    border: none;
-    border-radius: var(--r-pill);
-    color: var(--text-mid);
-    font-family: var(--font-mono);
-    font-size: 12px;
-    padding: 5px 0;
-    cursor: pointer;
-    transition:
-      background 0.2s ease,
-      color 0.2s ease;
-  }
-  .seg-btn.active {
-    background: var(--bg-soft);
-    color: var(--text);
   }
   .queues-note {
     font-family: var(--font-mono);

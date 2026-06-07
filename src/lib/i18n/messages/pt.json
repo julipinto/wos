@@ -453,16 +453,19 @@
     },
     "selectedN": "{n} selecionados",
     "help": {
-      "title": "Como funciona",
-      "items": [
-        "✏️ Editar: toque no vazio para colocar a peça selecionada; toque numa peça para selecioná-la; arraste para mover.",
-        "🖐 Ver: arraste em qualquer lugar para navegar pelo mapa (ótimo com zoom).",
-        "Selecionar vários: no Editar, arraste sobre o vazio para selecionar em caixa e depois arraste para mover o grupo.",
-        "Toque duplo numa peça para apagar. Cidades podem ter nome, fornalha, poder e em quais ursos participam.",
-        "Os ursos são numerados; use o foco 🐻 para destacar um urso e suas cidades.",
-        "Construções não podem se sobrepor (a área 7×7 do banner pode). Banners sem conexão com a HQ ficam vermelhos — expirariam.",
-        "Compartilhe um link, ou “copiar código” + Importar se o link ficar grande. Salve mapas com nome e sobrescreva com ↻."
-      ]
+      "title": "Como funciona"
+    },
+    "tour": {
+      "welcomeTitle": "Planejador de território",
+      "welcomeCaption": "Planeje sua colmeia, sunfire castle ou state — HQ, banners, cidades, ursos.",
+      "modesTitle": "Editar & Ver",
+      "modesCaption": "Editar coloca e move peças; Ver arrasta pra navegar. Dois dedos também navegam no Editar.",
+      "placeTitle": "Colocar, mover, remover",
+      "placeCaption": "Toque no vazio pra colocar, arraste pra mover. Construções não se sobrepõem. Toque duplo remove.",
+      "selectTitle": "Selecionar vários",
+      "selectCaption": "No Editar, arraste uma caixa sobre o vazio pra selecionar vários e depois mova o grupo.",
+      "bearsTitle": "Ursos & compartilhar",
+      "bearsCaption": "Cidades participam de ursos (🐻); compartilhe um link, ou copie o código se ficar grande."
     }
   }
 }
