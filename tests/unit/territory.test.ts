@@ -12,8 +12,8 @@ const hq = (x: number, y: number): PlacedObject => ({ id: 'hq', type: 'hq', x, y
 const banner = (id: string, x: number, y: number): PlacedObject => ({ id, type: 'banner', x, y });
 
 describe('territory geometry', () => {
-  it('HQ footprint is 3×3', () => {
-    expect(footprintCells(hq(10, 10))).toHaveLength(9);
+  it('HQ footprint is 15×15', () => {
+    expect(footprintCells(hq(10, 10))).toHaveLength(225);
   });
   it('banner coverage is 7×7 centred on the cell', () => {
     const cells = coverageCells(banner('b', 11, 11));
@@ -26,17 +26,18 @@ describe('territory geometry', () => {
 
 describe('territory connectivity', () => {
   it('a banner overlapping the HQ is connected; a far one is orphaned', () => {
-    const objs = [hq(10, 10), banner('near', 11, 11), banner('far', 25, 25)];
+    // HQ is 15×15 (covers 0..14); near overlaps it, far is well outside.
+    const objs = [hq(0, 0), banner('near', 16, 16), banner('far', 35, 35)];
     const r = computeTerritory(objs);
     expect(r.connected.has('near')).toBe(true);
     expect(r.orphaned.has('far')).toBe(true);
     // territory includes the HQ seed and the near banner's coverage
-    expect(r.cells.has('10,10')).toBe(true);
-    expect(r.cells.has('8,8')).toBe(true);
+    expect(r.cells.has('0,0')).toBe(true);
+    expect(r.cells.has('16,16')).toBe(true);
   });
 
   it('chains: a banner connects through another connected banner', () => {
-    const objs = [hq(10, 10), banner('a', 11, 11), banner('b', 17, 11)];
+    const objs = [hq(0, 0), banner('a', 16, 16), banner('b', 22, 16)];
     const r = computeTerritory(objs);
     // b doesn't reach the HQ directly, but a's coverage overlaps b's.
     expect(r.connected.has('a')).toBe(true);

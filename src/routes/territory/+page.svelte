@@ -21,7 +21,8 @@
   } from '$lib/tools/territory/territory';
   import { savedMaps } from '$lib/tools/territory/maps.svelte';
 
-  const N = 30; // grid is N×N cells
+  const N = 40; // grid is N×N cells
+  const CENTER = N / 2;
   const VIEW_KEY = 'territory-view-v1';
   const MODE_KEY = 'territory-mode-v1';
 
@@ -43,10 +44,31 @@
   let plane: SVGGElement | undefined = $state();
   // 2D isometric: rotate the square grid 45° about its centre and squash it
   // vertically into the classic diamond. Pure affine → clicks stay invertible.
-  const ISO = 'translate(15 15) scale(0.7071 0.55) rotate(45) translate(-15 -15)';
+  const ISO = `translate(${CENTER} ${CENTER}) scale(0.7071 0.55) rotate(45) translate(-${CENTER} -${CENTER})`;
   const planeTransform = $derived(view === 'iso' ? ISO : '');
-  // In iso the diamond only spans y≈3–27, so crop the viewBox to drop the bands.
-  const viewBox = $derived(view === 'iso' ? '-1 2.5 32 25' : '0 0 30 30');
+
+  // Project a plane point through the iso transform — so labels can sit at the
+  // right spot but draw OUTSIDE the rotated group (upright, not skewed).
+  function isoPoint(x: number, y: number): { x: number; y: number } {
+    const c = 0.7071;
+    const sx = 0.7071;
+    const sy = 0.55;
+    const px = x - CENTER;
+    const py = y - CENTER;
+    return { x: sx * (px * c - py * c) + CENTER, y: sy * (px * c + py * c) + CENTER };
+  }
+  // Crop the iso viewBox to the diamond's bounds (drops the empty bands).
+  const ISO_VIEWBOX = (() => {
+    const pts = [isoPoint(0, 0), isoPoint(N, 0), isoPoint(0, N), isoPoint(N, N)];
+    const xs = pts.map((p) => p.x);
+    const ys = pts.map((p) => p.y);
+    const minX = Math.min(...xs);
+    const minY = Math.min(...ys);
+    const w = Math.max(...xs) - minX;
+    const h = Math.max(...ys) - minY;
+    return `${minX - 1} ${minY - 1} ${w + 2} ${h + 2}`;
+  })();
+  const viewBox = $derived(view === 'iso' ? ISO_VIEWBOX : `0 0 ${N} ${N}`);
 
   function loadLayout(m: string): PlacedObject[] {
     const raw = readJson<PlacedObject[]>(layoutKey(m));
@@ -104,17 +126,6 @@
     const t = power / maxPower; // 0..1
     const hue = 210 - 210 * t; // 210 (blue) → 0 (red)
     return `hsl(${hue}, 85%, 55%)`;
-  }
-
-  // Project a plane point through the iso transform, so labels can sit at the
-  // right spot but be drawn OUTSIDE the rotated group (upright, not skewed).
-  function isoPoint(x: number, y: number): { x: number; y: number } {
-    const c = 0.7071;
-    const sx = 0.7071;
-    const sy = 0.55;
-    const px = x - 15;
-    const py = y - 15;
-    return { x: sx * (px * c - py * c) + 15, y: sy * (px * c + py * c) + 15 };
   }
 
   const EMPTY = {
@@ -399,7 +410,7 @@
           </pattern>
         </defs>
         <!-- panel backdrop, generously sized to cover both viewBoxes -->
-        <rect x="-5" y="-5" width="42" height="42" fill="var(--bg)" />
+        <rect x={-10} y={-10} width={N + 20} height={N + 20} fill="var(--bg)" />
         <g bind:this={plane} transform={planeTransform}>
           <!-- the playable floor — lighter than the backdrop so the iso diamond
              reads as a distinct surface -->
