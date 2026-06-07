@@ -2,6 +2,7 @@
   import { i18n } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import Select from '$lib/components/Select.svelte';
+  import NumberInput from '$lib/components/NumberInput.svelte';
   import Boosters from '$lib/tools/upgrade/Boosters.svelte';
   import {
     addBags,
@@ -109,12 +110,13 @@
         </div>
         <div class="row-field qty">
           <span class="field-label">{i18n.m.upgrade.troops.quantity}</span>
-          <input
-            type="number"
-            min="0"
-            bind:value={row.qty}
-            oninput={persist}
-            aria-label={i18n.m.upgrade.troops.quantity}
+          <NumberInput
+            value={row.qty}
+            onChange={(n) => {
+              row.qty = n;
+              persist();
+            }}
+            ariaLabel={i18n.m.upgrade.troops.quantity}
           />
         </div>
         <button
@@ -195,20 +197,6 @@
   }
   .row-field.qty {
     flex: 1;
-  }
-  input[type='number'] {
-    width: 100%;
-    background: var(--bg-soft);
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text);
-    font-family: var(--font-mono);
-    font-size: 15px;
-    padding: 12px 14px;
-  }
-  input:focus-visible {
-    outline: none;
-    border-color: var(--accent);
   }
   .remove {
     flex-shrink: 0;

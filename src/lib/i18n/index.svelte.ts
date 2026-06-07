@@ -72,3 +72,22 @@ export const i18n = new I18n();
 export function fmt(template: string, vars: Record<string, string | number>): string {
   return template.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? `{${k}}`));
 }
+
+/** BCP-47 locale per UI language, for Intl number grouping. */
+const NUMBER_LOCALE: Record<Locale, string> = {
+  en: 'en-US',
+  pt: 'pt-BR',
+  es: 'es-ES',
+  ru: 'ru-RU',
+  ar: 'ar'
+};
+
+/**
+ * Group an integer with the current language's thousands separator
+ * (en → 1,000 · pt → 1.000 · ru → 1 000). Reads `i18n.locale`, so callers in a
+ * reactive context re-run when the language changes. For readable inputs.
+ */
+export function groupNumber(n: number): string {
+  if (!Number.isFinite(n) || n === 0) return '';
+  return new Intl.NumberFormat(NUMBER_LOCALE[i18n.locale]).format(Math.round(n));
+}
