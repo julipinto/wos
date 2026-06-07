@@ -15,6 +15,7 @@
     presentResources
   } from '$lib/tools/upgrade/engine';
   import { boosters } from '$lib/tools/upgrade/boosters-store.svelte';
+  import { fcTier, furnaceReqs } from '$lib/tools/upgrade/prereqs';
   import { type LevelCost } from '$lib/tools/upgrade/types';
 
   // Additive: one combined result across every building row.
@@ -74,6 +75,38 @@
     rows.some((r) => !buildingsCalc.tableOf(r.buildingId).meta.verified)
   );
 
+  // --- Prerequisite cross-check (warnings only) ---
+  // The Furnace's planned target FC tier (null if the Furnace isn't planned).
+  const furnaceTier = $derived.by(() => {
+    const f = rows.find((r) => r.buildingId === 'furnace');
+    return f ? fcTier(f.to) : null;
+  });
+  // Planned FC tier of a building (−1 if it isn't in the plan at all).
+  const plannedTier = (id: string) => {
+    const r = rows.find((x) => x.buildingId === id);
+    return r ? fcTier(r.to) : -1;
+  };
+  // Warnings for one row: Furnace lists its unmet FC prereqs; a support flagged
+  // if it's planned above the Furnace's target (nothing may exceed the Furnace).
+  function warningsFor(r: { buildingId: string; to: string }): string[] {
+    const out: string[] = [];
+    if (r.buildingId === 'furnace' && furnaceTier && furnaceTier >= 2) {
+      const unmet = furnaceReqs(furnaceTier).filter((req) => plannedTier(req.building) < req.tier);
+      if (unmet.length > 0)
+        out.push(
+          fmt(i18n.m.upgrade.buildings.prereqNeed, {
+            target: `FC${furnaceTier}`,
+            list: unmet
+              .map((q) => `${buildingsCalc.tableOf(q.building).name} FC${q.tier}`)
+              .join(' · ')
+          })
+        );
+    }
+    if (r.buildingId !== 'furnace' && furnaceTier !== null && fcTier(r.to) > furnaceTier)
+      out.push(fmt(i18n.m.upgrade.buildings.capWarn, { furnace: `FC${furnaceTier}` }));
+    return out;
+  }
+
   // Zinman's skill (set in the boosters panel) also cuts base-resource cost for
   // construction by the same %, applied to meat/wood/coal/iron only.
   const ZIMAN_BASE = ['meat', 'wood', 'coal', 'iron'];
@@ -125,6 +158,9 @@
               aria-label={i18n.m.upgrade.troops.remove}>×</button
             >
           </div>
+          {#each warningsFor(row) as w (w)}
+            <p class="row-warn">⚠ {w}</p>
+          {/each}
         </div>
       {/each}
     </div>
@@ -309,6 +345,13 @@
     font-family: var(--font-mono);
     font-size: 12px;
     color: var(--text-mid);
+  }
+  .row-warn {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.5;
+    color: #fb923c;
+    margin: 8px 0 0;
   }
   .row-controls {
     display: flex;

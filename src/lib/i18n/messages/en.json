@@ -236,7 +236,9 @@
       "sub": "Resource & time cost between two building levels.",
       "pick": "building",
       "queues": "build queues",
-      "queuesNote": "The 2nd queue needs an active build queue (VIP perk or purchase)."
+      "queuesNote": "The 2nd queue needs an active build queue (VIP perk or purchase).",
+      "prereqNeed": "{target} needs {list}",
+      "capWarn": "above the Furnace ({furnace})"
     },
     "setAll": "set all",
     "apply": "apply",
