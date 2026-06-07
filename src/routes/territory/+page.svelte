@@ -217,20 +217,26 @@
     persist();
   }
 
-  // Build a share link off the CURRENT page URL, so it follows whatever host
-  // the app is deployed on (no hard-coded base).
-  function shareLink(): string {
-    const code = encodeURIComponent(exportLayout(mode, objects));
-    return `${location.origin}${location.pathname}?t=${code}`;
-  }
-  async function doExport() {
-    try {
-      await navigator.clipboard.writeText(shareLink());
-      copied = true;
-      setTimeout(() => (copied = false), 1800);
-    } catch {
-      copied = false;
-    }
+  // Precompute the share link (off the current page URL, so it follows the host)
+  // whenever the layout/mode changes. Compression is async, so doing it here and
+  // copying synchronously on click keeps the clipboard gesture valid (Safari).
+  let shareUrl = $state('');
+  $effect(() => {
+    const snapshot = objects.map((o) => ({ ...o }));
+    const m = mode;
+    exportLayout(m, snapshot).then((code) => {
+      shareUrl = `${location.origin}${location.pathname}?t=${encodeURIComponent(code)}`;
+    });
+  });
+  function doExport() {
+    if (!shareUrl) return;
+    navigator.clipboard.writeText(shareUrl).then(
+      () => {
+        copied = true;
+        setTimeout(() => (copied = false), 1800);
+      },
+      () => (copied = false)
+    );
   }
   function applyImport(parsed: { mode: string; objects: PlacedObject[] }) {
     mode = parsed.mode;
@@ -240,20 +246,20 @@
     selectedId = null;
     persist();
   }
-  function doImport() {
+  async function doImport() {
     // Accept a full share link OR a raw code.
     const m = importText.match(/[?&]t=([^&\s]+)/);
-    const parsed = importLayout(m ? decodeURIComponent(m[1]) : importText.trim());
+    const parsed = await importLayout(m ? decodeURIComponent(m[1]) : importText.trim());
     importText = '';
     importOpen = false;
     if (parsed) applyImport(parsed);
   }
 
   // A shared layout link (?t=CODE) loads on open — into its embedded mode.
-  onMount(() => {
+  onMount(async () => {
     const code = new URLSearchParams(location.search).get('t');
     if (!code) return;
-    const parsed = importLayout(code);
+    const parsed = await importLayout(code);
     if (parsed && parsed.objects.length) applyImport(parsed);
   });
 

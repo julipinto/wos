@@ -53,27 +53,27 @@ describe('territory connectivity', () => {
 });
 
 describe('import / export', () => {
-  it('round-trips a layout incl. mode + tags (ids regenerated)', () => {
+  it('round-trips a layout incl. mode + tags (ids regenerated)', async () => {
     const objs: PlacedObject[] = [
       hq(10, 10),
       { id: 'c1', type: 'city', x: 12, y: 12, name: 'Juli', furnace: 'FC7', power: 42000000 },
       banner('b', 11, 11)
     ];
-    const back = importLayout(exportLayout('hive', objs))!;
+    const back = (await importLayout(await exportLayout('hive', objs)))!;
     expect(back.mode).toBe('hive');
     expect(back.objects).toHaveLength(3);
     expect(back.objects.map((o) => o.type)).toEqual(['hq', 'city', 'banner']);
     const city = back.objects.find((o) => o.type === 'city')!;
     expect(city).toMatchObject({ x: 12, y: 12, name: 'Juli', furnace: 'FC7', power: 42000000 });
   });
-  it('carries the mode and drops objects foreign to it', () => {
-    const code = exportLayout('sunfire', [{ id: 's', type: 'sunCastle', x: 5, y: 5 }]);
-    const back = importLayout(code)!;
+  it('carries the mode and drops objects foreign to it', async () => {
+    const code = await exportLayout('sunfire', [{ id: 's', type: 'sunCastle', x: 5, y: 5 }]);
+    const back = (await importLayout(code))!;
     expect(back.mode).toBe('sunfire');
     expect(back.objects.map((o) => o.type)).toEqual(['sunCastle']);
   });
-  it('rejects garbage', () => {
-    expect(importLayout('nope')).toBeNull();
-    expect(importLayout('T1@@@')).toBeNull();
+  it('rejects garbage', async () => {
+    expect(await importLayout('nope')).toBeNull();
+    expect(await importLayout('T1@@@')).toBeNull();
   });
 });
