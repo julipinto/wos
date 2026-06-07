@@ -106,6 +106,17 @@
     return `hsl(${hue}, 85%, 55%)`;
   }
 
+  // Project a plane point through the iso transform, so labels can sit at the
+  // right spot but be drawn OUTSIDE the rotated group (upright, not skewed).
+  function isoPoint(x: number, y: number): { x: number; y: number } {
+    const c = 0.7071;
+    const sx = 0.7071;
+    const sy = 0.55;
+    const px = x - 15;
+    const py = y - 15;
+    return { x: sx * (px * c - py * c) + 15, y: sy * (px * c + py * c) + 15 };
+  }
+
   const EMPTY = {
     cells: new Set<string>(),
     connected: new Set<string>(),
@@ -355,9 +366,8 @@
     </div>
     <button
       class="toggle"
-      class:on={showLabels && view === 'flat'}
+      class:on={showLabels}
       type="button"
-      disabled={view === 'iso'}
       onclick={() => (showLabels = !showLabels)}>{i18n.m.territory.labels}</button
     >
     <button class="toggle" class:on={heatmap} type="button" onclick={() => (heatmap = !heatmap)}
@@ -419,17 +429,27 @@
               stroke={sel ? '#ffffff' : orphan ? '#fb7185' : 'rgba(0,0,0,0.3)'}
               stroke-width={sel ? 0.16 : orphan ? 0.12 : 0.05}
             />
-            {#if showLabels && view === 'flat' && (o.furnace || o.name)}
+          {/each}
+        </g>
+        <!-- Labels live OUTSIDE the transformed group so they stay upright even
+             in iso (positioned via the iso projection). -->
+        {#if showLabels}
+          {#each objects as o (o.id)}
+            {#if o.furnace || o.name}
+              {@const def = OBJECT_DEFS[o.type]}
+              {@const cx = o.x + def.w / 2}
+              {@const cy = o.y + def.h / 2}
+              {@const p = view === 'iso' ? isoPoint(cx, cy) : { x: cx, y: cy }}
               <text
                 class="tile-label"
-                x={o.x + def.w / 2}
-                y={o.y + def.h / 2}
+                x={p.x}
+                y={p.y}
                 text-anchor="middle"
                 dominant-baseline="central">{o.furnace ?? o.name}</text
               >
             {/if}
           {/each}
-        </g>
+        {/if}
       </svg>
     </div>
   </div>
@@ -733,10 +753,6 @@
     color: var(--accent);
     border-color: var(--border-accent);
     background: var(--accent-glow);
-  }
-  .toggle:disabled {
-    opacity: 0.4;
-    cursor: default;
   }
   .board-scroll {
     overflow: auto;
