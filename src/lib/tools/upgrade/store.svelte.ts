@@ -46,10 +46,11 @@ function persist(): void {
   );
 }
 
-// Parallel build queues (1 or 2 with the second builder active). Separate key
-// so it doesn't disturb the rows array that My Plan reads.
+// Parallel build queues. The 2nd queue isn't automatic — it needs an active
+// build-queue (VIP perk / purchase) — so default to 1 and let the user opt in.
+// Separate key so it doesn't disturb the rows array that My Plan reads.
 const QUEUES_KEY = 'upgrade-build-queues-v1';
-let queues = $state<number>(readJson<number>(QUEUES_KEY) === 1 ? 1 : 2);
+let queues = $state<number>(readJson<number>(QUEUES_KEY) === 2 ? 2 : 1);
 
 export const buildingsCalc = {
   get list() {

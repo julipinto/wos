@@ -235,7 +235,8 @@
     "buildings": {
       "sub": "Resource & time cost between two building levels.",
       "pick": "building",
-      "queues": "build queues"
+      "queues": "build queues",
+      "queuesNote": "The 2nd queue needs an active build queue (VIP perk or purchase)."
     },
     "setAll": "set all",
     "apply": "apply",

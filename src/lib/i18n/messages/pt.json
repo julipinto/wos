@@ -235,7 +235,8 @@
     "buildings": {
       "sub": "Custo de recursos e tempo entre dois níveis de uma construção.",
       "pick": "construção",
-      "queues": "filas de construção"
+      "queues": "filas de construção",
+      "queuesNote": "A 2ª fila exige a fila de construção ativa (benefício de VIP ou compra)."
     },
     "setAll": "definir todos",
     "apply": "aplicar",
