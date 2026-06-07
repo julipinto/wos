@@ -230,7 +230,8 @@
       "heroShard": "fragmentos de herói",
       "fcShard": "fragmentos de cristal de fogo",
       "expertSigil": "sigilos de expert",
-      "bookOfKnowledge": "Livro do Conhecimento"
+      "bookOfKnowledge": "Livro do Conhecimento",
+      "gearXp": "XP de Aprimoramento"
     },
     "buildings": {
       "sub": "Custo de recursos e tempo entre dois níveis de uma construção.",
@@ -324,10 +325,11 @@
     "researchTime": "tempo de pesquisa",
     "trainTime": "tempo de treinamento",
     "heroes": {
-      "sub": "Materiais de herói por track — maestria de equipamento, equipamento exclusivo e promoção de estrelas. Defina o atual e o alvo nos que quiser.",
+      "sub": "Materiais de equipamento e promoção do herói, por track. Defina atual e alvo nos que quiser.",
       "mastery": "maestria de equipamento",
       "exclusive": "equipamento exclusivo",
-      "stars": "promoção de estrelas"
+      "stars": "promoção de estrelas",
+      "enhance": "aprimoramento de equip."
     },
     "helios": {
       "sub": "Pesquisa das tropas T11 Helios (War Academy). Custa Steel + Fragmentos de Cristal de Fogo. Defina atual → alvo de cada nó; escolha quantos tipos de tropa vai maximizar.",

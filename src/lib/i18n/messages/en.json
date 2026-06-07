@@ -230,7 +230,8 @@
       "heroShard": "hero shards",
       "fcShard": "fire crystal shards",
       "expertSigil": "expert sigils",
-      "bookOfKnowledge": "Book of Knowledge"
+      "bookOfKnowledge": "Book of Knowledge",
+      "gearXp": "Enhancement XP"
     },
     "buildings": {
       "sub": "Resource & time cost between two building levels.",
@@ -324,10 +325,11 @@
     "researchTime": "research time",
     "trainTime": "training time",
     "heroes": {
-      "sub": "Hero materials by track — gear mastery, exclusive gear and star promotion. Set current and target on the ones you want.",
+      "sub": "Hero gear & promotion materials, by track. Set current and target on the ones you want.",
       "mastery": "gear mastery",
       "exclusive": "exclusive gear",
-      "stars": "star promotion"
+      "stars": "star promotion",
+      "enhance": "gear enhancement"
     },
     "helios": {
       "sub": "T11 Helios troop research (War Academy). Costs Steel + Fire Crystal Shards. Set each node current → target; pick how many troop types you are maxing.",

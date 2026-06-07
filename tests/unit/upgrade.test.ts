@@ -17,7 +17,12 @@ import { GEAR_LADDER } from '../../src/lib/tools/upgrade/data/gear';
 import { CHARM_LADDER } from '../../src/lib/tools/upgrade/data/charms';
 import { TROOP_COST } from '../../src/lib/tools/upgrade/data/troops';
 import { petLadder } from '../../src/lib/tools/upgrade/data/pets';
-import { HERO_MASTERY, HERO_STARS, HERO_EXCLUSIVE } from '../../src/lib/tools/upgrade/data/heroes';
+import {
+  HERO_MASTERY,
+  HERO_STARS,
+  HERO_EXCLUSIVE,
+  HERO_ENHANCE
+} from '../../src/lib/tools/upgrade/data/heroes';
 import { HELIOS_NODES } from '../../src/lib/tools/upgrade/data/helios';
 import { fcTier, campForTier, furnaceReqs } from '../../src/lib/tools/upgrade/prereqs';
 import type { UpgradeTable } from '../../src/lib/tools/upgrade/types';
@@ -104,6 +109,15 @@ describe('formatQty', () => {
     expect(formatQty(3400000000)).toBe('3.4B');
     expect(formatQty(2000000)).toBe('2M');
     expect(formatQty(120000000)).toBe('120M');
+  });
+});
+
+describe('hero gear enhancement', () => {
+  it('totals 71,320 XP across 0→100 plus a 2-Mythic imbue gate', () => {
+    const r = sumLadder(HERO_ENHANCE, '0', '100');
+    expect(r.totals.gearXp).toBe(71320);
+    expect(r.totals.mythicHeroGear).toBe(2);
+    expect(HERO_ENHANCE.length).toBe(101); // base 0 + levels 1..100
   });
 });
 
