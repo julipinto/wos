@@ -1,7 +1,9 @@
 // AUTO-GENERATED research-tree totals (cost to max every node from zero).
-// Source: wosnerdwarriors/wos-data research-upgrades.json (single source — the
-// only complete structured research dataset found). Standard Research Center
-// tech only; War Academy / Fire Crystal research is not yet covered.
+// Source: wosnerdwarriors/wos-data research-upgrades.json, VERIFIED against
+// whiteoutsurvival.wiki per-level cost/time tables (independent) — node counts,
+// levels, all five resources and base times match to the digit. Standard
+// Research Center tech only; War Academy / Fire Crystal research is excluded by
+// design (the wiki's extra flame-/helios-/crystal- nodes are that FC research).
 // Regenerate with /tmp/gen_research.mjs.
 import type { ResourceBag } from '../types';
 

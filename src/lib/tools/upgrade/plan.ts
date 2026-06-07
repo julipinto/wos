@@ -220,6 +220,20 @@ function heroesLine(): PlanLine | null {
     : null;
 }
 
+/** Every localStorage key holding a plan SELECTION (what you're upgrading), for
+ *  a "clear plan" reset. Excludes account config (boosters / stock / speedups). */
+export const PLAN_STORAGE_KEYS = [
+  'upgrade-buildings-v1',
+  'upgrade-gear-v1',
+  'upgrade-charms-v1',
+  'upgrade-troops-v1',
+  'upgrade-research-v1',
+  'upgrade-pets-v2',
+  'upgrade-experts-v1',
+  'upgrade-helios-v1',
+  ...HERO_TRACKS.map((t) => t.storageKey)
+];
+
 /** All non-empty calculator totals from saved state (resources raw, no boosters). */
 export function planLines(): PlanLine[] {
   return [
