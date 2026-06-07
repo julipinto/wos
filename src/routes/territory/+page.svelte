@@ -21,7 +21,7 @@
   } from '$lib/tools/territory/territory';
   import { savedMaps } from '$lib/tools/territory/maps.svelte';
 
-  const N = 40; // grid is N×N cells
+  const N = 60; // grid is N×N cells
   const CENTER = N / 2;
   const VIEW_KEY = 'territory-view-v1';
   const MODE_KEY = 'territory-mode-v1';
