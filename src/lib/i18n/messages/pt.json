@@ -227,7 +227,8 @@
       "widget": "widgets",
       "heroShard": "fragmentos de herói",
       "fcShard": "fragmentos de cristal de fogo",
-      "expertSigil": "sigilos de expert"
+      "expertSigil": "sigilos de expert",
+      "bookOfKnowledge": "Livro do Conhecimento"
     },
     "buildings": {
       "sub": "Custo de recursos e tempo entre dois níveis de uma construção.",
@@ -336,7 +337,10 @@
     },
     "experts": {
       "sub": "Experts da Dawn Academy — track de Afinidade. Adicione um expert e defina o nível de afinidade atual → alvo pra ver os Sigilos necessários.",
-      "note": "Só o track de Afinidade (Sigilos) — o track de skills (\"Books of Knowledge\") ainda não foi modelado. Dados do wostools/woscalculator."
+      "note": "Só o track de Afinidade (Sigilos) — o track de skills (\"Books of Knowledge\") ainda não foi modelado. Dados do wostools/woscalculator.",
+      "affinity": "Afinidade",
+      "skills": "Habilidades",
+      "learningTime": "tempo de aprendizado"
     },
     "timePartial": "Os tempos dos níveis Fire Crystal não são publicados, então isto os exclui — o tempo real é maior.",
     "zimanCut": "Zinman: −{pct}% nos recursos básicos (carne/madeira/carvão/ferro, não Fire Crystals).",

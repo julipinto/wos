@@ -227,7 +227,8 @@
       "widget": "widgets",
       "heroShard": "hero shards",
       "fcShard": "fire crystal shards",
-      "expertSigil": "expert sigils"
+      "expertSigil": "expert sigils",
+      "bookOfKnowledge": "Book of Knowledge"
     },
     "buildings": {
       "sub": "Resource & time cost between two building levels.",
@@ -336,7 +337,10 @@
     },
     "experts": {
       "sub": "Dawn Academy experts — Affinity track. Add an expert and set its current → target affinity level to see the Expert Sigils needed.",
-      "note": "Affinity (Expert Sigils) track only — the skill \"Books of Knowledge\" track isn't modelled yet. Data from wostools/woscalculator."
+      "note": "Affinity (Expert Sigils) track only — the skill \"Books of Knowledge\" track isn't modelled yet. Data from wostools/woscalculator.",
+      "affinity": "Affinity",
+      "skills": "Skills",
+      "learningTime": "learning time"
     },
     "timePartial": "Fire Crystal level times aren’t published, so this excludes them — the real time is higher.",
     "zimanCut": "Zinman: −{pct}% on base resources (meat/wood/coal/iron, not Fire Crystals).",

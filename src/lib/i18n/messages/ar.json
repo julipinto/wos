@@ -227,7 +227,8 @@
       "widget": "الأدوات",
       "heroShard": "شظايا البطل",
       "fcShard": "شظايا بلورة النار",
-      "expertSigil": "أختام الخبراء"
+      "expertSigil": "أختام الخبراء",
+      "bookOfKnowledge": "كتاب المعرفة"
     },
     "buildings": {
       "sub": "تكلفة الموارد والوقت بين مستويي مبنى.",
@@ -336,7 +337,10 @@
     },
     "experts": {
       "sub": "خبراء Dawn Academy — مسار الألفة. أضف خبيرًا وحدد مستوى الألفة الحالي → الهدف لرؤية الأختام المطلوبة.",
-      "note": "مسار الألفة (الأختام) فقط — مسار المهارات (\"Books of Knowledge\") غير ممثّل بعد. بيانات من wostools/woscalculator."
+      "note": "مسار الألفة (الأختام) فقط — مسار المهارات (\"Books of Knowledge\") غير ممثّل بعد. بيانات من wostools/woscalculator.",
+      "affinity": "الألفة",
+      "skills": "المهارات",
+      "learningTime": "وقت التعلّم"
     },
     "timePartial": "أوقات مستويات Fire Crystal غير منشورة، لذا تُستثنى — الوقت الفعلي أكبر.",
     "zimanCut": "زيمان: −{pct}% على الموارد الأساسية (لحم/خشب/فحم/حديد، عدا Fire Crystals).",
