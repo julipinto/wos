@@ -369,7 +369,9 @@
     "steps": {
       "title": "etapas",
       "base": "valores base por nível — o total acima já aplica seus boosters"
-    }
+    },
+    "summed": "Somado",
+    "individual": "Individual"
   },
   "territory": {
     "sub": "Posicione no grid; banners cobrem 7×7 e precisam conectar ao HQ pra segurar território.",

@@ -3,14 +3,8 @@
   import PageHeader from '$lib/components/PageHeader.svelte';
   import Select from '$lib/components/Select.svelte';
   import RangeSelect from '$lib/tools/upgrade/RangeSelect.svelte';
-  import {
-    sumLadder,
-    combine,
-    scaleBag,
-    formatQty,
-    presentResources
-  } from '$lib/tools/upgrade/engine';
-  import { RESOURCES } from '$lib/tools/upgrade/types';
+  import Totals from '$lib/tools/upgrade/Totals.svelte';
+  import { sumLadder, scaleBag } from '$lib/tools/upgrade/engine';
   import { HELIOS_NODES } from '$lib/tools/upgrade/data/helios';
   import { readJson, writeJson } from '$lib/utils/storage';
 
@@ -35,18 +29,17 @@
 
   const countOptions = [1, 2, 3].map((n) => ({ value: String(n), label: String(n) }));
 
-  const result = $derived(
-    scaleBag(
-      combine(
-        HELIOS_NODES.map((n) => sumLadder(n.ladder, state.nodes[n.id].from, state.nodes[n.id].to))
-      ).totals,
-      state.count
-    )
-  );
-  const rows = $derived(presentResources(result));
   const nodeName = (k: string) => (i18n.m.upgrade.helios as Record<string, string>)[k];
-  const resName = (k: string) => (i18n.m.upgrade.res as Record<string, string>)[k];
-  const resDef = (k: string) => RESOURCES.find((r) => r.key === k)!;
+  // Per-node totals scaled by how many troop types you're maxing.
+  const heliosItems = $derived(
+    HELIOS_NODES.map((n) => ({
+      label: nodeName(n.i18n),
+      totals: scaleBag(
+        sumLadder(n.ladder, state.nodes[n.id].from, state.nodes[n.id].to).totals,
+        state.count
+      )
+    }))
+  );
 </script>
 
 <svelte:head>
@@ -95,21 +88,7 @@
     {/each}
   </div>
 
-  <h2 class="section-label">{i18n.m.upgrade.totalEyebrow}</h2>
-  {#if rows.length === 0}
-    <p class="empty">{i18n.m.upgrade.addHint}</p>
-  {:else}
-    <div class="totals">
-      {#each rows as key (key)}
-        {@const def = resDef(key)}
-        <div class="res">
-          <span class="res-icon" style="--c: {def.color}" aria-hidden="true">{def.icon}</span>
-          <span class="res-name">{resName(key)}</span>
-          <span class="res-val">{formatQty(result[key] ?? 0)}</span>
-        </div>
-      {/each}
-    </div>
-  {/if}
+  <Totals items={heliosItems} emptyHint={i18n.m.upgrade.addHint} />
 </div>
 
 <style>
@@ -156,59 +135,6 @@
     display: flex;
     align-items: center;
     gap: 8px;
-  }
-  .section-label {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 8px 0 16px;
-  }
-  .section-label::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(90deg, var(--border), transparent);
-  }
-  .empty {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--text-dim);
-  }
-  .totals {
-    display: grid;
-    gap: 10px;
-  }
-  .res {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 18px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-card);
-  }
-  .res-icon {
-    font-size: 20px;
-    line-height: 1;
-    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--c) 40%, transparent));
-  }
-  .res-name {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--text-mid);
-    flex: 1;
-  }
-  .res-val {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 22px;
-    letter-spacing: -0.01em;
   }
   @media (max-width: 540px) {
     .wrap {

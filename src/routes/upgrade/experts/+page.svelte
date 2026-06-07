@@ -2,14 +2,8 @@
   import { i18n } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import RangeSelect from '$lib/tools/upgrade/RangeSelect.svelte';
-  import {
-    sumLadder,
-    combine,
-    formatQty,
-    formatDuration,
-    presentResources
-  } from '$lib/tools/upgrade/engine';
-  import { RESOURCES } from '$lib/tools/upgrade/types';
+  import Totals from '$lib/tools/upgrade/Totals.svelte';
+  import { sumLadder, combine, formatDuration } from '$lib/tools/upgrade/engine';
   import { EXPERTS } from '$lib/tools/upgrade/data/experts';
   import { EXPERT_SKILLS } from '$lib/tools/upgrade/data/expertSkills';
   import { readJson, writeJson } from '$lib/utils/storage';
@@ -56,10 +50,12 @@
     persist();
   }
 
-  const result = $derived(
-    combine(rows.map((r) => sumLadder(byId(r.expert)?.ladder ?? [], r.from, r.to))).totals
+  const affinityItems = $derived(
+    rows.map((r) => ({
+      label: byId(r.expert)?.name ?? r.expert,
+      totals: sumLadder(byId(r.expert)?.ladder ?? [], r.from, r.to).totals
+    }))
   );
-  const totalRows = $derived(presentResources(result));
 
   // --- Skill track (Books of Knowledge) ---
   const SKILL_STORAGE = 'upgrade-expertskills-v1';
@@ -100,13 +96,15 @@
     skillRows.splice(i, 1);
     persistSkills();
   }
+  const skillItems = $derived(
+    skillRows.map((r) => ({
+      label: skillById(r.skill)?.skill ?? r.skill,
+      totals: sumLadder(skillById(r.skill)?.ladder ?? [], r.from, r.to).totals
+    }))
+  );
   const skillResult = $derived(
     combine(skillRows.map((r) => sumLadder(skillById(r.skill)?.ladder ?? [], r.from, r.to)))
   );
-  const skillBooks = $derived(skillResult.totals.bookOfKnowledge ?? 0);
-
-  const resName = (k: string) => (i18n.m.upgrade.res as Record<string, string>)[k];
-  const resDef = (k: string) => RESOURCES.find((r) => r.key === k)!;
 </script>
 
 <svelte:head>
@@ -178,21 +176,7 @@
       </div>
     {/if}
 
-    <h2 class="section-label">{i18n.m.upgrade.totalEyebrow}</h2>
-    {#if totalRows.length === 0}
-      <p class="empty">{i18n.m.upgrade.addHint}</p>
-    {:else}
-      <div class="totals">
-        {#each totalRows as key (key)}
-          {@const def = resDef(key)}
-          <div class="res">
-            <span class="res-icon" style="--c: {def.color}" aria-hidden="true">{def.icon}</span>
-            <span class="res-name">{resName(key)}</span>
-            <span class="res-val">{formatQty(result[key] ?? 0)}</span>
-          </div>
-        {/each}
-      </div>
-    {/if}
+    <Totals items={affinityItems} emptyHint={i18n.m.upgrade.addHint} />
   {:else}
     {#if skillRows.length > 0}
       <div class="rows">
@@ -239,27 +223,14 @@
       </div>
     {/if}
 
-    <h2 class="section-label">{i18n.m.upgrade.totalEyebrow}</h2>
-    {#if skillBooks === 0 && skillResult.time === 0}
-      <p class="empty">{i18n.m.upgrade.addHint}</p>
-    {:else}
-      <div class="totals">
-        <div class="res">
-          <span class="res-icon" style="--c: {resDef('bookOfKnowledge').color}" aria-hidden="true"
-            >{resDef('bookOfKnowledge').icon}</span
-          >
-          <span class="res-name">{resName('bookOfKnowledge')}</span>
-          <span class="res-val">{formatQty(skillBooks)}</span>
+    <Totals items={skillItems} emptyHint={i18n.m.upgrade.addHint} />
+    {#if skillResult.time > 0}
+      <div class="meta-row">
+        <div class="meta">
+          <span class="meta-label">{i18n.m.upgrade.experts.learningTime}</span>
+          <span class="meta-val">{formatDuration(skillResult.time)}</span>
         </div>
       </div>
-      {#if skillResult.time > 0}
-        <div class="meta-row">
-          <div class="meta">
-            <span class="meta-label">{i18n.m.upgrade.experts.learningTime}</span>
-            <span class="meta-val">{formatDuration(skillResult.time)}</span>
-          </div>
-        </div>
-      {/if}
     {/if}
   {/if}
 </div>
@@ -418,59 +389,6 @@
     color: var(--accent);
     border-color: var(--border-accent);
     background: var(--surface-hover);
-  }
-  .section-label {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 8px 0 16px;
-  }
-  .section-label::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(90deg, var(--border), transparent);
-  }
-  .empty {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--text-dim);
-  }
-  .totals {
-    display: grid;
-    gap: 10px;
-  }
-  .res {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 18px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-card);
-  }
-  .res-icon {
-    font-size: 20px;
-    line-height: 1;
-    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--c) 40%, transparent));
-  }
-  .res-name {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--text-mid);
-    flex: 1;
-  }
-  .res-val {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 22px;
-    letter-spacing: -0.01em;
   }
   @media (max-width: 540px) {
     .wrap {

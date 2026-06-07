@@ -87,7 +87,7 @@ export const RESOURCES: ResourceDef[] = [
   { key: 'mythicHeroGear', icon: '🎖️', color: '#f87171' },
   { key: 'widget', icon: '🔧', color: '#94a3b8' },
   { key: 'heroShard', icon: '🔱', color: '#c084fc' },
-  { key: 'expertSigil', icon: '🎟️', color: '#38bdf8' },
+  { key: 'expertSigil', icon: '🔷', color: '#38bdf8' },
   { key: 'bookOfKnowledge', icon: '📚', color: '#a78bfa' }
 ];
 

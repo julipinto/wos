@@ -4,16 +4,10 @@
   import Select from '$lib/components/Select.svelte';
   import NumberInput from '$lib/components/NumberInput.svelte';
   import Boosters from '$lib/tools/upgrade/Boosters.svelte';
-  import {
-    addBags,
-    scaleBag,
-    formatQty,
-    formatDuration,
-    applySpeed,
-    presentResources
-  } from '$lib/tools/upgrade/engine';
+  import Totals from '$lib/tools/upgrade/Totals.svelte';
+  import { addBags, scaleBag, formatDuration, applySpeed } from '$lib/tools/upgrade/engine';
   import { boosters } from '$lib/tools/upgrade/boosters-store.svelte';
-  import { RESOURCES, type ResourceBag } from '$lib/tools/upgrade/types';
+  import { type ResourceBag } from '$lib/tools/upgrade/types';
   import { TROOP_TYPES, TROOP_COST, MAX_TIER } from '$lib/tools/upgrade/data/troops';
   import { readJson, writeJson } from '$lib/utils/storage';
 
@@ -64,10 +58,22 @@
     }
     return { totals, time };
   });
-  const totalRows = $derived(presentResources(result.totals));
   const effTime = $derived(applySpeed(result.time, boosters.total('training')));
-  const resName = (k: string) => (i18n.m.upgrade.res as Record<string, string>)[k];
-  const resDef = (k: string) => RESOURCES.find((r) => r.key === k)!;
+
+  const troopItems = $derived(
+    rows.map((r) => {
+      const entry = TROOP_COST[r.type]?.[r.tier - 1];
+      const qty = Math.max(0, Math.floor(r.qty) || 0);
+      const typeLabel =
+        (i18n.m.upgrade.troops as Record<string, string>)[
+          TROOP_TYPES.find((t) => t.id === r.type)?.i18n ?? ''
+        ] ?? r.type;
+      return {
+        label: `${typeLabel} T${r.tier} ×${qty}`,
+        totals: entry && qty > 0 ? scaleBag(entry.cost, qty) : {}
+      };
+    })
+  );
 </script>
 
 <svelte:head>
@@ -133,20 +139,8 @@
 
   <Boosters categories={['training']} />
 
-  <h2 class="section-label">{i18n.m.upgrade.totalEyebrow}</h2>
-  {#if totalRows.length === 0}
-    <p class="empty">{i18n.m.upgrade.addHint}</p>
-  {:else}
-    <div class="totals">
-      {#each totalRows as key (key)}
-        {@const def = resDef(key)}
-        <div class="res">
-          <span class="res-icon" style="--c: {def.color}" aria-hidden="true">{def.icon}</span>
-          <span class="res-name">{resName(key)}</span>
-          <span class="res-val">{formatQty(result.totals[key] ?? 0)}</span>
-        </div>
-      {/each}
-    </div>
+  <Totals items={troopItems} emptyHint={i18n.m.upgrade.addHint} />
+  {#if result.time > 0}
     <div class="meta">
       <span class="field-label">{i18n.m.upgrade.trainTime}</span>
       <span class="meta-val">{formatDuration(effTime)}</span>
@@ -232,59 +226,6 @@
   .add:hover {
     color: var(--text);
     border-color: var(--border-accent);
-  }
-  .section-label {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 28px 0 16px;
-  }
-  .section-label::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(90deg, var(--border), transparent);
-  }
-  .empty {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--text-dim);
-  }
-  .totals {
-    display: grid;
-    gap: 10px;
-  }
-  .res {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 18px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-card);
-  }
-  .res-icon {
-    font-size: 20px;
-    line-height: 1;
-    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--c) 40%, transparent));
-  }
-  .res-name {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--text-mid);
-    flex: 1;
-  }
-  .res-val {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 22px;
-    letter-spacing: -0.01em;
   }
   .meta {
     display: flex;

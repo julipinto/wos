@@ -2,8 +2,8 @@
   import { i18n } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import RangeSelect from '$lib/tools/upgrade/RangeSelect.svelte';
-  import { sumLadder, combine, formatQty, presentResources } from '$lib/tools/upgrade/engine';
-  import { RESOURCES } from '$lib/tools/upgrade/types';
+  import Totals from '$lib/tools/upgrade/Totals.svelte';
+  import { sumLadder } from '$lib/tools/upgrade/engine';
   import { PETS, petLadder } from '$lib/tools/upgrade/data/pets';
   import { readJson, writeJson } from '$lib/utils/storage';
 
@@ -40,12 +40,12 @@
     persist();
   }
 
-  const result = $derived(
-    combine(rows.map((r) => sumLadder(petLadder(petById(r.pet)?.max ?? 0), r.from, r.to)))
+  const petItems = $derived(
+    rows.map((r) => ({
+      label: `${petById(r.pet)?.name ?? r.pet} ${r.from} → ${r.to}`,
+      totals: sumLadder(petLadder(petById(r.pet)?.max ?? 0), r.from, r.to).totals
+    }))
   );
-  const totalRows = $derived(presentResources(result.totals));
-  const resName = (k: string) => (i18n.m.upgrade.res as Record<string, string>)[k];
-  const resDef = (k: string) => RESOURCES.find((r) => r.key === k)!;
 </script>
 
 <svelte:head>
@@ -97,21 +97,7 @@
     </div>
   {/if}
 
-  <h2 class="section-label">{i18n.m.upgrade.totalEyebrow}</h2>
-  {#if totalRows.length === 0}
-    <p class="empty">{i18n.m.upgrade.addHint}</p>
-  {:else}
-    <div class="totals">
-      {#each totalRows as key (key)}
-        {@const def = resDef(key)}
-        <div class="res">
-          <span class="res-icon" style="--c: {def.color}" aria-hidden="true">{def.icon}</span>
-          <span class="res-name">{resName(key)}</span>
-          <span class="res-val">{formatQty(result.totals[key] ?? 0)}</span>
-        </div>
-      {/each}
-    </div>
-  {/if}
+  <Totals items={petItems} emptyHint={i18n.m.upgrade.addHint} />
 </div>
 
 <style>
@@ -199,59 +185,6 @@
     color: var(--accent);
     border-color: var(--border-accent);
     background: var(--surface-hover);
-  }
-  .section-label {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 8px 0 16px;
-  }
-  .section-label::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(90deg, var(--border), transparent);
-  }
-  .empty {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--text-dim);
-  }
-  .totals {
-    display: grid;
-    gap: 10px;
-  }
-  .res {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 18px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-card);
-  }
-  .res-icon {
-    font-size: 20px;
-    line-height: 1;
-    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--c) 40%, transparent));
-  }
-  .res-name {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--text-mid);
-    flex: 1;
-  }
-  .res-val {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 22px;
-    letter-spacing: -0.01em;
   }
   @media (max-width: 540px) {
     .wrap {
