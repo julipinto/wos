@@ -383,7 +383,7 @@
   },
   "territory": {
     "sub": "Place buildings on the grid; banners cover 7×7 and must connect to the HQ to hold territory.",
-    "hint": "Tap a cell to place the selected item; tap an item to remove it. Dimmed/red banners aren’t connected to the HQ.",
+    "hint": "Tap empty to place; tap an item to tag/edit it; double-tap to remove. Dimmed/red banners aren't connected to the HQ.",
     "place": "place",
     "obj": {
       "hq": "HQ",

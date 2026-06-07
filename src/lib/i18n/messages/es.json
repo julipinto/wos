@@ -383,7 +383,7 @@
   },
   "territory": {
     "sub": "Coloca en la cuadrícula; las banderas cubren 7×7 y deben conectarse al HQ para mantener territorio.",
-    "hint": "Toca una celda para colocar; toca un objeto para quitarlo. Las banderas atenuadas/rojas no están conectadas al HQ.",
+    "hint": "Toca vacío para colocar; toca un elemento para etiquetar/editar; doble toque para quitar. Los banners atenuados/rojos no están conectados al CG.",
     "place": "colocar",
     "obj": {
       "hq": "HQ",

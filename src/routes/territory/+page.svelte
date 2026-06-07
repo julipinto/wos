@@ -111,6 +111,18 @@
     persist();
   }
 
+  // Double-click an object to remove it right on the board (no scrolling).
+  function onGridRemove(e: MouseEvent) {
+    const cell = cellFromEvent(e);
+    if (!cell) return;
+    const i = objects.findIndex((o) => footprintCells(o).includes(`${cell.x},${cell.y}`));
+    if (i >= 0) {
+      if (objects[i].id === selectedId) selectedId = null;
+      objects.splice(i, 1);
+      persist();
+    }
+  }
+
   function setTag<K extends 'name' | 'furnace' | 'power'>(k: K, v: PlacedObject[K]) {
     const o = objects.find((x) => x.id === selectedId);
     if (!o) return;
@@ -255,7 +267,14 @@
     <div class="board" class:iso={view === 'iso'} style="width: {zoom * 100}%">
       <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
       <!-- svelte-ignore a11y_click_events_have_key_events -->
-      <svg {viewBox} class="grid" onclick={onGrid} role="application" aria-label="grid">
+      <svg
+        {viewBox}
+        class="grid"
+        onclick={onGrid}
+        ondblclick={onGridRemove}
+        role="application"
+        aria-label="grid"
+      >
         <defs>
           <pattern id="cells" width="1" height="1" patternUnits="userSpaceOnUse">
             <rect
@@ -333,23 +352,25 @@
             oninput={(e) => setTag('name', e.currentTarget.value)}
           />
         </label>
-        <label class="ed-field">
-          <span class="field-label">{i18n.m.territory.tag.furnace}</span>
-          <Select
-            value={selected.furnace ?? ''}
-            options={furnaceOptions}
-            onChange={(v) => setTag('furnace', v)}
-            ariaLabel={i18n.m.territory.tag.furnace}
-          />
-        </label>
-        <label class="ed-field">
-          <span class="field-label">{i18n.m.territory.tag.power}</span>
-          <NumberInput
-            value={selected.power ?? 0}
-            onChange={(n) => setTag('power', n)}
-            ariaLabel={i18n.m.territory.tag.power}
-          />
-        </label>
+        {#if selected.type === 'city'}
+          <label class="ed-field">
+            <span class="field-label">{i18n.m.territory.tag.furnace}</span>
+            <Select
+              value={selected.furnace ?? ''}
+              options={furnaceOptions}
+              onChange={(v) => setTag('furnace', v)}
+              ariaLabel={i18n.m.territory.tag.furnace}
+            />
+          </label>
+          <label class="ed-field">
+            <span class="field-label">{i18n.m.territory.tag.power}</span>
+            <NumberInput
+              value={selected.power ?? 0}
+              onChange={(n) => setTag('power', n)}
+              ariaLabel={i18n.m.territory.tag.power}
+            />
+          </label>
+        {/if}
       </div>
       <button class="ed-remove" type="button" onclick={removeSelected}
         >× {i18n.m.territory.remove}</button
