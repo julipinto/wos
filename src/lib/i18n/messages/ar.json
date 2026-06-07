@@ -417,7 +417,8 @@
     "tag": {
       "name": "الاسم",
       "furnace": "الفرن",
-      "power": "القوة"
+      "power": "القوة",
+      "bear": "مصيدة الدب"
     },
     "maps": {
       "title": "الخرائط المحفوظة",
@@ -432,6 +433,8 @@
       "hive": "الخلية",
       "sunfire": "Sunfire Castle",
       "state": "الولاية"
-    }
+    },
+    "bearFocus": "الدب",
+    "bearAll": "الكل"
   }
 }

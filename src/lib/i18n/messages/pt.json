@@ -417,7 +417,8 @@
     "tag": {
       "name": "nome",
       "furnace": "fornalha",
-      "power": "poder"
+      "power": "poder",
+      "bear": "armadilha"
     },
     "maps": {
       "title": "mapas salvos",
@@ -432,6 +433,8 @@
       "hive": "Colmeia",
       "sunfire": "Sunfire Castle",
       "state": "Estado"
-    }
+    },
+    "bearFocus": "urso",
+    "bearAll": "todos"
   }
 }

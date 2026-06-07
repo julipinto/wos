@@ -67,6 +67,16 @@ describe('import / export', () => {
     const city = back.objects.find((o) => o.type === 'city')!;
     expect(city).toMatchObject({ x: 12, y: 12, name: 'Juli', furnace: 'FC7', power: 42000000 });
   });
+  it('round-trips a city bear-trap assignment', async () => {
+    const objs: PlacedObject[] = [
+      hq(10, 10),
+      { id: 'bt', type: 'bearTrap', x: 30, y: 30 },
+      { id: 'c1', type: 'city', x: 12, y: 12, name: 'Ana', bear: 2 }
+    ];
+    const back = (await importLayout(await exportLayout('hive', objs)))!;
+    const city = back.objects.find((o) => o.type === 'city')!;
+    expect(city.bear).toBe(2);
+  });
   it('carries the mode and drops objects foreign to it', async () => {
     const code = await exportLayout('sunfire', [{ id: 's', type: 'sunCastle', x: 5, y: 5 }]);
     const back = (await importLayout(code))!;
