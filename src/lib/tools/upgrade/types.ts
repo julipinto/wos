@@ -43,8 +43,9 @@ export type ResourceKey =
   | 'mythicHeroGear'
   | 'widget'
   | 'heroShard'
-  // Expert (Dawn Academy) material
-  | 'expertSigil';
+  // Expert (Dawn Academy) materials
+  | 'expertSigil'
+  | 'bookOfKnowledge';
 
 /** A sparse map of resource → amount. Absent keys mean "none of that". */
 export type ResourceBag = Partial<Record<ResourceKey, number>>;
@@ -86,7 +87,8 @@ export const RESOURCES: ResourceDef[] = [
   { key: 'mythicHeroGear', icon: '🎖️', color: '#f87171' },
   { key: 'widget', icon: '🔧', color: '#94a3b8' },
   { key: 'heroShard', icon: '🔱', color: '#c084fc' },
-  { key: 'expertSigil', icon: '🎟️', color: '#38bdf8' }
+  { key: 'expertSigil', icon: '🎟️', color: '#38bdf8' },
+  { key: 'bookOfKnowledge', icon: '📚', color: '#a78bfa' }
 ];
 
 /** Cost + time to upgrade INTO one level from the previous one. */

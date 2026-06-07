@@ -2,11 +2,28 @@
   import { i18n } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import RangeSelect from '$lib/tools/upgrade/RangeSelect.svelte';
-  import { sumLadder, combine, formatQty, presentResources } from '$lib/tools/upgrade/engine';
+  import {
+    sumLadder,
+    combine,
+    formatQty,
+    formatDuration,
+    presentResources
+  } from '$lib/tools/upgrade/engine';
   import { RESOURCES } from '$lib/tools/upgrade/types';
   import { EXPERTS } from '$lib/tools/upgrade/data/experts';
+  import { EXPERT_SKILLS } from '$lib/tools/upgrade/data/expertSkills';
   import { readJson, writeJson } from '$lib/utils/storage';
 
+  type Mode = 'affinity' | 'skills';
+  let mode = $state<Mode>(
+    readJson<Mode>('upgrade-experts-mode-v1') === 'skills' ? 'skills' : 'affinity'
+  );
+  function setMode(m: Mode) {
+    mode = m;
+    writeJson('upgrade-experts-mode-v1', m);
+  }
+
+  // --- Affinity track (Expert Sigils) ---
   const STORAGE = 'upgrade-experts-v1';
   interface Row {
     expert: string;
@@ -43,6 +60,51 @@
     combine(rows.map((r) => sumLadder(byId(r.expert)?.ladder ?? [], r.from, r.to))).totals
   );
   const totalRows = $derived(presentResources(result));
+
+  // --- Skill track (Books of Knowledge) ---
+  const SKILL_STORAGE = 'upgrade-expertskills-v1';
+  interface SkillRow {
+    skill: string;
+    from: string;
+    to: string;
+  }
+  const skillById = (id: string) => EXPERT_SKILLS.find((s) => s.id === id);
+  function loadSkills(): SkillRow[] {
+    const raw = readJson<SkillRow[]>(SKILL_STORAGE);
+    return Array.isArray(raw) ? raw.filter((r) => skillById(r.skill)) : [];
+  }
+  const skillRows = $state<SkillRow[]>(loadSkills());
+  const persistSkills = () =>
+    writeJson(
+      SKILL_STORAGE,
+      skillRows.map((r) => ({ ...r }))
+    );
+  const skillLabels = (id: string) => (skillById(id)?.ladder ?? []).map((l) => l.label);
+  const availableSkills = $derived(
+    EXPERT_SKILLS.filter((s) => !skillRows.some((r) => r.skill === s.id))
+  );
+  // Group the add-chips by expert so the 36 skills stay browsable.
+  const availableByExpert = $derived(
+    EXPERTS.map((e) => ({
+      name: e.name,
+      skills: availableSkills.filter((s) => s.expertId === e.id)
+    })).filter((g) => g.skills.length > 0)
+  );
+  function addSkill(id: string) {
+    const s = skillById(id);
+    if (!s) return;
+    skillRows.push({ skill: id, from: s.ladder[0].label, to: s.ladder[s.ladder.length - 1].label });
+    persistSkills();
+  }
+  function removeSkillRow(i: number) {
+    skillRows.splice(i, 1);
+    persistSkills();
+  }
+  const skillResult = $derived(
+    combine(skillRows.map((r) => sumLadder(skillById(r.skill)?.ladder ?? [], r.from, r.to)))
+  );
+  const skillBooks = $derived(skillResult.totals.bookOfKnowledge ?? 0);
+
   const resName = (k: string) => (i18n.m.upgrade.res as Record<string, string>)[k];
   const resDef = (k: string) => RESOURCES.find((r) => r.key === k)!;
 </script>
@@ -58,62 +120,147 @@
     backHref="/upgrade"
   />
 
-  {#if rows.length > 0}
-    <div class="rows">
-      {#each rows as row, i (row.expert)}
-        {@const e = byId(row.expert)}
-        <div class="row">
-          <span class="ex-name">{e?.name}<span class="focus">{e?.focus}</span></span>
-          <div class="row-controls">
-            <RangeSelect
-              labels={labels(row.expert)}
-              from={row.from}
-              to={row.to}
-              onChange={(f, t) => {
-                rows[i].from = f;
-                rows[i].to = t;
-                persist();
-              }}
-              ariaFrom="{e?.name} {i18n.m.upgrade.from}"
-              ariaTo="{e?.name} {i18n.m.upgrade.to}"
-            />
-            <button
-              class="remove"
-              type="button"
-              onclick={() => removeRow(i)}
-              aria-label={i18n.m.upgrade.troops.remove}>×</button
-            >
-          </div>
-        </div>
-      {/each}
-    </div>
-  {/if}
+  <div class="seg">
+    <button
+      class="seg-btn"
+      class:active={mode === 'affinity'}
+      type="button"
+      onclick={() => setMode('affinity')}>{i18n.m.upgrade.experts.affinity}</button
+    >
+    <button
+      class="seg-btn"
+      class:active={mode === 'skills'}
+      type="button"
+      onclick={() => setMode('skills')}>{i18n.m.upgrade.experts.skills}</button
+    >
+  </div>
 
-  {#if available.length > 0}
-    <div class="add">
-      <span class="field-label">{i18n.m.upgrade.add}</span>
-      <div class="chips">
-        {#each available as e (e.id)}
-          <button class="chip" type="button" onclick={() => addExpert(e.id)}>+ {e.name}</button>
+  {#if mode === 'affinity'}
+    {#if rows.length > 0}
+      <div class="rows">
+        {#each rows as row, i (row.expert)}
+          {@const e = byId(row.expert)}
+          <div class="row">
+            <span class="ex-name">{e?.name}<span class="focus">{e?.focus}</span></span>
+            <div class="row-controls">
+              <RangeSelect
+                labels={labels(row.expert)}
+                from={row.from}
+                to={row.to}
+                onChange={(f, t) => {
+                  rows[i].from = f;
+                  rows[i].to = t;
+                  persist();
+                }}
+                ariaFrom="{e?.name} {i18n.m.upgrade.from}"
+                ariaTo="{e?.name} {i18n.m.upgrade.to}"
+              />
+              <button
+                class="remove"
+                type="button"
+                onclick={() => removeRow(i)}
+                aria-label={i18n.m.upgrade.troops.remove}>×</button
+              >
+            </div>
+          </div>
         {/each}
       </div>
-    </div>
-  {/if}
+    {/if}
 
-  <h2 class="section-label">{i18n.m.upgrade.totalEyebrow}</h2>
-  {#if totalRows.length === 0}
-    <p class="empty">{i18n.m.upgrade.addHint}</p>
-  {:else}
-    <div class="totals">
-      {#each totalRows as key (key)}
-        {@const def = resDef(key)}
-        <div class="res">
-          <span class="res-icon" style="--c: {def.color}" aria-hidden="true">{def.icon}</span>
-          <span class="res-name">{resName(key)}</span>
-          <span class="res-val">{formatQty(result[key] ?? 0)}</span>
+    {#if available.length > 0}
+      <div class="add">
+        <span class="field-label">{i18n.m.upgrade.add}</span>
+        <div class="chips">
+          {#each available as e (e.id)}
+            <button class="chip" type="button" onclick={() => addExpert(e.id)}>+ {e.name}</button>
+          {/each}
         </div>
-      {/each}
-    </div>
+      </div>
+    {/if}
+
+    <h2 class="section-label">{i18n.m.upgrade.totalEyebrow}</h2>
+    {#if totalRows.length === 0}
+      <p class="empty">{i18n.m.upgrade.addHint}</p>
+    {:else}
+      <div class="totals">
+        {#each totalRows as key (key)}
+          {@const def = resDef(key)}
+          <div class="res">
+            <span class="res-icon" style="--c: {def.color}" aria-hidden="true">{def.icon}</span>
+            <span class="res-name">{resName(key)}</span>
+            <span class="res-val">{formatQty(result[key] ?? 0)}</span>
+          </div>
+        {/each}
+      </div>
+    {/if}
+  {:else}
+    {#if skillRows.length > 0}
+      <div class="rows">
+        {#each skillRows as row, i (row.skill)}
+          {@const s = skillById(row.skill)}
+          <div class="row">
+            <span class="ex-name">{s?.skill}<span class="focus">{s?.expertName}</span></span>
+            <div class="row-controls">
+              <RangeSelect
+                labels={skillLabels(row.skill)}
+                from={row.from}
+                to={row.to}
+                onChange={(f, t) => {
+                  skillRows[i].from = f;
+                  skillRows[i].to = t;
+                  persistSkills();
+                }}
+                ariaFrom="{s?.skill} {i18n.m.upgrade.from}"
+                ariaTo="{s?.skill} {i18n.m.upgrade.to}"
+              />
+              <button
+                class="remove"
+                type="button"
+                onclick={() => removeSkillRow(i)}
+                aria-label={i18n.m.upgrade.troops.remove}>×</button
+              >
+            </div>
+          </div>
+        {/each}
+      </div>
+    {/if}
+
+    {#if availableByExpert.length > 0}
+      <div class="add">
+        <span class="field-label">{i18n.m.upgrade.add}</span>
+        {#each availableByExpert as g (g.name)}
+          <span class="group-label">{g.name}</span>
+          <div class="chips">
+            {#each g.skills as s (s.id)}
+              <button class="chip" type="button" onclick={() => addSkill(s.id)}>+ {s.skill}</button>
+            {/each}
+          </div>
+        {/each}
+      </div>
+    {/if}
+
+    <h2 class="section-label">{i18n.m.upgrade.totalEyebrow}</h2>
+    {#if skillBooks === 0 && skillResult.time === 0}
+      <p class="empty">{i18n.m.upgrade.addHint}</p>
+    {:else}
+      <div class="totals">
+        <div class="res">
+          <span class="res-icon" style="--c: {resDef('bookOfKnowledge').color}" aria-hidden="true"
+            >{resDef('bookOfKnowledge').icon}</span
+          >
+          <span class="res-name">{resName('bookOfKnowledge')}</span>
+          <span class="res-val">{formatQty(skillBooks)}</span>
+        </div>
+      </div>
+      {#if skillResult.time > 0}
+        <div class="meta-row">
+          <div class="meta">
+            <span class="meta-label">{i18n.m.upgrade.experts.learningTime}</span>
+            <span class="meta-val">{formatDuration(skillResult.time)}</span>
+          </div>
+        </div>
+      {/if}
+    {/if}
   {/if}
 </div>
 
@@ -123,6 +270,68 @@
     max-width: 640px;
     margin: 0 auto;
     padding: 32px 24px 96px;
+  }
+  .seg {
+    display: inline-flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    padding: 3px;
+    gap: 2px;
+    margin-bottom: 18px;
+  }
+  .seg-btn {
+    background: none;
+    border: none;
+    border-radius: var(--r-pill);
+    color: var(--text-mid);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 6px 16px;
+    cursor: pointer;
+    transition:
+      background 0.2s ease,
+      color 0.2s ease;
+  }
+  .seg-btn.active {
+    background: var(--bg-soft);
+    color: var(--text);
+  }
+  .group-label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin: 8px 0 4px 2px;
+  }
+  .meta-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .meta {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-card);
+  }
+  .meta-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .meta-val {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 20px;
   }
   .field-label {
     font-family: var(--font-mono);
