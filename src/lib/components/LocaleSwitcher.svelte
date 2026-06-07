@@ -101,14 +101,16 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text-mid);
+    background: var(--surface-strong);
+    border: 1px solid var(--border-strong);
+    /* Main font colour with a little transparency — visible at a glance so the
+       language picker isn't mistaken for an English-only page. */
+    color: color-mix(in srgb, var(--text) 82%, transparent);
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 11px;
     letter-spacing: 1.5px;
     text-transform: uppercase;
-    padding: 6px 12px;
+    padding: 7px 13px;
     border-radius: var(--r-pill);
     cursor: pointer;
     transition:
@@ -123,7 +125,8 @@
     background: var(--surface-hover);
   }
   .trigger :global(.globe) {
-    opacity: 0.75;
+    opacity: 1;
+    color: var(--accent);
   }
   .trigger :global(.caret) {
     opacity: 0.6;
