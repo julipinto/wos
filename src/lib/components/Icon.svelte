@@ -40,6 +40,7 @@
   import plus from '@iconify-icons/lucide/plus';
   import rotateCcw from '@iconify-icons/lucide/rotate-ccw';
   import settings from '@iconify-icons/lucide/settings';
+  import share2 from '@iconify-icons/lucide/share-2';
   import slash from '@iconify-icons/lucide/slash';
   import target from '@iconify-icons/lucide/target';
   import trash2 from '@iconify-icons/lucide/trash-2';
@@ -70,6 +71,7 @@
     plus,
     'rotate-ccw': rotateCcw,
     settings,
+    'share-2': share2,
     slash,
     target,
     'trash-2': trash2,

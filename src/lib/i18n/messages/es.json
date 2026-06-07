@@ -383,7 +383,7 @@
   },
   "territory": {
     "sub": "Coloca en la cuadrícula; las banderas cubren 7×7 y deben conectarse al HQ para mantener territorio.",
-    "hint": "Toca vacío para colocar; toca un elemento para etiquetar/editar; doble toque para quitar. Los banners atenuados/rojos no están conectados al CG.",
+    "hint": "Toca vacío para colocar; toca un elemento para etiquetar/editar; arrastra para mover; doble toque para quitar. Los banners atenuados/rojos no están conectados al CG.",
     "place": "colocar",
     "obj": {
       "hq": "HQ",
@@ -408,7 +408,7 @@
     "export": "Exportar",
     "import": "Importar",
     "copied": "¡Copiado!",
-    "importHint": "Pega un código de layout",
+    "importHint": "Pega un enlace o código",
     "tag": {
       "name": "nombre",
       "furnace": "horno",
@@ -420,6 +420,7 @@
       "name": "nombre del mapa",
       "load": "cargar",
       "empty": "Aún no hay mapas guardados."
-    }
+    },
+    "share": "Compartir"
   }
 }

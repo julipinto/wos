@@ -383,7 +383,7 @@
   },
   "territory": {
     "sub": "Posicione no grid; banners cobrem 7×7 e precisam conectar ao HQ pra segurar território.",
-    "hint": "Toque no vazio pra colocar; toque num item pra etiquetar/editar; toque duplo pra remover. Banners apagados/vermelhos não estão ligados ao QG.",
+    "hint": "Toque no vazio pra colocar; toque num item pra etiquetar/editar; arraste pra mover; toque duplo pra remover. Banners apagados/vermelhos não estão ligados ao QG.",
     "place": "colocar",
     "obj": {
       "hq": "HQ",
@@ -408,7 +408,7 @@
     "export": "Exportar",
     "import": "Importar",
     "copied": "Copiado!",
-    "importHint": "Cole um código de layout",
+    "importHint": "Cole um link ou código",
     "tag": {
       "name": "nome",
       "furnace": "fornalha",
@@ -420,6 +420,7 @@
       "name": "nome do mapa",
       "load": "carregar",
       "empty": "Nenhum mapa salvo ainda."
-    }
+    },
+    "share": "Compartilhar"
   }
 }

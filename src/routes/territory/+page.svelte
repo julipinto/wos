@@ -101,28 +101,66 @@
     const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse());
     return { x: Math.floor(p.x), y: Math.floor(p.y) };
   }
-  function onGrid(e: MouseEvent) {
+  // Pointer interaction: tap empty = place · tap object = select · drag object
+  // = move · drag empty = pan (when zoomed) · (double-tap removes, see below).
+  let dragId: string | null = null;
+  let dragOff = { x: 0, y: 0 };
+  let pendingPlace: { x: number; y: number } | null = null;
+  let moved = false;
+
+  function onPointerDown(e: PointerEvent) {
     const cell = cellFromEvent(e);
     if (!cell) return;
     const { x, y } = cell;
     if (x < 0 || y < 0 || x >= N || y >= N) return;
-    // Clicking an existing object SELECTS it (edit/remove via the panel); an
-    // empty cell places the current tool.
+    moved = false;
     const hit = objects.find((o) => footprintCells(o).includes(`${x},${y}`));
     if (hit) {
-      selectedId = hit.id;
-      return;
+      dragId = hit.id;
+      dragOff = { x: x - hit.x, y: y - hit.y };
+      pendingPlace = null;
+    } else {
+      dragId = null;
+      pendingPlace = { x, y };
     }
-    const def = OBJECT_DEFS[tool];
-    const px = Math.min(x, N - def.w);
-    const py = Math.min(y, N - def.h);
-    objects.push({
-      id: `${tool}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      type: tool,
-      x: px,
-      y: py
-    });
-    persist();
+    (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+  }
+  function onPointerMove(e: PointerEvent) {
+    if (dragId) {
+      const cell = cellFromEvent(e);
+      const o = objects.find((x) => x.id === dragId);
+      if (!cell || !o) return;
+      const def = OBJECT_DEFS[o.type];
+      const nx = Math.min(Math.max(0, cell.x - dragOff.x), N - def.w);
+      const ny = Math.min(Math.max(0, cell.y - dragOff.y), N - def.h);
+      if (nx !== o.x || ny !== o.y) {
+        o.x = nx;
+        o.y = ny;
+        moved = true;
+      }
+      e.preventDefault(); // don't scroll the board while dragging a piece
+    } else if (pendingPlace) {
+      const cell = cellFromEvent(e);
+      if (cell && (cell.x !== pendingPlace.x || cell.y !== pendingPlace.y)) moved = true;
+    }
+  }
+  function onPointerUp() {
+    if (dragId) {
+      if (moved) persist();
+      else selectedId = dragId; // a tap selects
+    } else if (pendingPlace && !moved) {
+      const def = OBJECT_DEFS[tool];
+      objects.push({
+        id: `${tool}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        type: tool,
+        x: Math.min(pendingPlace.x, N - def.w),
+        y: Math.min(pendingPlace.y, N - def.h)
+      });
+      persist();
+    }
+    dragId = null;
+    pendingPlace = null;
+    moved = false;
   }
 
   // Double-click an object to remove it right on the board (no scrolling).
@@ -156,9 +194,15 @@
     persist();
   }
 
+  // Build a share link off the CURRENT page URL, so it follows whatever host
+  // the app is deployed on (no hard-coded base).
+  function shareLink(): string {
+    const code = encodeURIComponent(exportLayout(objects));
+    return `${location.origin}${location.pathname}?t=${code}`;
+  }
   async function doExport() {
     try {
-      await navigator.clipboard.writeText(exportLayout(objects));
+      await navigator.clipboard.writeText(shareLink());
       copied = true;
       setTimeout(() => (copied = false), 1800);
     } catch {
@@ -166,7 +210,10 @@
     }
   }
   function doImport() {
-    const parsed = importLayout(importText);
+    // Accept a full share link OR a raw code.
+    const m = importText.match(/[?&]t=([^&\s]+)/);
+    const code = m ? decodeURIComponent(m[1]) : importText.trim();
+    const parsed = importLayout(code);
     if (!parsed) {
       importText = '';
       return;
@@ -268,8 +315,9 @@
     </div>
     <button
       class="toggle"
-      class:on={showLabels}
+      class:on={showLabels && view === 'flat'}
       type="button"
+      disabled={view === 'iso'}
       onclick={() => (showLabels = !showLabels)}>{i18n.m.territory.labels}</button
     >
     <button class="toggle" class:on={heatmap} type="button" onclick={() => (heatmap = !heatmap)}
@@ -279,12 +327,12 @@
 
   <div class="board-scroll">
     <div class="board" class:iso={view === 'iso'} style="width: {zoom * 100}%">
-      <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-      <!-- svelte-ignore a11y_click_events_have_key_events -->
       <svg
         {viewBox}
         class="grid"
-        onclick={onGrid}
+        onpointerdown={onPointerDown}
+        onpointermove={onPointerMove}
+        onpointerup={onPointerUp}
         ondblclick={onGridRemove}
         role="application"
         aria-label="grid"
@@ -331,7 +379,7 @@
               stroke={sel ? '#ffffff' : orphan ? '#fb7185' : 'rgba(0,0,0,0.3)'}
               stroke-width={sel ? 0.16 : orphan ? 0.12 : 0.05}
             />
-            {#if showLabels && (o.furnace || o.name)}
+            {#if showLabels && view === 'flat' && (o.furnace || o.name)}
               <text
                 class="tile-label"
                 x={o.x + def.w / 2}
@@ -401,8 +449,8 @@
     <p class="hint">{i18n.m.territory.hint}</p>
     <div class="footer-actions">
       <button class="act" type="button" onclick={doExport} disabled={objects.length === 0}>
-        <Icon name={copied ? 'check' : 'copy'} size={13} />
-        {copied ? i18n.m.territory.copied : i18n.m.territory.export}
+        <Icon name={copied ? 'check' : 'share-2'} size={13} />
+        {copied ? i18n.m.territory.copied : i18n.m.territory.share}
       </button>
       <button class="act" type="button" onclick={() => (importOpen = !importOpen)}>
         <Icon name="download" size={13} />
@@ -614,6 +662,10 @@
     color: var(--accent);
     border-color: var(--border-accent);
     background: var(--accent-glow);
+  }
+  .toggle:disabled {
+    opacity: 0.4;
+    cursor: default;
   }
   .board-scroll {
     overflow: auto;
