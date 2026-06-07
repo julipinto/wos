@@ -401,6 +401,18 @@
     "legend": {
       "reach": "Alcance del banner (7×7)",
       "connected": "Territorio conectado"
+    },
+    "labels": "etiquetas",
+    "heatmap": "mapa de calor",
+    "remove": "quitar",
+    "export": "Exportar",
+    "import": "Importar",
+    "copied": "¡Copiado!",
+    "importHint": "Pega un código de layout",
+    "tag": {
+      "name": "nombre",
+      "furnace": "horno",
+      "power": "poder"
     }
   }
 }

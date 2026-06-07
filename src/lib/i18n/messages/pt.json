@@ -401,6 +401,18 @@
     "legend": {
       "reach": "Alcance do banner (7×7)",
       "connected": "Território conectado"
+    },
+    "labels": "rótulos",
+    "heatmap": "heatmap",
+    "remove": "remover",
+    "export": "Exportar",
+    "import": "Importar",
+    "copied": "Copiado!",
+    "importHint": "Cole um código de layout",
+    "tag": {
+      "name": "nome",
+      "furnace": "fornalha",
+      "power": "poder"
     }
   }
 }
