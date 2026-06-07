@@ -430,7 +430,8 @@
       "load": "carregar",
       "empty": "Nenhum mapa salvo ainda.",
       "update": "atualizar",
-      "overwrite": "Sobrescrever o mapa “{name}”?"
+      "overwrite": "Sobrescrever o mapa “{name}”?",
+      "updateHint": "Sobrescrever este mapa com o tabuleiro atual"
     },
     "share": "Compartilhar",
     "modes": {

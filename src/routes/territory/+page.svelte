@@ -954,9 +954,11 @@
                   type="button"
                   onclick={() => updateMap(m.id, m.name)}
                   disabled={objects.length === 0}
-                  aria-label={i18n.m.territory.maps.update}
-                  title={i18n.m.territory.maps.update}>↻</button
+                  title={i18n.m.territory.maps.updateHint}
                 >
+                  <Icon name="upload" size={12} />
+                  {i18n.m.territory.maps.update}
+                </button>
                 <button
                   class="map-del"
                   type="button"
@@ -1509,15 +1511,18 @@
     text-transform: uppercase;
     letter-spacing: 1px;
   }
-  .map-upd,
-  .map-del {
+  .map-upd {
     flex-shrink: 0;
-    width: 36px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     background: transparent;
     border: 1px solid var(--border);
     border-radius: var(--r-pill);
-    color: var(--text-dim);
-    font-size: 18px;
+    color: var(--text-mid);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 0 12px;
     cursor: pointer;
     transition:
       color 0.2s ease,
@@ -1530,6 +1535,19 @@
   .map-upd:disabled {
     opacity: 0.4;
     cursor: default;
+  }
+  .map-del {
+    flex-shrink: 0;
+    width: 36px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    color: var(--text-dim);
+    font-size: 18px;
+    cursor: pointer;
+    transition:
+      color 0.2s ease,
+      border-color 0.2s ease;
   }
   .map-del:hover {
     color: #fb7185;
