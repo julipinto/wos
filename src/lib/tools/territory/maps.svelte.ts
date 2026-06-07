@@ -1,12 +1,10 @@
 /**
- * Saved territory maps (Svelte 5 runes). A named collection of layouts so you
- * can plan several places and switch between them. Persisted separately from
- * the active board (`territory-layout-v1`).
+ * Saved territory maps (Svelte 5 runes), namespaced PER MODE so each planner
+ * type (hive / sunfire / state) keeps its own named layouts. Persisted under
+ * `territory-maps-<mode>`, separate from the active board.
  */
 import { readJson, writeJson } from '$lib/utils/storage';
 import { OBJECT_DEFS, type PlacedObject } from './territory';
-
-const KEY = 'territory-maps-v1';
 
 export interface SavedMap {
   id: string;
@@ -15,8 +13,11 @@ export interface SavedMap {
   savedAt: number;
 }
 
-function load(): SavedMap[] {
-  const raw = readJson<SavedMap[]>(KEY);
+const clone = (objects: PlacedObject[]) => objects.map((o) => ({ ...o }));
+const keyFor = (mode: string) => `territory-maps-${mode}`;
+
+function read(mode: string): SavedMap[] {
+  const raw = readJson<SavedMap[]>(keyFor(mode));
   if (!Array.isArray(raw)) return [];
   return raw
     .filter((m) => m && typeof m.name === 'string' && Array.isArray(m.objects))
@@ -28,45 +29,52 @@ function load(): SavedMap[] {
     }));
 }
 
-const maps = $state<SavedMap[]>(load());
-const persist = () =>
+// Lazily-loaded per-mode cache (reactive).
+const cache = $state<Record<string, SavedMap[]>>({});
+function ensure(mode: string): SavedMap[] {
+  if (!cache[mode]) cache[mode] = read(mode);
+  return cache[mode];
+}
+function persist(mode: string) {
   writeJson(
-    KEY,
-    maps.map((m) => ({ ...m, objects: m.objects.map((o) => ({ ...o })) }))
+    keyFor(mode),
+    ensure(mode).map((m) => ({ ...m, objects: clone(m.objects) }))
   );
-const clone = (objects: PlacedObject[]) => objects.map((o) => ({ ...o }));
+}
 
 export const savedMaps = {
-  /** Newest first. */
-  get all(): SavedMap[] {
-    return [...maps].sort((a, b) => b.savedAt - a.savedAt);
+  /** Newest first, for a mode. */
+  all(mode: string): SavedMap[] {
+    return [...ensure(mode)].sort((a, b) => b.savedAt - a.savedAt);
   },
-  /** Save (or overwrite a same-named map) the given layout under `name`. */
-  save(name: string, objects: PlacedObject[]): void {
+  /** Save (or overwrite a same-named map) under `name` for a mode. */
+  save(mode: string, name: string, objects: PlacedObject[]): void {
     const trimmed = name.trim();
     if (!trimmed) return;
-    const existing = maps.find((m) => m.name.toLowerCase() === trimmed.toLowerCase());
+    const list = ensure(mode);
+    const existing = list.find((m) => m.name.toLowerCase() === trimmed.toLowerCase());
     if (existing) {
       existing.objects = clone(objects);
       existing.savedAt = Date.now();
     } else {
-      maps.push({
+      list.push({
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         name: trimmed,
         objects: clone(objects),
         savedAt: Date.now()
       });
     }
-    persist();
+    persist(mode);
   },
   /** A fresh copy of a saved map's objects (new for the live board). */
-  objectsOf(id: string): PlacedObject[] {
-    const m = maps.find((x) => x.id === id);
+  objectsOf(mode: string, id: string): PlacedObject[] {
+    const m = ensure(mode).find((x) => x.id === id);
     return m ? clone(m.objects) : [];
   },
-  remove(id: string): void {
-    const i = maps.findIndex((m) => m.id === id);
-    if (i >= 0) maps.splice(i, 1);
-    persist();
+  remove(mode: string, id: string): void {
+    const list = ensure(mode);
+    const i = list.findIndex((m) => m.id === id);
+    if (i >= 0) list.splice(i, 1);
+    persist(mode);
   }
 };

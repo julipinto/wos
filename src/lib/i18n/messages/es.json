@@ -391,7 +391,12 @@
       "city": "Ciudad",
       "bearTrap": "Trampa de Oso",
       "farm": "Granja",
-      "obstacle": "Obstáculo"
+      "obstacle": "Obstáculo",
+      "sunCastle": "Castillo Sunfire",
+      "sunTurret": "Torreta",
+      "sunCity": "Ciudad",
+      "capitol": "Capitolio",
+      "stateCity": "Ciudad"
     },
     "view": {
       "label": "Vista",
@@ -421,6 +426,12 @@
       "load": "cargar",
       "empty": "Aún no hay mapas guardados."
     },
-    "share": "Compartir"
+    "share": "Compartir",
+    "modes": {
+      "label": "modo",
+      "hive": "Colmena",
+      "sunfire": "Sunfire Castle",
+      "state": "Estado"
+    }
   }
 }

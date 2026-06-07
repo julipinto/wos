@@ -391,7 +391,12 @@
       "city": "Cidade",
       "bearTrap": "Armadilha",
       "farm": "Fazenda",
-      "obstacle": "Obstáculo"
+      "obstacle": "Obstáculo",
+      "sunCastle": "Castelo Sunfire",
+      "sunTurret": "Torre",
+      "sunCity": "Cidade",
+      "capitol": "Capitólio",
+      "stateCity": "Cidade"
     },
     "view": {
       "label": "Visão",
@@ -421,6 +426,12 @@
       "load": "carregar",
       "empty": "Nenhum mapa salvo ainda."
     },
-    "share": "Compartilhar"
+    "share": "Compartilhar",
+    "modes": {
+      "label": "modo",
+      "hive": "Colmeia",
+      "sunfire": "Sunfire Castle",
+      "state": "Estado"
+    }
   }
 }

@@ -11,7 +11,8 @@
  *  - Other structures (city, bear trap, farm, obstacle) just occupy cells.
  */
 
-export type TerritoryType = 'hq' | 'banner' | 'city' | 'bearTrap' | 'farm' | 'obstacle';
+/** An object type id (varies per planner mode). */
+export type TerritoryType = string;
 
 export interface TerritoryDef {
   /** footprint width / height in cells */
@@ -23,21 +24,66 @@ export interface TerritoryDef {
   seed?: boolean;
   /** in-game placement cap (for the counter) */
   max?: number;
+  /** a member city — gets the furnace/power tags in the editor */
+  city?: boolean;
   /** i18n suffix under territory.obj.* */
   i18n: string;
   color: string;
 }
 
-export const OBJECT_DEFS: Record<TerritoryType, TerritoryDef> = {
+// --- Per-mode object palettes. The same grid/iso/tags/import/zoom/saved-maps
+// system is reused for several organisation types. NOTE: Sunfire Castle and
+// State objects are sensible PLACEHOLDERS — easy to refine, they're just data.
+const HIVE_OBJECTS: Record<string, TerritoryDef> = {
   hq: { w: 3, h: 3, seed: true, max: 2, i18n: 'hq', color: '#93d4ff' },
   banner: { w: 1, h: 1, coverage: 7, i18n: 'banner', color: '#fbbf24' },
-  city: { w: 2, h: 2, i18n: 'city', color: '#4ade80' },
+  city: { w: 2, h: 2, city: true, i18n: 'city', color: '#4ade80' },
   bearTrap: { w: 3, h: 3, max: 2, i18n: 'bearTrap', color: '#fb7185' },
   farm: { w: 2, h: 2, i18n: 'farm', color: '#c084fc' },
   obstacle: { w: 1, h: 1, i18n: 'obstacle', color: '#64748b' }
 };
+// Sunfire Castle: a central castle, "shooting" turrets, and member cities
+// (user-described). Refine sizes/turret count freely — it's just data.
+const SUNFIRE_OBJECTS: Record<string, TerritoryDef> = {
+  sunCastle: { w: 3, h: 3, max: 1, i18n: 'sunCastle', color: '#fb7185' },
+  sunTurret: { w: 1, h: 1, i18n: 'sunTurret', color: '#fb923c' },
+  sunCity: { w: 2, h: 2, city: true, i18n: 'sunCity', color: '#4ade80' },
+  sunObstacle: { w: 1, h: 1, i18n: 'obstacle', color: '#64748b' }
+};
+// State: PLACEHOLDER set (the exact structures aren't pinned down yet) — a
+// central building, member cities and obstacles. Easy to flesh out later.
+const STATE_OBJECTS: Record<string, TerritoryDef> = {
+  capitol: { w: 3, h: 3, i18n: 'capitol', color: '#93d4ff' },
+  stateCity: { w: 2, h: 2, city: true, i18n: 'stateCity', color: '#4ade80' },
+  stateObstacle: { w: 1, h: 1, i18n: 'obstacle', color: '#64748b' }
+};
 
-export const TERRITORY_TYPES = Object.keys(OBJECT_DEFS) as TerritoryType[];
+/** Union of every mode's objects — a stable lookup for footprint/render. */
+export const OBJECT_DEFS: Record<string, TerritoryDef> = {
+  ...HIVE_OBJECTS,
+  ...SUNFIRE_OBJECTS,
+  ...STATE_OBJECTS
+};
+
+export interface PlannerMode {
+  id: string;
+  /** i18n suffix under territory.modes.* */
+  i18n: string;
+  /** types belonging to this mode (palette + which objects it shows) */
+  types: string[];
+  /** hive uses banner→HQ flood-fill; others don't */
+  connectivity?: boolean;
+}
+
+export const MODES: PlannerMode[] = [
+  { id: 'hive', i18n: 'hive', types: Object.keys(HIVE_OBJECTS), connectivity: true },
+  { id: 'sunfire', i18n: 'sunfire', types: Object.keys(SUNFIRE_OBJECTS) },
+  { id: 'state', i18n: 'state', types: Object.keys(STATE_OBJECTS) }
+];
+export const modeById = (id: string): PlannerMode => MODES.find((m) => m.id === id) ?? MODES[0];
+
+/** Hive types — kept for callers that predate modes. */
+export const TERRITORY_TYPES = Object.keys(HIVE_OBJECTS);
 
 export interface PlacedObject {
   id: string;
@@ -63,42 +109,51 @@ const key = (x: number, y: number) => `${x},${y}`;
 const utf8ToB64 = (s: string) => btoa(unescape(encodeURIComponent(s)));
 const b64ToUtf8 = (s: string) => decodeURIComponent(escape(atob(s)));
 
-/** Serialise a layout to a compact, copy-pasteable code (version-prefixed). */
-export function exportLayout(objects: PlacedObject[]): string {
-  const arr = objects.map((o) => {
-    const base: (string | number)[] = [TERRITORY_TYPES.indexOf(o.type), o.x, o.y];
-    if (o.name || o.furnace || (o.power ?? 0) > 0)
-      base.push(o.name ?? '', o.furnace ?? '', o.power ?? 0);
+/** Serialise a layout (incl. its mode) to a compact, copy-pasteable code. */
+export function exportLayout(mode: string, objects: PlacedObject[]): string {
+  const o = objects.map((ob) => {
+    const base: (string | number)[] = [ob.type, ob.x, ob.y];
+    if (ob.name || ob.furnace || (ob.power ?? 0) > 0)
+      base.push(ob.name ?? '', ob.furnace ?? '', ob.power ?? 0);
     return base;
   });
-  return 'T1' + utf8ToB64(JSON.stringify(arr));
+  return 'T1' + utf8ToB64(JSON.stringify({ m: mode, o }));
 }
 
-/** Parse an exported code back into placed objects (new ids). Null if invalid. */
-export function importLayout(code: string): PlacedObject[] | null {
+export interface ImportedLayout {
+  mode: string;
+  objects: PlacedObject[];
+}
+
+/** Parse an exported code into {mode, objects} (new ids; objects filtered to
+ *  the embedded mode). Null if invalid. */
+export function importLayout(code: string): ImportedLayout | null {
   try {
     const trimmed = code.trim();
     if (!trimmed.startsWith('T1')) return null;
-    const arr = JSON.parse(b64ToUtf8(trimmed.slice(2)));
-    if (!Array.isArray(arr)) return null;
-    const out: PlacedObject[] = [];
-    for (const row of arr) {
+    const data = JSON.parse(b64ToUtf8(trimmed.slice(2)));
+    const rows = Array.isArray(data) ? data : data?.o; // tolerate old array form
+    if (!Array.isArray(rows)) return null;
+    const mode = modeById(!Array.isArray(data) && typeof data?.m === 'string' ? data.m : 'hive');
+    const allowed = new Set(mode.types);
+    const objects: PlacedObject[] = [];
+    for (const row of rows) {
       if (!Array.isArray(row)) continue;
-      const [ti, x, y, name, furnace, power] = row;
-      const type = TERRITORY_TYPES[ti];
-      if (!type || typeof x !== 'number' || typeof y !== 'number') continue;
-      const o: PlacedObject = {
-        id: `${type}-${out.length}-${Math.random().toString(36).slice(2, 6)}`,
+      const [type, x, y, name, furnace, power] = row;
+      if (typeof type !== 'string' || !allowed.has(type)) continue;
+      if (typeof x !== 'number' || typeof y !== 'number') continue;
+      const ob: PlacedObject = {
+        id: `${type}-${objects.length}-${Math.random().toString(36).slice(2, 6)}`,
         type,
         x,
         y
       };
-      if (name) o.name = String(name);
-      if (furnace) o.furnace = String(furnace);
-      if (typeof power === 'number' && power > 0) o.power = power;
-      out.push(o);
+      if (name) ob.name = String(name);
+      if (furnace) ob.furnace = String(furnace);
+      if (typeof power === 'number' && power > 0) ob.power = power;
+      objects.push(ob);
     }
-    return out;
+    return { mode: mode.id, objects };
   } catch {
     return null;
   }

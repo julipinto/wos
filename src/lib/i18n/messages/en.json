@@ -391,7 +391,12 @@
       "city": "City",
       "bearTrap": "Bear Trap",
       "farm": "Farm",
-      "obstacle": "Obstacle"
+      "obstacle": "Obstacle",
+      "sunCastle": "Sunfire Castle",
+      "sunTurret": "Turret",
+      "sunCity": "City",
+      "capitol": "Capitol",
+      "stateCity": "City"
     },
     "view": {
       "label": "View",
@@ -421,6 +426,12 @@
       "load": "load",
       "empty": "No saved maps yet."
     },
-    "share": "Share"
+    "share": "Share",
+    "modes": {
+      "label": "mode",
+      "hive": "Hive",
+      "sunfire": "Sunfire Castle",
+      "state": "State"
+    }
   }
 }
