@@ -185,6 +185,9 @@
     font-weight: 800;
     font-size: clamp(48px, 12vw, 84px);
     line-height: 0.92;
+    /* Italic descenders (p, g) overflow the tight line box and were clipped /
+       crowded by the subtitle — give them room. */
+    padding-bottom: 0.14em;
     margin: 0;
     letter-spacing: -0.035em;
     background: linear-gradient(180deg, #ffffff 20%, #93d4ff 130%);

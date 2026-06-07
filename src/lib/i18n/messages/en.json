@@ -7,7 +7,8 @@
     "tools": "tools",
     "help": "help",
     "settings": "settings",
-    "reset": "reset"
+    "reset": "reset",
+    "numbers": "Numbers"
   },
   "landing": {
     "kicker": "whiteout survival",

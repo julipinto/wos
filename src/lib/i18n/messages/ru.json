@@ -7,7 +7,8 @@
     "tools": "tools",
     "help": "помощь",
     "settings": "настройки",
-    "reset": "сброс"
+    "reset": "сброс",
+    "numbers": "Числа"
   },
   "landing": {
     "kicker": "whiteout survival",

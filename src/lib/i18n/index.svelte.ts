@@ -82,12 +82,40 @@ const NUMBER_LOCALE: Record<Locale, string> = {
   ar: 'ar'
 };
 
+const NUMFMT_KEY = 'wos-numfmt';
+/** Number-format options the user can pick (independent of UI language).
+ *  'auto' follows the language; the others force a grouping style. */
+export const NUMBER_FORMATS = ['auto', 'en-US', 'de-DE', 'fr-FR'] as const;
+export type NumberFormat = (typeof NUMBER_FORMATS)[number];
+
+let numFmt = $state<NumberFormat>(
+  (NUMBER_FORMATS as readonly string[]).includes(readString(NUMFMT_KEY) ?? '')
+    ? (readString(NUMFMT_KEY) as NumberFormat)
+    : 'auto'
+);
+
+/** The number-format override (a small section in the locale switcher). */
+export const numberFormat = {
+  get value(): NumberFormat {
+    return numFmt;
+  },
+  set(v: NumberFormat): void {
+    numFmt = v;
+    writeString(NUMFMT_KEY, v);
+  },
+  /** A formatted "1,234,567" sample for each option (auto → current language). */
+  sample(v: NumberFormat): string {
+    return new Intl.NumberFormat(v === 'auto' ? NUMBER_LOCALE[i18n.locale] : v).format(1234567);
+  }
+};
+
 /**
- * Group an integer with the current language's thousands separator
- * (en → 1,000 · pt → 1.000 · ru → 1 000). Reads `i18n.locale`, so callers in a
- * reactive context re-run when the language changes. For readable inputs.
+ * Group an integer with the chosen thousands separator (en → 1,000 · de/pt →
+ * 1.000 · fr/ru → 1 000). Follows the number-format setting, else the UI
+ * language. Reads runes, so reactive callers re-run on change. For readable inputs.
  */
 export function groupNumber(n: number): string {
   if (!Number.isFinite(n) || n === 0) return '';
-  return new Intl.NumberFormat(NUMBER_LOCALE[i18n.locale]).format(Math.round(n));
+  const loc = numFmt === 'auto' ? NUMBER_LOCALE[i18n.locale] : numFmt;
+  return new Intl.NumberFormat(loc).format(Math.round(n));
 }
