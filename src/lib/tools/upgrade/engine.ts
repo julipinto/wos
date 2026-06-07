@@ -118,6 +118,24 @@ export function formatQty(n: number): string {
 }
 
 /**
+ * Wall-clock time to finish `jobs` (each a building's total seconds) across
+ * `queues` parallel build queues, using longest-processing-time greedy packing
+ * (a solid makespan estimate). queues=1 is just the sum; a single huge job can
+ * never go below its own length.
+ */
+export function makespan(jobs: number[], queues: number): number {
+  const q = Math.max(1, Math.floor(queues) || 1);
+  if (q === 1) return jobs.reduce((a, b) => a + b, 0);
+  const bins = new Array<number>(q).fill(0);
+  for (const j of [...jobs].sort((a, b) => b - a)) {
+    let lightest = 0;
+    for (let i = 1; i < q; i++) if (bins[i] < bins[lightest]) lightest = i;
+    bins[lightest] += j;
+  }
+  return Math.max(0, ...bins);
+}
+
+/**
  * Human build time: 518400 → "6d", 90060 → "1d 1h", 5400 → "1h 30m".
  * Shows at most two units; minutes are hidden once we're into days (too noisy).
  */

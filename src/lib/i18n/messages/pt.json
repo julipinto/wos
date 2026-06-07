@@ -233,7 +233,8 @@
     },
     "buildings": {
       "sub": "Custo de recursos e tempo entre dois níveis de uma construção.",
-      "pick": "construção"
+      "pick": "construção",
+      "queues": "filas de construção"
     },
     "setAll": "definir todos",
     "apply": "aplicar",
