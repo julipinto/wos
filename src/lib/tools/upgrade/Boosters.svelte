@@ -14,7 +14,8 @@
     boosters,
     POSITIONS,
     type BoosterCategory,
-    type BoosterDef
+    type BoosterDef,
+    type BoosterSource
   } from './boosters-store.svelte';
 
   interface Props {
@@ -28,6 +29,30 @@
   const defs = $derived(categories.flatMap((c) => boosters.defsFor(c)));
   const label = (k: string) => (i18n.m.upgrade.boosters as unknown as Record<string, string>)[k];
   const srcLabel = (k: string) => (i18n.m.upgrade.boosters.src as Record<string, string>)[k] ?? k;
+
+  // Group the boosters by source so the same type sits together (hero, pet,
+  // alliance…) — easier to find what you actually have. The no-source "enter
+  // your total" rows stay at the top, ungrouped.
+  const SRC_ORDER: BoosterSource[] = [
+    'hero',
+    'pet',
+    'expert',
+    'alliance',
+    'island',
+    'president',
+    'chief'
+  ];
+  const manualDefs = $derived(defs.filter((d) => !d.source));
+  const groups = $derived.by(() => {
+    const map = new Map<BoosterSource, BoosterDef[]>();
+    for (const d of defs) {
+      if (!d.source) continue;
+      const list = map.get(d.source) ?? [];
+      list.push(d);
+      map.set(d.source, list);
+    }
+    return SRC_ORDER.filter((s) => map.has(s)).map((s) => ({ src: s, defs: map.get(s)! }));
+  });
 
   // Collapsed summary: per-category totals, e.g. "+35% · −2h".
   const summary = $derived(
@@ -92,46 +117,55 @@
     <div class="body">
       <p class="hint">{i18n.m.upgrade.boosters.hint}</p>
 
+      {#snippet boosterItem(def: BoosterDef)}
+        {@const on = boosters.isActive(def.id)}
+        <div class="item" class:on>
+          <button
+            class="item-head"
+            type="button"
+            aria-expanded={!!expanded[def.id]}
+            onclick={() => (expanded[def.id] = !expanded[def.id])}
+          >
+            <span class="dot" class:lit={on} aria-hidden="true"></span>
+            <span class="item-name">{label(def.i18n)}</span>
+            <span class="item-val">{valLabel(def)}</span>
+            <Icon name="chevron-down" size={12} class="caret {expanded[def.id] ? 'up' : ''}" />
+          </button>
+          {#if expanded[def.id]}
+            <div class="item-body">
+              {#if def.tiers}
+                <span class="field-label">{i18n.m.upgrade.boosters.level}</span>
+                <Select
+                  value={String(boosters.value(def.id))}
+                  options={tierOptions(def)}
+                  onChange={(v) => boosters.set(def.id, Number(v))}
+                  ariaLabel={label(def.i18n)}
+                />
+              {:else}
+                <input
+                  type="number"
+                  min="0"
+                  inputmode="numeric"
+                  value={boosters.value(def.id)}
+                  oninput={(e) => boosters.set(def.id, Number(e.currentTarget.value))}
+                  aria-label={label(def.i18n)}
+                />
+                <span class="sign">%</span>
+              {/if}
+            </div>
+          {/if}
+        </div>
+      {/snippet}
+
       <div class="acc">
-        {#each defs as def (def.id)}
-          {@const on = boosters.isActive(def.id)}
-          <div class="item" class:on>
-            <button
-              class="item-head"
-              type="button"
-              aria-expanded={!!expanded[def.id]}
-              onclick={() => (expanded[def.id] = !expanded[def.id])}
-            >
-              <span class="dot" class:lit={on} aria-hidden="true"></span>
-              <span class="item-name">{label(def.i18n)}</span>
-              {#if def.source}<span class="src">{srcLabel(def.source)}</span>{/if}
-              <span class="item-val">{valLabel(def)}</span>
-              <Icon name="chevron-down" size={12} class="caret {expanded[def.id] ? 'up' : ''}" />
-            </button>
-            {#if expanded[def.id]}
-              <div class="item-body">
-                {#if def.tiers}
-                  <span class="field-label">{i18n.m.upgrade.boosters.level}</span>
-                  <Select
-                    value={String(boosters.value(def.id))}
-                    options={tierOptions(def)}
-                    onChange={(v) => boosters.set(def.id, Number(v))}
-                    ariaLabel={label(def.i18n)}
-                  />
-                {:else}
-                  <input
-                    type="number"
-                    min="0"
-                    inputmode="numeric"
-                    value={boosters.value(def.id)}
-                    oninput={(e) => boosters.set(def.id, Number(e.currentTarget.value))}
-                    aria-label={label(def.i18n)}
-                  />
-                  <span class="sign">%</span>
-                {/if}
-              </div>
-            {/if}
-          </div>
+        {#each manualDefs as def (def.id)}
+          {@render boosterItem(def)}
+        {/each}
+        {#each groups as g (g.src)}
+          <div class="group-label">{srcLabel(g.src)}</div>
+          {#each g.defs as def (def.id)}
+            {@render boosterItem(def)}
+          {/each}
         {/each}
       </div>
 
@@ -224,6 +258,14 @@
     display: grid;
     gap: 8px;
   }
+  .group-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin: 6px 0 -2px 2px;
+  }
   .item {
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -259,15 +301,6 @@
     font-size: 13px;
     flex: 1;
     text-align: start;
-  }
-  .src {
-    font-size: 9px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    padding: 2px 7px;
   }
   .item-val {
     font-size: 12px;
