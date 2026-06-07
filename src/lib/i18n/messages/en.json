@@ -453,16 +453,19 @@
     },
     "selectedN": "{n} selected",
     "help": {
-      "title": "How it works",
-      "items": [
-        "✏️ Edit: tap empty to place the selected piece; tap a piece to select it; drag a piece to move it.",
-        "🖐 View: drag anywhere to pan around the board (great when zoomed in).",
-        "Select several: in Edit, drag over empty space to box-select, then drag any of them to move the group.",
-        "Double-tap a piece to delete it. Cities can be tagged with name, furnace, power and which bear traps they join.",
-        "Bear traps are numbered; use 🐻 focus to highlight one trap and its cities.",
-        "Buildings can’t overlap (a banner’s 7×7 area can). Banners that don’t connect to the HQ turn red — they’d expire.",
-        "Share a link, or “copy code” + Import if the link gets too long. Save named maps and overwrite them with ↻."
-      ]
+      "title": "How it works"
+    },
+    "tour": {
+      "welcomeTitle": "Territory planner",
+      "welcomeCaption": "Plan your hive, sunfire castle or state — HQ, banners, cities, bear traps.",
+      "modesTitle": "Edit & View",
+      "modesCaption": "Edit places and moves pieces; View drags to pan. Two fingers pan in Edit too.",
+      "placeTitle": "Place, move, remove",
+      "placeCaption": "Tap empty to place, drag to move. Buildings can’t overlap. Double-tap to remove.",
+      "selectTitle": "Select several",
+      "selectCaption": "In Edit, drag a box over empty space to select several, then drag to move the group.",
+      "bearsTitle": "Bears & sharing",
+      "bearsCaption": "Cities join bear traps (🐻); share a link, or copy the code if it gets long."
     }
   }
 }

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { i18n } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
+  import Segmented from '$lib/components/Segmented.svelte';
   import RangeSelect from '$lib/tools/upgrade/RangeSelect.svelte';
   import Totals from '$lib/tools/upgrade/Totals.svelte';
   import { sumLadder, combine, formatDuration } from '$lib/tools/upgrade/engine';
@@ -118,19 +119,15 @@
     backHref="/upgrade"
   />
 
-  <div class="seg">
-    <button
-      class="seg-btn"
-      class:active={mode === 'affinity'}
-      type="button"
-      onclick={() => setMode('affinity')}>{i18n.m.upgrade.experts.affinity}</button
-    >
-    <button
-      class="seg-btn"
-      class:active={mode === 'skills'}
-      type="button"
-      onclick={() => setMode('skills')}>{i18n.m.upgrade.experts.skills}</button
-    >
+  <div class="seg-wrap">
+    <Segmented
+      value={mode}
+      options={[
+        { value: 'affinity', label: i18n.m.upgrade.experts.affinity },
+        { value: 'skills', label: i18n.m.upgrade.experts.skills }
+      ]}
+      onChange={(v) => setMode(v as Mode)}
+    />
   </div>
 
   {#if mode === 'affinity'}
@@ -242,31 +239,8 @@
     margin: 0 auto;
     padding: 32px 24px 96px;
   }
-  .seg {
-    display: inline-flex;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    padding: 3px;
-    gap: 2px;
+  .seg-wrap {
     margin-bottom: 18px;
-  }
-  .seg-btn {
-    background: none;
-    border: none;
-    border-radius: var(--r-pill);
-    color: var(--text-mid);
-    font-family: var(--font-mono);
-    font-size: 12px;
-    padding: 6px 16px;
-    cursor: pointer;
-    transition:
-      background 0.2s ease,
-      color 0.2s ease;
-  }
-  .seg-btn.active {
-    background: var(--bg-soft);
-    color: var(--text);
   }
   .group-label {
     display: block;

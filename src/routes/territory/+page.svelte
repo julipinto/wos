@@ -5,9 +5,10 @@
   import Icon from '$lib/components/Icon.svelte';
   import Select from '$lib/components/Select.svelte';
   import NumberInput from '$lib/components/NumberInput.svelte';
-  import Modal from '$lib/components/Modal.svelte';
   import Segmented from '$lib/components/Segmented.svelte';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
+  import Tutorial from '$lib/components/Tutorial.svelte';
+  import { TERRITORY_SLIDES } from '$lib/tools/territory/tutorial';
   import { readJson, writeJson } from '$lib/utils/storage';
   import {
     OBJECT_DEFS,
@@ -219,6 +220,14 @@
   let group: { start: Map<string, { x: number; y: number }>; cx: number; cy: number } | null = null;
   // Marquee (rubber-band) rectangle in grid coords, while drag-selecting.
   let marquee = $state<{ x0: number; y0: number; x1: number; y1: number } | null>(null);
+  // Two-finger pan: tracks live pointers so a second finger pans the board even
+  // in Edit mode (where one finger places / marquee-selects).
+  const pointers = new Map<number, { x: number; y: number }>();
+  let twoPan: { cx: number; cy: number; left: number; top: number } | null = null;
+  const midpoint = () => {
+    const p = [...pointers.values()];
+    return { x: (p[0].x + p[1].x) / 2, y: (p[0].y + p[1].y) / 2 };
+  };
 
   function startPan(e: PointerEvent) {
     pan = scroller
@@ -226,6 +235,21 @@
       : null;
   }
   function onPointerDown(e: PointerEvent) {
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+    // A second finger starts a two-finger pan — abort whatever the first began.
+    if (pointers.size >= 2) {
+      dragId = pendingPlace = null;
+      pan = group = null;
+      marquee = null;
+      moved = true;
+      if (scroller) {
+        const m = midpoint();
+        twoPan = { cx: m.x, cy: m.y, left: scroller.scrollLeft, top: scroller.scrollTop };
+      }
+      e.preventDefault();
+      return;
+    }
     const cell = cellFromEvent(e);
     if (!cell) return;
     const { x, y } = cell;
@@ -257,9 +281,17 @@
       pendingPlace = { x, y };
       marquee = { x0: x, y0: y, x1: x, y1: y }; // edit-mode drag = marquee
     }
-    (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
   }
   function onPointerMove(e: PointerEvent) {
+    if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    // Two-finger pan (any mode): follow the midpoint of the two fingers.
+    if (twoPan && scroller && pointers.size >= 2) {
+      const m = midpoint();
+      scroller.scrollLeft = twoPan.left - (m.x - twoPan.cx);
+      scroller.scrollTop = twoPan.top - (m.y - twoPan.cy);
+      e.preventDefault();
+      return;
+    }
     // Panning (view mode, dragging empty space).
     if (pan && scroller) {
       const dx = e.clientX - pan.cx;
@@ -327,7 +359,14 @@
       e.preventDefault();
     }
   }
-  function onPointerUp() {
+  function onPointerUp(e: PointerEvent) {
+    const wasPan = !!twoPan;
+    pointers.delete(e.pointerId);
+    if (pointers.size < 2) twoPan = null;
+    if (wasPan) {
+      moved = pointers.size > 0; // keep suppressing taps until all fingers lift
+      return;
+    }
     if (group) {
       if (moved) persist();
     } else if (marquee && moved) {
@@ -636,9 +675,11 @@
       <svg
         {viewBox}
         class="grid"
+        class:view={boardMode === 'view'}
         onpointerdown={onPointerDown}
         onpointermove={onPointerMove}
         onpointerup={onPointerUp}
+        onpointercancel={onPointerUp}
         ondblclick={onGridRemove}
         role="application"
         aria-label="grid"
@@ -676,6 +717,7 @@
             {@const sel = selectedIds.includes(o.id)}
             {@const lit = inFocus(o)}
             <rect
+              class="obj"
               x={o.x + 0.08}
               y={o.y + 0.08}
               width={def.w - 0.16}
@@ -936,17 +978,37 @@
     onCancel={() => (confirmAction = null)}
   />
 
-  <Modal open={helpOpen} onClose={closeHelp} label={i18n.m.territory.help.title} wide>
-    <div class="help">
-      <h2 class="help-title">{i18n.m.territory.help.title}</h2>
-      <ul class="help-list">
-        {#each i18n.m.territory.help.items as item (item)}
-          <li>{item}</li>
-        {/each}
-      </ul>
-      <button class="act" type="button" onclick={closeHelp}>{i18n.m.common.gotIt}</button>
-    </div>
-  </Modal>
+  <Tutorial
+    open={helpOpen}
+    onClose={closeHelp}
+    slides={[
+      {
+        title: i18n.m.territory.tour.welcomeTitle,
+        caption: i18n.m.territory.tour.welcomeCaption,
+        svg: TERRITORY_SLIDES[0]()
+      },
+      {
+        title: i18n.m.territory.tour.modesTitle,
+        caption: i18n.m.territory.tour.modesCaption,
+        svg: TERRITORY_SLIDES[1]()
+      },
+      {
+        title: i18n.m.territory.tour.placeTitle,
+        caption: i18n.m.territory.tour.placeCaption,
+        svg: TERRITORY_SLIDES[2]()
+      },
+      {
+        title: i18n.m.territory.tour.selectTitle,
+        caption: i18n.m.territory.tour.selectCaption,
+        svg: TERRITORY_SLIDES[3]()
+      },
+      {
+        title: i18n.m.territory.tour.bearsTitle,
+        caption: i18n.m.territory.tour.bearsCaption,
+        svg: TERRITORY_SLIDES[4]()
+      }
+    ]}
+  />
 </div>
 
 <style>
@@ -1125,7 +1187,16 @@
     width: 100%;
     height: auto;
     touch-action: none;
-    cursor: crosshair;
+    cursor: crosshair; /* Edit: empty space = place */
+  }
+  .grid.view {
+    cursor: grab; /* View: empty space = pan */
+  }
+  .grid.view:active {
+    cursor: grabbing;
+  }
+  .grid .obj {
+    cursor: pointer; /* over a piece (both modes): select/move */
   }
   .marquee {
     fill: rgba(147, 212, 255, 0.12);
@@ -1274,23 +1345,6 @@
     font-family: var(--font-mono);
     font-size: 11px;
     line-height: 1.5;
-  }
-  .help-title {
-    margin: 0 0 14px;
-    font-size: 18px;
-    color: var(--text);
-  }
-  .help-list {
-    margin: 0 0 18px;
-    padding-inline-start: 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .help-list li {
-    color: var(--text-mid);
-    font-size: 13.5px;
-    line-height: 1.55;
   }
   .footer-actions {
     display: flex;
@@ -1552,6 +1606,22 @@
   @media (max-width: 540px) {
     .wrap {
       padding: 24px 18px 72px;
+    }
+    /* Stack the share row so the long hint + buttons stop overflowing. */
+    .footer {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .footer-actions {
+      justify-content: stretch;
+    }
+    .footer-actions .act {
+      flex: 1 1 auto;
+      justify-content: center;
+    }
+    .footer-actions .reset {
+      flex: 1 1 100%;
+      text-align: center;
     }
   }
 </style>
