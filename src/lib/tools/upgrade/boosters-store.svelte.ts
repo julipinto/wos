@@ -195,7 +195,16 @@ export const BOOSTER_DEFS: BoosterDef[] = [
     source: 'island',
     tiers: [0, 1, 2, 3, 4, 5]
   },
-  { id: 'skiResort', category: 'training', i18n: 'skiResort', source: 'island' }
+  // Ski Resort (event-only Epic decoration): +15% training at max (lvl 5),
+  // confirmed. Per-level not published — inferred +3%/level from the linear
+  // pattern of the other two decorations (Barbecue +1, Skating Rink +2 per lvl).
+  {
+    id: 'skiResort',
+    category: 'training',
+    i18n: 'skiResort',
+    source: 'island',
+    tiers: [0, 3, 6, 9, 12, 15]
+  }
 ];
 
 export interface PositionDef {
