@@ -956,7 +956,6 @@
                   disabled={objects.length === 0}
                   title={i18n.m.territory.maps.updateHint}
                 >
-                  <Icon name="upload" size={12} />
                   {i18n.m.territory.maps.update}
                 </button>
                 <button
@@ -1190,6 +1189,11 @@
     height: auto;
     touch-action: none;
     cursor: crosshair; /* Edit: empty space = place */
+  }
+  /* touch-action isn't inherited, so a touch starting ON a piece (or any inner
+     element) would still scroll the page — pin it off across the whole svg. */
+  .grid :global(*) {
+    touch-action: none;
   }
   .grid.view {
     cursor: grab; /* View: empty space = pan */
@@ -1515,14 +1519,15 @@
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    justify-content: center;
+    padding: 0 14px;
+    height: 36px;
     background: transparent;
     border: 1px solid var(--border);
     border-radius: var(--r-pill);
     color: var(--text-mid);
     font-family: var(--font-mono);
     font-size: 11px;
-    padding: 0 12px;
     cursor: pointer;
     transition:
       color 0.2s ease,
