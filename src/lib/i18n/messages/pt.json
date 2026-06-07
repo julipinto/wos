@@ -201,7 +201,8 @@
       "troops": "tropas",
       "helios": "Helios",
       "experts": "experts",
-      "plan": "meu plano"
+      "plan": "meu plano",
+      "expertSkills": "Skills de Experts"
     },
     "res": {
       "meat": "carne",

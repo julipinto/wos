@@ -24,6 +24,7 @@ import { TROOP_COST } from './data/troops';
 import { RESEARCH_TREES } from './data/research';
 import { PETS, petLadder } from './data/pets';
 import { EXPERTS } from './data/experts';
+import { EXPERT_SKILLS } from './data/expertSkills';
 import { HELIOS_NODES } from './data/helios';
 import { HERO_TRACKS } from './data/heroes';
 import type { LevelCost } from './types';
@@ -33,10 +34,13 @@ export interface PlanLine {
   id: string;
   totals: ResourceBag;
   time: number;
-  /** Which booster category reduces this line's time (null = no time). */
-  timeCategory: BoosterCategory | null;
+  /** Which booster category reduces this line's time; 'learning' is the expert
+   *  skill track (no booster), null = no time. */
+  timeCategory: BoosterCategory | 'learning' | null;
   /** Human-readable summary of what was configured, e.g. "Furnace 25 → 30". */
   detail: string[];
+  /** Route override for the plan link (defaults to /upgrade/<id>). */
+  route?: string;
 }
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -200,6 +204,35 @@ function heliosLine(): PlanLine | null {
     : null;
 }
 
+function expertSkillsLine(): PlanLine | null {
+  const arr = readJson<({ skill: string } & Pair)[]>('upgrade-expertskills-v1');
+  if (!Array.isArray(arr) || arr.length === 0) return null;
+  const valid = arr.filter((p) => {
+    const s = EXPERT_SKILLS.find((x) => x.id === p.skill);
+    return (
+      s &&
+      p.from !== p.to &&
+      s.ladder.some((l) => l.label === p.from) &&
+      s.ladder.some((l) => l.label === p.to)
+    );
+  });
+  const r = combine(
+    valid.map((p) => sumLadder(EXPERT_SKILLS.find((x) => x.id === p.skill)!.ladder, p.from, p.to))
+  );
+  if (!has(r.totals)) return null;
+  return {
+    id: 'expertSkills',
+    route: '/upgrade/experts',
+    totals: r.totals,
+    time: r.time,
+    timeCategory: 'learning',
+    detail: valid.map((p) => {
+      const s = EXPERT_SKILLS.find((x) => x.id === p.skill)!;
+      return `${s.expertName} · ${s.skill} ${range(p.from, p.to)}`;
+    })
+  };
+}
+
 const HERO_NAME: Record<string, string> = {
   mastery: 'Gear Mastery',
   exclusive: 'Exclusive Gear',
@@ -244,6 +277,7 @@ export function planLines(): PlanLine[] {
     researchLine(),
     petsLine(),
     expertsLine(),
+    expertSkillsLine(),
     heliosLine(),
     heroesLine()
   ].filter((x): x is PlanLine => !!x);

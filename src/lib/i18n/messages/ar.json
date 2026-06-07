@@ -201,7 +201,8 @@
       "troops": "القوات",
       "helios": "Helios",
       "experts": "الخبراء",
-      "plan": "خطتي"
+      "plan": "خطتي",
+      "expertSkills": "مهارات الخبراء"
     },
     "res": {
       "meat": "لحم",

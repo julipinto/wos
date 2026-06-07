@@ -201,7 +201,8 @@
       "troops": "войска",
       "helios": "Helios",
       "experts": "эксперты",
-      "plan": "мой план"
+      "plan": "мой план",
+      "expertSkills": "Навыки экспертов"
     },
     "res": {
       "meat": "мясо",
