@@ -4,19 +4,17 @@
   import RangeSelect from '$lib/tools/upgrade/RangeSelect.svelte';
   import Boosters from '$lib/tools/upgrade/Boosters.svelte';
   import StepList from '$lib/tools/upgrade/StepList.svelte';
+  import Totals from '$lib/tools/upgrade/Totals.svelte';
   import { buildingsCalc } from '$lib/tools/upgrade/store.svelte';
   import {
     sumRange,
     combine,
-    formatQty,
     formatDuration,
     applySpeed,
     presentResources
   } from '$lib/tools/upgrade/engine';
   import { boosters } from '$lib/tools/upgrade/boosters-store.svelte';
-  import { RESOURCES, type LevelCost } from '$lib/tools/upgrade/types';
-
-  const resDef = (key: string) => RESOURCES.find((r) => r.key === key)!;
+  import { type LevelCost } from '$lib/tools/upgrade/types';
 
   // Additive: one combined result across every building row.
   const rows = $derived(buildingsCalc.rows);
@@ -24,6 +22,12 @@
     combine(rows.map((r) => sumRange(buildingsCalc.tableOf(r.buildingId), r.from, r.to)))
   );
   const resRows = $derived(presentResources(result.totals));
+  const buildingItems = $derived(
+    rows.map((r) => {
+      const t = buildingsCalc.tableOf(r.buildingId);
+      return { label: `${t.name} ${r.from} → ${r.to}`, totals: sumRange(t, r.from, r.to).totals };
+    })
+  );
 
   // Speed % first, then subtract any flat reduction (Agnes), clamped at 0 —
   // time can never go negative.
@@ -126,21 +130,9 @@
 
   <Boosters categories={['construction']} />
 
-  <h2 class="section-label">{i18n.m.upgrade.totalEyebrow}</h2>
+  <Totals items={buildingItems} adjust={effRes} emptyHint={i18n.m.upgrade.addHint} />
 
-  {#if resRows.length === 0}
-    <p class="empty">{i18n.m.upgrade.addHint}</p>
-  {:else}
-    <div class="totals">
-      {#each resRows as key (key)}
-        {@const def = resDef(key)}
-        <div class="res">
-          <span class="res-icon" style="--c: {def.color}" aria-hidden="true">{def.icon}</span>
-          <span class="res-name">{i18n.m.upgrade.res[key]}</span>
-          <span class="res-val">{formatQty(effRes(key, result.totals[key] ?? 0))}</span>
-        </div>
-      {/each}
-    </div>
+  {#if resRows.length > 0}
     {#if zimanPct > 0}
       <p class="ziman-note">{fmt(i18n.m.upgrade.zimanCut, { pct: zimanPct })}</p>
     {/if}
@@ -276,67 +268,12 @@
     background: var(--surface-hover);
   }
 
-  .section-label {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 8px 0 16px;
-  }
-  .section-label::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(90deg, var(--border), transparent);
-  }
-
-  .empty {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--text-dim);
-  }
   .ziman-note {
     font-family: var(--font-mono);
     font-size: 11px;
     line-height: 1.5;
     color: var(--accent);
     margin: 12px 0 0;
-  }
-
-  .totals {
-    display: grid;
-    gap: 10px;
-  }
-  .res {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 18px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-card);
-  }
-  .res-icon {
-    font-size: 20px;
-    line-height: 1;
-    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--c) 40%, transparent));
-  }
-  .res-name {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--text-mid);
-    flex: 1;
-  }
-  .res-val {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 22px;
-    letter-spacing: -0.01em;
   }
 
   .meta-row {

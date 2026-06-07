@@ -369,7 +369,9 @@
     "steps": {
       "title": "pasos",
       "base": "valores base por nivel — el total de arriba ya aplica tus boosters"
-    }
+    },
+    "summed": "Sumado",
+    "individual": "Individual"
   },
   "territory": {
     "sub": "Coloca en la cuadrícula; las banderas cubren 7×7 y deben conectarse al HQ para mantener territorio.",

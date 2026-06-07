@@ -369,7 +369,9 @@
     "steps": {
       "title": "steps",
       "base": "base per-level values — the total above applies your boosters"
-    }
+    },
+    "summed": "Summed",
+    "individual": "Individual"
   },
   "territory": {
     "sub": "Place buildings on the grid; banners cover 7×7 and must connect to the HQ to hold territory.",
