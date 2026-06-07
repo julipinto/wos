@@ -106,18 +106,57 @@ export const FURNACE_LEVELS: string[] = [
 const key = (x: number, y: number) => `${x},${y}`;
 
 // --- Import / export (share a layout as a copyable code) -------------------
+// 'T2' = DEFLATE-compressed (CompressionStream) → base64url; 'T1' = plain
+// utf8-base64 (fallback for browsers without CompressionStream, and still read
+// on import). Compression shrinks repetitive layouts (many banners/cities) a lot.
 const utf8ToB64 = (s: string) => btoa(unescape(encodeURIComponent(s)));
 const b64ToUtf8 = (s: string) => decodeURIComponent(escape(atob(s)));
 
-/** Serialise a layout (incl. its mode) to a compact, copy-pasteable code. */
-export function exportLayout(mode: string, objects: PlacedObject[]): string {
+function bytesToB64url(bytes: Uint8Array): string {
+  let s = '';
+  for (const b of bytes) s += String.fromCharCode(b);
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function b64urlToBytes(s: string): Uint8Array {
+  const b64 = s.replace(/-/g, '+').replace(/_/g, '/');
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+async function deflate(s: string): Promise<string> {
+  const cs = new CompressionStream('deflate-raw');
+  const buf = await new Response(new Blob([s]).stream().pipeThrough(cs)).arrayBuffer();
+  return bytesToB64url(new Uint8Array(buf));
+}
+async function inflate(b64: string): Promise<string> {
+  const ds = new DecompressionStream('deflate-raw');
+  const part = b64urlToBytes(b64) as unknown as BlobPart;
+  const stream = new Blob([part]).stream().pipeThrough(ds);
+  return new TextDecoder().decode(await new Response(stream).arrayBuffer());
+}
+
+function encodeLayout(mode: string, objects: PlacedObject[]): string {
   const o = objects.map((ob) => {
     const base: (string | number)[] = [ob.type, ob.x, ob.y];
     if (ob.name || ob.furnace || (ob.power ?? 0) > 0)
       base.push(ob.name ?? '', ob.furnace ?? '', ob.power ?? 0);
     return base;
   });
-  return 'T1' + utf8ToB64(JSON.stringify({ m: mode, o }));
+  return JSON.stringify({ m: mode, o });
+}
+
+/** Serialise a layout (incl. its mode) to a compact, copy-pasteable code. */
+export async function exportLayout(mode: string, objects: PlacedObject[]): Promise<string> {
+  const json = encodeLayout(mode, objects);
+  if (typeof CompressionStream !== 'undefined') {
+    try {
+      return 'T2' + (await deflate(json));
+    } catch {
+      /* fall through to plain */
+    }
+  }
+  return 'T1' + utf8ToB64(json);
 }
 
 export interface ImportedLayout {
@@ -126,12 +165,15 @@ export interface ImportedLayout {
 }
 
 /** Parse an exported code into {mode, objects} (new ids; objects filtered to
- *  the embedded mode). Null if invalid. */
-export function importLayout(code: string): ImportedLayout | null {
+ *  the embedded mode). Null if invalid. Handles both T2 (compressed) and T1. */
+export async function importLayout(code: string): Promise<ImportedLayout | null> {
   try {
     const trimmed = code.trim();
-    if (!trimmed.startsWith('T1')) return null;
-    const data = JSON.parse(b64ToUtf8(trimmed.slice(2)));
+    let json: string;
+    if (trimmed.startsWith('T2')) json = await inflate(trimmed.slice(2));
+    else if (trimmed.startsWith('T1')) json = b64ToUtf8(trimmed.slice(2));
+    else return null;
+    const data = JSON.parse(json);
     const rows = Array.isArray(data) ? data : data?.o; // tolerate old array form
     if (!Array.isArray(rows)) return null;
     const mode = modeById(!Array.isArray(data) && typeof data?.m === 'string' ? data.m : 'hive');
