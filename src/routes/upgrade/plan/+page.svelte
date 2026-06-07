@@ -78,6 +78,10 @@
       left: speedups.remaining(cat, catTime(cat))
     })).filter((t) => t.secs > 0)
   );
+  // Expert-skill learning time runs on its own (no speed booster / queue).
+  const learningTime = $derived(
+    adjLines.filter((l) => l.timeCategory === 'learning').reduce((t, l) => t + l.time, 0)
+  );
   const timeLabel = (cat: BoosterCategory) =>
     cat === 'construction'
       ? i18n.m.upgrade.buildTime
@@ -128,7 +132,7 @@
 
     <DeficitPanel needed={grand} />
 
-    {#if timeRows.length > 0}
+    {#if timeRows.length > 0 || learningTime > 0}
       <div class="meta-row">
         {#each timeRows as t (t.cat)}
           <div class="meta">
@@ -140,9 +144,19 @@
             {/if}
           </div>
         {/each}
+        {#if learningTime > 0}
+          <div class="meta">
+            <span class="meta-label">{i18n.m.upgrade.experts.learningTime}</span>
+            <span class="meta-val">{formatDuration(learningTime)}</span>
+          </div>
+        {/if}
       </div>
-      <p class="parallel">{i18n.m.upgrade.plan.parallel}</p>
+      {#if timeRows.length > 0}
+        <p class="parallel">{i18n.m.upgrade.plan.parallel}</p>
+      {/if}
+    {/if}
 
+    {#if timeRows.length > 0}
       <div class="speedups" class:open={speedOpen}>
         <button
           class="sp-head"
@@ -180,7 +194,7 @@
     <h2 class="section-label">{i18n.m.upgrade.plan.includes}</h2>
     <div class="lines">
       {#each adjLines as l (l.id)}
-        <a class="line" href="{base}/upgrade/{l.id}">
+        <a class="line" href="{base}{l.route ?? `/upgrade/${l.id}`}">
           <div class="line-head">
             <span class="line-name">{catName(l.id)}</span>
             <span class="line-res">
