@@ -383,7 +383,7 @@
   },
   "territory": {
     "sub": "Place buildings on the grid; banners cover 7×7 and must connect to the HQ to hold territory.",
-    "hint": "Tap empty to place; tap an item to tag/edit it; double-tap to remove. Dimmed/red banners aren't connected to the HQ.",
+    "hint": "Tap empty to place; tap an item to tag/edit; drag to move; double-tap to remove. Dimmed/red banners aren't connected to the HQ.",
     "place": "place",
     "obj": {
       "hq": "HQ",
@@ -408,7 +408,7 @@
     "export": "Export",
     "import": "Import",
     "copied": "Copied!",
-    "importHint": "Paste a layout code",
+    "importHint": "Paste a link or code",
     "tag": {
       "name": "name",
       "furnace": "furnace",
@@ -420,6 +420,7 @@
       "name": "map name",
       "load": "load",
       "empty": "No saved maps yet."
-    }
+    },
+    "share": "Share"
   }
 }
