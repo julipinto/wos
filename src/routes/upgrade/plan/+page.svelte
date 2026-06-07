@@ -15,12 +15,41 @@
   } from '$lib/tools/upgrade/engine';
   import { RESOURCES, type ResourceBag } from '$lib/tools/upgrade/types';
   import { boosters, type BoosterCategory } from '$lib/tools/upgrade/boosters-store.svelte';
-  import { planLines, cutBase } from '$lib/tools/upgrade/plan';
+  import { planLines, cutBase, PLAN_STORAGE_KEYS } from '$lib/tools/upgrade/plan';
 
   // Snapshot of saved selections (read once on load).
   const lines = planLines();
 
   let speedOpen = $state(false);
+  let copied = $state(false);
+
+  // Build a plain-text summary (paste into alliance chat) and copy it.
+  async function copyPlan() {
+    const out: string[] = ['WOS — ' + i18n.m.upgrade.title, ''];
+    out.push(i18n.m.upgrade.totalEyebrow.toUpperCase());
+    for (const k of grandRows)
+      out.push(`  ${resDef(k).icon} ${resName(k)}: ${formatQty(grand[k] ?? 0)}`);
+    if (timeRows.length > 0) {
+      out.push('');
+      for (const t of timeRows)
+        out.push(`  ${timeLabel(t.cat)}: ${formatDuration(speedups.any ? t.left : t.secs)}`);
+    }
+    out.push('', i18n.m.upgrade.plan.includes.toUpperCase());
+    for (const l of adjLines) out.push(`  ${catName(l.id)}: ${l.detail.join(', ')}`);
+    try {
+      await navigator.clipboard.writeText(out.join('\n'));
+      copied = true;
+      setTimeout(() => (copied = false), 1800);
+    } catch {
+      copied = false;
+    }
+  }
+
+  function clearPlan() {
+    if (!confirm(i18n.m.upgrade.plan.clearConfirm)) return;
+    for (const k of PLAN_STORAGE_KEYS) localStorage.removeItem(k);
+    location.reload();
+  }
 
   const zimanPct = $derived(boosters.contribution('zinman'));
   // Apply Zinman's construction base-resource cut to the buildings line.
@@ -73,6 +102,17 @@
     <a class="cta" href="{base}/upgrade">{i18n.m.common.back}</a>
   {:else}
     <Boosters categories={['construction', 'research', 'training']} />
+
+    <div class="actions">
+      <button class="act" type="button" onclick={copyPlan}>
+        <Icon name={copied ? 'check' : 'copy'} size={13} />
+        {copied ? i18n.m.upgrade.plan.copied : i18n.m.upgrade.plan.copy}
+      </button>
+      <button class="act danger" type="button" onclick={clearPlan}>
+        <Icon name="trash-2" size={13} />
+        {i18n.m.upgrade.plan.clear}
+      </button>
+    </div>
 
     <h2 class="section-label">{i18n.m.upgrade.totalEyebrow}</h2>
     <div class="totals">
@@ -201,6 +241,35 @@
     flex: 1;
     height: 1px;
     background: linear-gradient(90deg, var(--border), transparent);
+  }
+  .actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .act {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    color: var(--text-mid);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition:
+      color 0.2s ease,
+      border-color 0.2s ease;
+  }
+  .act:hover {
+    color: var(--text);
+    border-color: var(--border-accent);
+  }
+  .act.danger:hover {
+    color: #fb7185;
+    border-color: rgba(251, 113, 133, 0.4);
   }
   .totals {
     display: grid;

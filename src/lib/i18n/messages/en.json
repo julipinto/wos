@@ -356,7 +356,11 @@
         "hint": "Enter your speedup stash (in days) per queue to see the real time left.",
         "days": "days",
         "remaining": "left after speedups"
-      }
+      },
+      "copy": "Copy",
+      "copied": "Copied!",
+      "clear": "Clear plan",
+      "clearConfirm": "Clear every calculator selection? Your boosters and stock are kept."
     },
     "steps": {
       "title": "steps",

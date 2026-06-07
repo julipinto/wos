@@ -356,7 +356,11 @@
         "hint": "Indica tu reserva de aceleradores (en días) por cola para ver el tiempo real restante.",
         "days": "días",
         "remaining": "queda tras aceleradores"
-      }
+      },
+      "copy": "Copiar",
+      "copied": "¡Copiado!",
+      "clear": "Limpiar plan",
+      "clearConfirm": "¿Limpiar todas las selecciones? Tus boosters y stock se mantienen."
     },
     "steps": {
       "title": "pasos",

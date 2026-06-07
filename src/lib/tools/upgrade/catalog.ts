@@ -39,7 +39,7 @@ export const HUB_CARDS: HubCard[] = [
   { id: 'gear', route: '/upgrade/gear', icon: '⚔️', i18n: 'gear', status: 'available' },
   { id: 'charms', route: '/upgrade/charms', icon: '📿', i18n: 'charms', status: 'available' },
   { id: 'troops', route: '/upgrade/troops', icon: '🪖', i18n: 'troops', status: 'available' },
-  { id: 'research', route: '/upgrade/research', icon: '🔬', i18n: 'research', status: 'preview' },
+  { id: 'research', route: '/upgrade/research', icon: '🔬', i18n: 'research', status: 'available' },
   { id: 'helios', route: '/upgrade/helios', icon: '🔆', i18n: 'helios', status: 'available' },
   { id: 'pets', route: '/upgrade/pets', icon: '🐺', i18n: 'pets', status: 'available' },
   { id: 'experts', route: '/upgrade/experts', icon: '🎓', i18n: 'experts', status: 'available' },

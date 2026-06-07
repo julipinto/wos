@@ -55,11 +55,6 @@
     backHref="/upgrade"
   />
 
-  <div class="warn" role="note">
-    <strong>⚠ {i18n.m.upgrade.unverified}</strong>
-    <span>{i18n.m.upgrade.research.note}</span>
-  </div>
-
   <div class="trees">
     {#each RESEARCH_TREES as tree (tree.id)}
       <button
@@ -109,25 +104,6 @@
     max-width: 640px;
     margin: 0 auto;
     padding: 32px 24px 96px;
-  }
-  .warn {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    background: rgba(251, 146, 60, 0.08);
-    border: 1px solid rgba(251, 146, 60, 0.35);
-    border-radius: var(--r-card);
-    padding: 14px 16px;
-    margin-bottom: 22px;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    line-height: 1.5;
-    color: var(--text-mid);
-  }
-  .warn strong {
-    color: #fb923c;
-    font-weight: 600;
-    letter-spacing: 0.5px;
   }
   .trees {
     display: grid;

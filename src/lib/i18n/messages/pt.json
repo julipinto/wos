@@ -356,7 +356,11 @@
         "hint": "Informe seu estoque de speedup (em dias) por fila pra ver o tempo real restante.",
         "days": "dias",
         "remaining": "resta após speedups"
-      }
+      },
+      "copy": "Copiar",
+      "copied": "Copiado!",
+      "clear": "Limpar plano",
+      "clearConfirm": "Limpar todas as seleções das calculadoras? Seus boosters e estoque são mantidos."
     },
     "steps": {
       "title": "etapas",
