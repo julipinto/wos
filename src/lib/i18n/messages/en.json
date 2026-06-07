@@ -413,6 +413,13 @@
       "name": "name",
       "furnace": "furnace",
       "power": "power"
+    },
+    "maps": {
+      "title": "saved maps",
+      "save": "Save",
+      "name": "map name",
+      "load": "load",
+      "empty": "No saved maps yet."
     }
   }
 }

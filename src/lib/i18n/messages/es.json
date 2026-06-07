@@ -413,6 +413,13 @@
       "name": "nombre",
       "furnace": "horno",
       "power": "poder"
+    },
+    "maps": {
+      "title": "mapas guardados",
+      "save": "Guardar",
+      "name": "nombre del mapa",
+      "load": "cargar",
+      "empty": "Aún no hay mapas guardados."
     }
   }
 }
