@@ -2,8 +2,10 @@
   import { base } from '$app/paths';
   import { i18n } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import Boosters from '$lib/tools/upgrade/Boosters.svelte';
   import DeficitPanel from '$lib/tools/upgrade/DeficitPanel.svelte';
+  import { speedups } from '$lib/tools/upgrade/speedups.svelte';
   import {
     addBags,
     applySpeed,
@@ -17,6 +19,8 @@
 
   // Snapshot of saved selections (read once on load).
   const lines = planLines();
+
+  let speedOpen = $state(false);
 
   const zimanPct = $derived(boosters.contribution('zinman'));
   // Apply Zinman's construction base-resource cut to the buildings line.
@@ -39,7 +43,11 @@
     return Math.max(0, summed - boosters.flatTotal(cat));
   };
   const timeRows = $derived(
-    TIME_CATS.map((cat) => ({ cat, secs: catTime(cat) })).filter((t) => t.secs > 0)
+    TIME_CATS.map((cat) => ({
+      cat,
+      secs: catTime(cat),
+      left: speedups.remaining(cat, catTime(cat))
+    })).filter((t) => t.secs > 0)
   );
   const timeLabel = (cat: BoosterCategory) =>
     cat === 'construction'
@@ -85,11 +93,48 @@
         {#each timeRows as t (t.cat)}
           <div class="meta">
             <span class="meta-label">{timeLabel(t.cat)}</span>
-            <span class="meta-val">{formatDuration(t.secs)}</span>
+            <span class="meta-val">{formatDuration(speedups.any ? t.left : t.secs)}</span>
+            {#if speedups.seconds(t.cat) > 0}
+              <span class="meta-base">{i18n.m.upgrade.boosters.base}: {formatDuration(t.secs)}</span
+              >
+            {/if}
           </div>
         {/each}
       </div>
       <p class="parallel">{i18n.m.upgrade.plan.parallel}</p>
+
+      <div class="speedups" class:open={speedOpen}>
+        <button
+          class="sp-head"
+          type="button"
+          aria-expanded={speedOpen}
+          onclick={() => (speedOpen = !speedOpen)}
+        >
+          <span class="sp-icon" aria-hidden="true">⏩</span>
+          <span class="sp-title">{i18n.m.upgrade.plan.speedups.title}</span>
+          <Icon name="chevron-down" size={14} class="caret {speedOpen ? 'up' : ''}" />
+        </button>
+        {#if speedOpen}
+          <div class="sp-body">
+            <p class="sp-hint">{i18n.m.upgrade.plan.speedups.hint}</p>
+            {#each timeRows as t (t.cat)}
+              <div class="sp-row">
+                <span class="sp-label">{timeLabel(t.cat)}</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  inputmode="decimal"
+                  value={speedups.days(t.cat)}
+                  oninput={(e) => speedups.setDays(t.cat, Number(e.currentTarget.value))}
+                  aria-label="{timeLabel(t.cat)} {i18n.m.upgrade.plan.speedups.days}"
+                />
+                <span class="sp-unit">{i18n.m.upgrade.plan.speedups.days}</span>
+              </div>
+            {/each}
+          </div>
+        {/if}
+      </div>
     {/if}
 
     <h2 class="section-label">{i18n.m.upgrade.plan.includes}</h2>
@@ -216,11 +261,99 @@
     font-weight: 700;
     font-size: 18px;
   }
+  .meta-base {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
   .parallel {
     font-family: var(--font-mono);
     font-size: 11px;
     color: var(--text-dim);
     margin: 10px 0 0;
+  }
+  .speedups {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-card);
+    margin: 12px 0 0;
+  }
+  .speedups.open {
+    border-color: var(--border-accent);
+  }
+  .sp-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    background: transparent;
+    border: 0;
+    color: var(--text);
+    padding: 14px 16px;
+    cursor: pointer;
+    font-family: var(--font-mono);
+  }
+  .sp-icon {
+    font-size: 14px;
+  }
+  .sp-title {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-mid);
+  }
+  .sp-head :global(.caret) {
+    color: var(--text-dim);
+    transition: transform 0.2s ease;
+    margin-inline-start: auto;
+  }
+  .sp-head :global(.caret.up) {
+    transform: rotate(180deg);
+  }
+  .sp-body {
+    padding: 0 16px 14px;
+    display: grid;
+    gap: 10px;
+  }
+  .sp-hint {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--text-dim);
+    margin: 0;
+  }
+  .sp-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .sp-label {
+    flex: 1;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-mid);
+  }
+  .sp-row input {
+    width: 96px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    padding: 7px 10px;
+    text-align: end;
+  }
+  .sp-row input:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .sp-unit {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    min-width: 28px;
   }
   .lines {
     display: grid;

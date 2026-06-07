@@ -350,6 +350,12 @@
         "have": "you have",
         "left": "missing",
         "hint": "Enter what you already have; the shortfall updates live."
+      },
+      "speedups": {
+        "title": "speedups",
+        "hint": "Enter your speedup stash (in days) per queue to see the real time left.",
+        "days": "days",
+        "remaining": "left after speedups"
       }
     },
     "steps": {
