@@ -11,6 +11,7 @@
     combine,
     formatDuration,
     applySpeed,
+    makespan,
     presentResources
   } from '$lib/tools/upgrade/engine';
   import { boosters } from '$lib/tools/upgrade/boosters-store.svelte';
@@ -29,14 +30,28 @@
     })
   );
 
-  // Speed % first, then subtract any flat reduction (Agnes), clamped at 0 —
-  // time can never go negative.
+  // Per-building boosted time (each building is one job in a queue).
+  const buildingTimes = $derived(
+    rows.map((r) => {
+      const t = buildingsCalc.tableOf(r.buildingId);
+      return {
+        name: t.name,
+        time: applySpeed(sumRange(t, r.from, r.to).time, boosters.total('construction'))
+      };
+    })
+  );
+  // Wall-clock across the parallel build queues, then the flat (Agnes) cut.
   const effTime = $derived(
     Math.max(
       0,
-      applySpeed(result.time, boosters.total('construction')) - boosters.flatTotal('construction')
+      makespan(
+        buildingTimes.map((b) => b.time),
+        buildingsCalc.queues
+      ) - boosters.flatTotal('construction')
     )
   );
+  // Sequential sum (1 queue) for the "base" reference line.
+  const seqTime = $derived(buildingTimes.reduce((s, b) => s + b.time, 0));
 
   // Combined per-building step breakdown — each level prefixed with its building.
   const steps = $derived.by(() => {
@@ -137,14 +152,26 @@
       <p class="ziman-note">{fmt(i18n.m.upgrade.zimanCut, { pct: zimanPct })}</p>
     {/if}
 
+    <div class="queues">
+      <span class="field-label">{i18n.m.upgrade.buildings.queues}</span>
+      <div class="seg">
+        {#each [1, 2] as q (q)}
+          <button
+            class="seg-btn"
+            class:active={buildingsCalc.queues === q}
+            type="button"
+            onclick={() => buildingsCalc.setQueues(q)}>{q}</button
+          >
+        {/each}
+      </div>
+    </div>
+
     <div class="meta-row">
       <div class="meta">
         <span class="meta-label">{i18n.m.upgrade.buildTime}</span>
         <span class="meta-val">{result.time > 0 ? formatDuration(effTime) : '—'}</span>
-        {#if result.time > 0 && boosters.total('construction') > 0}
-          <span class="meta-base"
-            >{i18n.m.upgrade.boosters.base}: {formatDuration(result.time)}</span
-          >
+        {#if result.time > 0 && buildingsCalc.queues > 1 && seqTime !== effTime}
+          <span class="meta-base">1 ⏱ {formatDuration(seqTime)}</span>
         {/if}
         {#if timeUnsourced}
           <span class="meta-base">{i18n.m.upgrade.timePartial}</span>
@@ -155,6 +182,16 @@
         <span class="meta-val">{result.steps}</span>
       </div>
     </div>
+
+    {#if buildingTimes.filter((b) => b.time > 0).length > 1}
+      <div class="build-times">
+        {#each buildingTimes as b (b.name)}
+          {#if b.time > 0}
+            <div class="bt"><span>{b.name}</span><span>{formatDuration(b.time)}</span></div>
+          {/if}
+        {/each}
+      </div>
+    {/if}
 
     <StepList {steps} />
   {/if}
@@ -194,6 +231,55 @@
     letter-spacing: 2px;
     text-transform: uppercase;
     color: var(--text-dim);
+  }
+  .queues {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 18px;
+  }
+  .seg {
+    display: inline-flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    padding: 3px;
+    gap: 2px;
+  }
+  .seg-btn {
+    width: 38px;
+    background: none;
+    border: none;
+    border-radius: var(--r-pill);
+    color: var(--text-mid);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 5px 0;
+    cursor: pointer;
+    transition:
+      background 0.2s ease,
+      color 0.2s ease;
+  }
+  .seg-btn.active {
+    background: var(--bg-soft);
+    color: var(--text);
+  }
+  .build-times {
+    display: grid;
+    gap: 6px;
+    margin-top: 12px;
+  }
+  .bt {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-mid);
+    padding: 8px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
   }
   .building-rows {
     display: grid;

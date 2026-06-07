@@ -233,7 +233,8 @@
     },
     "buildings": {
       "sub": "Costo de recursos y tiempo entre dos niveles de un edificio.",
-      "pick": "edificio"
+      "pick": "edificio",
+      "queues": "colas de construcción"
     },
     "setAll": "definir todos",
     "apply": "aplicar",

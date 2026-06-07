@@ -233,7 +233,8 @@
     },
     "buildings": {
       "sub": "Resource & time cost between two building levels.",
-      "pick": "building"
+      "pick": "building",
+      "queues": "build queues"
     },
     "setAll": "set all",
     "apply": "apply",

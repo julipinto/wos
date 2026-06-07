@@ -46,6 +46,11 @@ function persist(): void {
   );
 }
 
+// Parallel build queues (1 or 2 with the second builder active). Separate key
+// so it doesn't disturb the rows array that My Plan reads.
+const QUEUES_KEY = 'upgrade-build-queues-v1';
+let queues = $state<number>(readJson<number>(QUEUES_KEY) === 1 ? 1 : 2);
+
 export const buildingsCalc = {
   get list() {
     return BUILDINGS;
@@ -77,5 +82,12 @@ export const buildingsCalc = {
   setTo(i: number, label: string): void {
     if (state.rows[i]) state.rows[i].to = label;
     persist();
+  },
+  get queues(): number {
+    return queues;
+  },
+  setQueues(n: number): void {
+    queues = n === 1 ? 1 : 2;
+    writeJson(QUEUES_KEY, queues);
   }
 };

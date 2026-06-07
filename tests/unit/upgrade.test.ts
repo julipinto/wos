@@ -8,6 +8,7 @@ import {
   levelIndex,
   formatQty,
   formatDuration,
+  makespan,
   applySpeed,
   emptyResult
 } from '../../src/lib/tools/upgrade/engine';
@@ -102,6 +103,18 @@ describe('formatQty', () => {
     expect(formatQty(3400000000)).toBe('3.4B');
     expect(formatQty(2000000)).toBe('2M');
     expect(formatQty(120000000)).toBe('120M');
+  });
+});
+
+describe('makespan', () => {
+  it('sums on a single queue, packs greedily on more', () => {
+    expect(makespan([10, 20, 30], 1)).toBe(60);
+    // two queues, LPT: 30 | 20+10 → max 30
+    expect(makespan([10, 20, 30], 2)).toBe(30);
+    // a single job can never go below its own length
+    expect(makespan([100, 5, 5], 2)).toBe(100);
+    expect(makespan([], 2)).toBe(0);
+    expect(makespan([40, 30, 20, 10], 2)).toBe(50);
   });
 });
 
