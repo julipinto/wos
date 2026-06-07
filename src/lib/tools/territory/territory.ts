@@ -136,14 +136,26 @@ async function inflate(b64: string): Promise<string> {
   return new TextDecoder().decode(await new Response(stream).arrayBuffer());
 }
 
+// Stable global order for compact numeric encoding (append-only — never reorder,
+// or old index-coded links break; old codes used strings and stay safe).
+const TYPE_ORDER = Object.keys(OBJECT_DEFS);
+
 function encodeLayout(mode: string, objects: PlacedObject[]): string {
+  const mi = Math.max(
+    0,
+    MODES.findIndex((m) => m.id === mode)
+  );
   const o = objects.map((ob) => {
-    const base: (string | number)[] = [ob.type, ob.x, ob.y];
+    const base: (string | number)[] = [TYPE_ORDER.indexOf(ob.type), ob.x, ob.y];
     if (ob.name || ob.furnace || (ob.power ?? 0) > 0)
-      base.push(ob.name ?? '', ob.furnace ?? '', ob.power ?? 0);
+      base.push(
+        ob.name ?? '',
+        ob.furnace ? FURNACE_LEVELS.indexOf(ob.furnace) + 1 : 0,
+        ob.power ?? 0
+      );
     return base;
   });
-  return JSON.stringify({ m: mode, o });
+  return JSON.stringify({ m: mi, o });
 }
 
 /** Serialise a layout (incl. its mode) to a compact, copy-pasteable code. */
@@ -176,12 +188,16 @@ export async function importLayout(code: string): Promise<ImportedLayout | null>
     const data = JSON.parse(json);
     const rows = Array.isArray(data) ? data : data?.o; // tolerate old array form
     if (!Array.isArray(rows)) return null;
-    const mode = modeById(!Array.isArray(data) && typeof data?.m === 'string' ? data.m : 'hive');
+    // mode may be a string (old codes) or an index (compact codes).
+    const rawMode = Array.isArray(data) ? 'hive' : data?.m;
+    const mode = modeById(typeof rawMode === 'number' ? (MODES[rawMode]?.id ?? '') : rawMode);
     const allowed = new Set(mode.types);
     const objects: PlacedObject[] = [];
     for (const row of rows) {
       if (!Array.isArray(row)) continue;
-      const [type, x, y, name, furnace, power] = row;
+      const [t, x, y, name, fur, power] = row;
+      // type + furnace may be strings (old) or indices (compact).
+      const type = typeof t === 'number' ? TYPE_ORDER[t] : t;
       if (typeof type !== 'string' || !allowed.has(type)) continue;
       if (typeof x !== 'number' || typeof y !== 'number') continue;
       const ob: PlacedObject = {
@@ -191,6 +207,7 @@ export async function importLayout(code: string): Promise<ImportedLayout | null>
         y
       };
       if (name) ob.name = String(name);
+      const furnace = typeof fur === 'number' ? FURNACE_LEVELS[fur - 1] : fur;
       if (furnace) ob.furnace = String(furnace);
       if (typeof power === 'number' && power > 0) ob.power = power;
       objects.push(ob);
