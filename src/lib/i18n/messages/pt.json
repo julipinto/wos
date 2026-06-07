@@ -413,6 +413,13 @@
       "name": "nome",
       "furnace": "fornalha",
       "power": "poder"
+    },
+    "maps": {
+      "title": "mapas salvos",
+      "save": "Salvar",
+      "name": "nome do mapa",
+      "load": "carregar",
+      "empty": "Nenhum mapa salvo ainda."
     }
   }
 }

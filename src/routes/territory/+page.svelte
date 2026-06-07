@@ -18,6 +18,7 @@
     type PlacedObject,
     type TerritoryType
   } from '$lib/tools/territory/territory';
+  import { savedMaps } from '$lib/tools/territory/maps.svelte';
 
   const N = 30; // grid is N×N cells
   const STORAGE = 'territory-layout-v1';
@@ -58,6 +59,19 @@
   let importOpen = $state(false);
   let importText = $state('');
   let copied = $state(false);
+  let mapsOpen = $state(false);
+  let mapName = $state('');
+
+  function saveMap() {
+    if (!mapName.trim()) return;
+    savedMaps.save(mapName, objects);
+    mapName = '';
+  }
+  function loadMap(id: string) {
+    objects.splice(0, objects.length, ...savedMaps.objectsOf(id));
+    selectedId = null;
+    persist();
+  }
 
   const selected = $derived(objects.find((o) => o.id === selectedId) ?? null);
   const furnaceOptions = [
@@ -413,6 +427,60 @@
       </button>
     </div>
   {/if}
+
+  <div class="maps" class:open={mapsOpen}>
+    <button
+      class="maps-head"
+      type="button"
+      aria-expanded={mapsOpen}
+      onclick={() => (mapsOpen = !mapsOpen)}
+    >
+      <span class="maps-icon" aria-hidden="true">🗺️</span>
+      <span class="maps-title">{i18n.m.territory.maps.title}</span>
+      {#if savedMaps.all.length > 0}<span class="maps-count">{savedMaps.all.length}</span>{/if}
+      <Icon name="chevron-down" size={14} class="caret {mapsOpen ? 'up' : ''}" />
+    </button>
+    {#if mapsOpen}
+      <div class="maps-body">
+        <div class="maps-save">
+          <input
+            type="text"
+            bind:value={mapName}
+            placeholder={i18n.m.territory.maps.name}
+            aria-label={i18n.m.territory.maps.name}
+          />
+          <button
+            class="act"
+            type="button"
+            onclick={saveMap}
+            disabled={!mapName.trim() || objects.length === 0}
+          >
+            {i18n.m.territory.maps.save}
+          </button>
+        </div>
+        {#if savedMaps.all.length === 0}
+          <p class="maps-empty">{i18n.m.territory.maps.empty}</p>
+        {:else}
+          <ul class="maps-list">
+            {#each savedMaps.all as m (m.id)}
+              <li class="map-row">
+                <button class="map-load" type="button" onclick={() => loadMap(m.id)}>
+                  <span class="map-name">{m.name}</span>
+                  <span class="map-meta">{m.objects.length} · {i18n.m.territory.maps.load}</span>
+                </button>
+                <button
+                  class="map-del"
+                  type="button"
+                  onclick={() => savedMaps.remove(m.id)}
+                  aria-label={i18n.m.territory.remove}>×</button
+                >
+              </li>
+            {/each}
+          </ul>
+        {/if}
+      </div>
+    {/if}
+  </div>
 </div>
 
 <style>
@@ -696,6 +764,134 @@
   .import-box textarea:focus-visible {
     outline: none;
     border-color: var(--accent);
+  }
+  .maps {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-card);
+    margin-top: 14px;
+  }
+  .maps.open {
+    border-color: var(--border-accent);
+  }
+  .maps-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    background: transparent;
+    border: 0;
+    color: var(--text);
+    padding: 14px 16px;
+    cursor: pointer;
+    font-family: var(--font-mono);
+  }
+  .maps-icon {
+    font-size: 14px;
+  }
+  .maps-title {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-mid);
+  }
+  .maps-count {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .maps-head :global(.caret) {
+    color: var(--text-dim);
+    transition: transform 0.2s ease;
+    margin-inline-start: auto;
+  }
+  .maps-head :global(.caret.up) {
+    transform: rotate(180deg);
+  }
+  .maps-body {
+    padding: 0 16px 14px;
+    display: grid;
+    gap: 12px;
+  }
+  .maps-save {
+    display: flex;
+    gap: 8px;
+  }
+  .maps-save input {
+    flex: 1;
+    box-sizing: border-box;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+  .maps-save input:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .maps-empty {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    margin: 0;
+  }
+  .maps-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+  }
+  .map-row {
+    display: flex;
+    gap: 8px;
+  }
+  .map-load {
+    flex: 1;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    color: var(--text);
+    font-family: var(--font-mono);
+    padding: 9px 14px;
+    cursor: pointer;
+    text-align: start;
+    transition: border-color 0.2s ease;
+  }
+  .map-load:hover {
+    border-color: var(--border-accent);
+  }
+  .map-name {
+    font-size: 13px;
+  }
+  .map-meta {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .map-del {
+    flex-shrink: 0;
+    width: 36px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    color: var(--text-dim);
+    font-size: 18px;
+    cursor: pointer;
+    transition:
+      color 0.2s ease,
+      border-color 0.2s ease;
+  }
+  .map-del:hover {
+    color: #fb7185;
+    border-color: rgba(251, 113, 133, 0.4);
   }
   /* The iso view just swaps the viewBox + plane transform; nothing extra here. */
   .legend {
