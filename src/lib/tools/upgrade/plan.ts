@@ -236,7 +236,8 @@ function expertSkillsLine(): PlanLine | null {
 const HERO_NAME: Record<string, string> = {
   mastery: 'Gear Mastery',
   exclusive: 'Exclusive Gear',
-  stars: 'Star Promotion'
+  stars: 'Star Promotion',
+  enhance: 'Gear Enhancement'
 };
 function heroesLine(): PlanLine | null {
   const detail: string[] = [];

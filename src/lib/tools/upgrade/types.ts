@@ -43,6 +43,7 @@ export type ResourceKey =
   | 'mythicHeroGear'
   | 'widget'
   | 'heroShard'
+  | 'gearXp'
   // Expert (Dawn Academy) materials
   | 'expertSigil'
   | 'bookOfKnowledge';
@@ -87,6 +88,7 @@ export const RESOURCES: ResourceDef[] = [
   { key: 'mythicHeroGear', icon: '🎖️', color: '#f87171' },
   { key: 'widget', icon: '🔧', color: '#94a3b8' },
   { key: 'heroShard', icon: '🔱', color: '#c084fc' },
+  { key: 'gearXp', icon: '⭐', color: '#fcd34d' },
   { key: 'expertSigil', icon: '🔷', color: '#38bdf8' },
   { key: 'bookOfKnowledge', icon: '📚', color: '#a78bfa' }
 ];

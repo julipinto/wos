@@ -1,6 +1,5 @@
 // Hero upgrade ladders. Each track was independently cross-checked (two sources)
-// and ships verified. The mythic-gear per-level XP track is NOT here — its curve
-// is published only as images and couldn't be confirmed.
+// and ships verified.
 import type { LevelCost, ResourceBag } from '../types';
 
 /**
@@ -44,6 +43,32 @@ export const HERO_STARS: LevelCost[] = [
   { label: '5★', cost: { heroShard: 600 }, time: 0 }
 ];
 
+/**
+ * Hero Gear Enhancement (the gear LEVEL track), 0→100, fed by Enhancement XP
+ * (XP Components / sacrificed gear: Grey 10 · Green 30 · Blue 60 · Purple 150).
+ * Per-level XP extracted verbatim from the wostools hero-gear-calculator data
+ * (total 0→100 = 71,320 XP), then level 100 is the imbue gate = 2 Mythic Hero
+ * Gear (unlocks the post-100 Ascended track, not modelled). Cost is per hero
+ * gear piece (Goggles / Gloves / Belt / Boots).
+ */
+function enhanceXp(n: number): number {
+  if (n <= 29) return 10 + (n - 1) * 5;
+  if (n <= 39) return 160 + (n - 30) * 10;
+  if (n <= 59) return 270 + (n - 40) * 20;
+  if (n <= 69) return 680 + (n - 60) * 30;
+  if (n <= 79) return 990 + (n - 70) * 40;
+  if (n <= 91) return 1400 + (n - 80) * 50;
+  return 2050 + (n - 92) * 50; // levels 92–99
+}
+export const HERO_ENHANCE: LevelCost[] = [
+  { label: '0', cost: {}, time: 0 },
+  ...Array.from(
+    { length: 99 },
+    (_, i): LevelCost => ({ label: String(i + 1), cost: { gearXp: enhanceXp(i + 1) }, time: 0 })
+  ),
+  { label: '100', cost: { mythicHeroGear: 2 }, time: 0 } // imbue gate to Ascended
+];
+
 export interface HeroTrack {
   id: string;
   /** i18n suffix under upgrade.heroes.tracks.* */
@@ -60,5 +85,6 @@ export const HERO_TRACKS: HeroTrack[] = [
     ladder: HERO_EXCLUSIVE,
     storageKey: 'upgrade-hero-exclusive-v1'
   },
-  { id: 'stars', i18n: 'stars', ladder: HERO_STARS, storageKey: 'upgrade-hero-stars-v1' }
+  { id: 'stars', i18n: 'stars', ladder: HERO_STARS, storageKey: 'upgrade-hero-stars-v1' },
+  { id: 'enhance', i18n: 'enhance', ladder: HERO_ENHANCE, storageKey: 'upgrade-hero-enhance-v1' }
 ];
