@@ -4,7 +4,7 @@
  * `territory-maps-<mode>`, separate from the active board.
  */
 import { readJson, writeJson } from '$lib/utils/storage';
-import { OBJECT_DEFS, type PlacedObject } from './territory';
+import { OBJECT_DEFS, MODES, type PlacedObject } from './territory';
 
 export interface SavedMap {
   id: string;
@@ -29,12 +29,12 @@ function read(mode: string): SavedMap[] {
     }));
 }
 
-// Lazily-loaded per-mode cache (reactive).
-const cache = $state<Record<string, SavedMap[]>>({});
-function ensure(mode: string): SavedMap[] {
-  if (!cache[mode]) cache[mode] = read(mode);
-  return cache[mode];
-}
+// Per-mode cache, pre-loaded for every mode at init so reads never mutate state
+// during render (which Svelte forbids — state_unsafe_mutation).
+const cache = $state<Record<string, SavedMap[]>>(
+  Object.fromEntries(MODES.map((m) => [m.id, read(m.id)]))
+);
+const ensure = (mode: string): SavedMap[] => cache[mode] ?? (cache[mode] = []);
 function persist(mode: string) {
   writeJson(
     keyFor(mode),
