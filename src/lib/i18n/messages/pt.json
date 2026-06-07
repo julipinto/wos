@@ -383,7 +383,7 @@
   },
   "territory": {
     "sub": "Posicione no grid; banners cobrem 7×7 e precisam conectar ao HQ pra segurar território.",
-    "hint": "Toque numa célula pra colocar o item; toque num item pra remover. Banners apagadas/vermelhas não estão conectadas ao HQ.",
+    "hint": "Toque no vazio pra colocar; toque num item pra etiquetar/editar; toque duplo pra remover. Banners apagados/vermelhos não estão ligados ao QG.",
     "place": "colocar",
     "obj": {
       "hq": "HQ",
