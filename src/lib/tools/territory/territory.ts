@@ -38,7 +38,8 @@ const HIVE_OBJECTS: Record<string, TerritoryDef> = {
   hq: { w: 15, h: 15, seed: true, max: 1, i18n: 'hq', color: '#93d4ff' },
   banner: { w: 1, h: 1, coverage: 7, i18n: 'banner', color: '#fbbf24' },
   city: { w: 2, h: 2, city: true, i18n: 'city', color: '#4ade80' },
-  bearTrap: { w: 3, h: 3, max: 2, i18n: 'bearTrap', color: '#fb7185' },
+  // Officially 2 bear traps; 3 is reachable by teaming with another alliance.
+  bearTrap: { w: 3, h: 3, max: 3, i18n: 'bearTrap', color: '#fb7185' },
   farm: { w: 2, h: 2, i18n: 'farm', color: '#c084fc' },
   obstacle: { w: 1, h: 1, i18n: 'obstacle', color: '#64748b' }
 };
@@ -91,10 +92,12 @@ export interface PlacedObject {
   /** top-left grid cell */
   x: number;
   y: number;
-  /** Optional tags (mainly for cities): owner name, furnace level, power. */
+  /** Optional tags (mainly for cities): owner name, furnace level, power, and
+   *  which bear trap (1..3) the city joins. */
   name?: string;
   furnace?: string;
   power?: number;
+  bear?: number;
 }
 
 /** Furnace levels for tagging — plain in-game display: 1–30 then FC1–FC11. */
@@ -147,11 +150,12 @@ function encodeLayout(mode: string, objects: PlacedObject[]): string {
   );
   const o = objects.map((ob) => {
     const base: (string | number)[] = [TYPE_ORDER.indexOf(ob.type), ob.x, ob.y];
-    if (ob.name || ob.furnace || (ob.power ?? 0) > 0)
+    if (ob.name || ob.furnace || (ob.power ?? 0) > 0 || (ob.bear ?? 0) > 0)
       base.push(
         ob.name ?? '',
         ob.furnace ? FURNACE_LEVELS.indexOf(ob.furnace) + 1 : 0,
-        ob.power ?? 0
+        ob.power ?? 0,
+        ob.bear ?? 0
       );
     return base;
   });
@@ -195,7 +199,7 @@ export async function importLayout(code: string): Promise<ImportedLayout | null>
     const objects: PlacedObject[] = [];
     for (const row of rows) {
       if (!Array.isArray(row)) continue;
-      const [t, x, y, name, fur, power] = row;
+      const [t, x, y, name, fur, power, bear] = row;
       // type + furnace may be strings (old) or indices (compact).
       const type = typeof t === 'number' ? TYPE_ORDER[t] : t;
       if (typeof type !== 'string' || !allowed.has(type)) continue;
@@ -210,6 +214,7 @@ export async function importLayout(code: string): Promise<ImportedLayout | null>
       const furnace = typeof fur === 'number' ? FURNACE_LEVELS[fur - 1] : fur;
       if (furnace) ob.furnace = String(furnace);
       if (typeof power === 'number' && power > 0) ob.power = power;
+      if (typeof bear === 'number' && bear > 0) ob.bear = bear;
       objects.push(ob);
     }
     return { mode: mode.id, objects };

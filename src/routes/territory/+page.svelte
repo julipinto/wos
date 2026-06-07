@@ -88,6 +88,7 @@
     writeJson(MODE_KEY, m);
     objects.splice(0, objects.length, ...loadLayout(m));
     selectedId = null;
+    bearFocus = 0;
     tool = modeById(m).types[0];
   }
 
@@ -220,7 +221,27 @@
     }
   }
 
-  function setTag<K extends 'name' | 'furnace' | 'power'>(k: K, v: PlacedObject[K]) {
+  // Bear traps numbered by placement order (1..3); cities pick which they join.
+  const bearTraps = $derived(objects.filter((o) => o.type === 'bearTrap'));
+  const bearNum = (o: PlacedObject) => bearTraps.indexOf(o) + 1;
+  const hasBears = $derived(activeMode.types.includes('bearTrap'));
+  // Which bear trap a city joins: '—' or 1..N (N = number of placed traps).
+  const bearOptions = $derived([
+    { value: '', label: '—' },
+    ...bearTraps.map((_, i) => ({ value: String(i + 1), label: `🐻 ${i + 1}` }))
+  ]);
+  let bearFocus = $state(0); // 0 = show all; 1..3 = highlight that bear's group
+  // If the focused trap was removed, fall back to "show all".
+  $effect(() => {
+    if (bearFocus > bearTraps.length) bearFocus = 0;
+  });
+  function inFocus(o: PlacedObject): boolean {
+    if (bearFocus === 0) return true;
+    if (o.type === 'bearTrap') return bearNum(o) === bearFocus;
+    return o.bear === bearFocus;
+  }
+
+  function setTag<K extends 'name' | 'furnace' | 'power' | 'bear'>(k: K, v: PlacedObject[K]) {
     const o = objects.find((x) => x.id === selectedId);
     if (!o) return;
     if (v === '' || v === 0 || v === undefined) delete o[k];
@@ -384,6 +405,27 @@
     <button class="toggle" class:on={heatmap} type="button" onclick={() => (heatmap = !heatmap)}
       >{i18n.m.territory.heatmap}</button
     >
+    {#if hasBears && bearTraps.length > 0}
+      <div class="bear-focus">
+        <span class="bf-label">🐻 {i18n.m.territory.bearFocus}</span>
+        <div class="seg">
+          <button
+            class="seg-btn"
+            class:active={bearFocus === 0}
+            type="button"
+            onclick={() => (bearFocus = 0)}>{i18n.m.territory.bearAll}</button
+          >
+          {#each bearTraps as _, i (i)}
+            <button
+              class="seg-btn"
+              class:active={bearFocus === i + 1}
+              type="button"
+              onclick={() => (bearFocus = i + 1)}>{i + 1}</button
+            >
+          {/each}
+        </div>
+      </div>
+    {/if}
   </div>
 
   <div class="board-scroll">
@@ -429,6 +471,7 @@
             {@const def = OBJECT_DEFS[o.type]}
             {@const orphan = territory.orphaned.has(o.id)}
             {@const sel = o.id === selectedId}
+            {@const lit = inFocus(o)}
             <rect
               x={o.x + 0.08}
               y={o.y + 0.08}
@@ -436,9 +479,21 @@
               height={def.h - 0.16}
               rx="0.18"
               fill={heatmap ? heatColor(o.power) : def.color}
-              fill-opacity={orphan && !heatmap ? 0.25 : 0.85}
-              stroke={sel ? '#ffffff' : orphan ? '#fb7185' : 'rgba(0,0,0,0.3)'}
-              stroke-width={sel ? 0.16 : orphan ? 0.12 : 0.05}
+              fill-opacity={!lit ? 0.12 : orphan && !heatmap ? 0.25 : 0.85}
+              stroke={sel
+                ? '#ffffff'
+                : bearFocus > 0 && lit && o.type === 'bearTrap'
+                  ? '#fbbf24'
+                  : orphan
+                    ? '#fb7185'
+                    : 'rgba(0,0,0,0.3)'}
+              stroke-width={sel
+                ? 0.16
+                : bearFocus > 0 && lit && o.type === 'bearTrap'
+                  ? 0.18
+                  : orphan
+                    ? 0.12
+                    : 0.05}
             />
           {/each}
         </g>
@@ -461,6 +516,22 @@
             {/if}
           {/each}
         {/if}
+        <!-- Bear-trap numbers (1..3) — always shown, upright, so cities can be
+             matched to the trap they join. -->
+        {#each bearTraps as bt, i (bt.id)}
+          {@const def = OBJECT_DEFS[bt.type]}
+          {@const cx = bt.x + def.w / 2}
+          {@const cy = bt.y + def.h / 2}
+          {@const p = view === 'iso' ? isoPoint(cx, cy) : { x: cx, y: cy }}
+          <text
+            class="bear-num"
+            class:dim={!inFocus(bt)}
+            x={p.x}
+            y={p.y}
+            text-anchor="middle"
+            dominant-baseline="central">{i + 1}</text
+          >
+        {/each}
       </svg>
     </div>
   </div>
@@ -503,6 +574,17 @@
               ariaLabel={i18n.m.territory.tag.power}
             />
           </label>
+          {#if hasBears && bearTraps.length > 0}
+            <label class="ed-field">
+              <span class="field-label">{i18n.m.territory.tag.bear}</span>
+              <Select
+                value={selected.bear ? String(selected.bear) : ''}
+                options={bearOptions}
+                onChange={(v) => setTag('bear', v ? Number(v) : undefined)}
+                ariaLabel={i18n.m.territory.tag.bear}
+              />
+            </label>
+          {/if}
         {/if}
       </div>
       <button class="ed-remove" type="button" onclick={removeSelected}
@@ -765,6 +847,41 @@
     border-color: var(--border-accent);
     background: var(--accent-glow);
   }
+  .bear-focus {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+  }
+  .bf-label {
+    color: var(--text-mid);
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+  .seg {
+    display: inline-flex;
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    overflow: hidden;
+  }
+  .seg-btn {
+    background: var(--surface);
+    border: none;
+    border-left: 1px solid var(--border);
+    color: var(--text-mid);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 6px 11px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+  .seg-btn:first-child {
+    border-left: none;
+  }
+  .seg-btn.active {
+    color: var(--accent);
+    background: var(--accent-glow);
+  }
   .board-scroll {
     overflow: auto;
     border: 1px solid var(--border);
@@ -791,6 +908,19 @@
     stroke: rgba(0, 0, 0, 0.55);
     stroke-width: 0.06px;
     pointer-events: none;
+  }
+  .bear-num {
+    fill: #fff;
+    font-family: var(--font-mono);
+    font-size: 1.4px;
+    font-weight: 800;
+    paint-order: stroke;
+    stroke: #b91c1c;
+    stroke-width: 0.18px;
+    pointer-events: none;
+  }
+  .bear-num.dim {
+    opacity: 0.2;
   }
   .editor {
     margin-top: 14px;
