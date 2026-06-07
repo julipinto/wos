@@ -3,11 +3,13 @@
   import { i18n, fmt } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import Icon from '$lib/components/Icon.svelte';
-  import Select from '$lib/components/Select.svelte';
-  import NumberInput from '$lib/components/NumberInput.svelte';
   import Segmented from '$lib/components/Segmented.svelte';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import Tutorial from '$lib/components/Tutorial.svelte';
+  import ModeBar from '$lib/tools/territory/ModeBar.svelte';
+  import Palette from '$lib/tools/territory/Palette.svelte';
+  import Editor from '$lib/tools/territory/Editor.svelte';
+  import MapsPanel from '$lib/tools/territory/MapsPanel.svelte';
   import { TERRITORY_SLIDES } from '$lib/tools/territory/tutorial';
   import { readJson, writeJson } from '$lib/utils/storage';
   import {
@@ -42,6 +44,12 @@
   const initialMode = modeById(readJson<string>(MODE_KEY) ?? 'hive').id;
   let mode = $state<string>(initialMode);
   const activeMode = $derived(modeById(mode));
+  const modeOptions = $derived(
+    MODES.map((m) => ({
+      id: m.id,
+      label: (i18n.m.territory.modes as Record<string, string>)[m.i18n]
+    }))
+  );
   // Hive keeps the original key so existing layouts survive.
   const layoutKey = (m: string) => (m === 'hive' ? 'territory-layout-v1' : `territory-layout-${m}`);
 
@@ -130,7 +138,6 @@
   let importOpen = $state(false);
   let importText = $state('');
   let copied = $state(false);
-  let mapsOpen = $state(false);
   let mapName = $state('');
   const HELP_KEY = 'territory-help-seen-v1';
   let helpOpen = $state(false);
@@ -510,13 +517,36 @@
     selectedIds = [];
     persist();
   }
+  // Accept a full share link OR a raw code; apply if it parses.
+  async function parseAndApply(text: string): Promise<boolean> {
+    const m = text.match(/[?&]t=([^&\s]+)/);
+    const parsed = await importLayout(m ? decodeURIComponent(m[1]) : text.trim());
+    if (parsed) applyImport(parsed);
+    return !!parsed;
+  }
   async function doImport() {
-    // Accept a full share link OR a raw code.
-    const m = importText.match(/[?&]t=([^&\s]+)/);
-    const parsed = await importLayout(m ? decodeURIComponent(m[1]) : importText.trim());
+    await parseAndApply(importText);
     importText = '';
     importOpen = false;
-    if (parsed) applyImport(parsed);
+  }
+  // Download the layout as a .txt file — the no-length-limit way to share a big hive.
+  function doDownload() {
+    if (!shareCode) return;
+    const blob = new Blob([shareCode], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `wos-${mode}-territory.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+  async function onImportFile(e: Event) {
+    const input = e.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    const text = await file.text();
+    input.value = ''; // let the same file be picked again later
+    if (await parseAndApply(text)) importOpen = false;
   }
 
   function closeHelp() {
@@ -557,18 +587,12 @@
 <div class="wrap">
   <PageHeader title={i18n.m.landing.territory.title} sub={i18n.m.territory.sub} backHref="/" />
 
-  <div class="modebar" role="group" aria-label={i18n.m.territory.modes.label}>
-    {#each MODES as m (m.id)}
-      <button
-        class="mode-btn"
-        class:active={mode === m.id}
-        type="button"
-        onclick={() => setMode(m.id)}
-      >
-        {(i18n.m.territory.modes as Record<string, string>)[m.i18n]}
-      </button>
-    {/each}
-  </div>
+  <ModeBar
+    modes={modeOptions}
+    active={mode}
+    ariaLabel={i18n.m.territory.modes.label}
+    onSelect={setMode}
+  />
 
   <div class="viewbar">
     <Segmented
@@ -599,22 +623,14 @@
   </div>
 
   {#if boardMode === 'edit'}
-    <div class="palette" role="toolbar" aria-label={i18n.m.territory.place}>
-      {#each activeMode.types as t (t)}
-        {@const def = OBJECT_DEFS[t]}
-        <button
-          class="tool"
-          class:active={tool === t}
-          type="button"
-          onclick={() => (tool = t)}
-          style="--c: {def.color}"
-        >
-          <span class="swatch" style="background: {def.color}"></span>
-          <span class="tool-name">{objName(def.i18n)}</span>
-          <span class="tool-count">{count(t)}{def.max ? `/${def.max}` : ''}</span>
-        </button>
-      {/each}
-    </div>
+    <Palette
+      types={activeMode.types}
+      {tool}
+      ariaLabel={i18n.m.territory.place}
+      nameOf={objName}
+      {count}
+      onPick={(t) => (tool = t)}
+    />
   {/if}
 
   <div class="controls">
@@ -804,61 +820,18 @@
   {/if}
 
   {#if selected}
-    <div class="editor">
-      <div class="ed-head">
-        <span class="ed-title">{objName(OBJECT_DEFS[selected.type].i18n)}</span>
-        <button class="ed-close" type="button" onclick={() => (selectedIds = [])} aria-label="close"
-          >×</button
-        >
-      </div>
-      <div class="ed-fields">
-        <label class="ed-field">
-          <span class="field-label">{i18n.m.territory.tag.name}</span>
-          <input
-            type="text"
-            value={selected.name ?? ''}
-            oninput={(e) => setTag('name', e.currentTarget.value)}
-          />
-        </label>
-        {#if OBJECT_DEFS[selected.type].city}
-          <label class="ed-field">
-            <span class="field-label">{i18n.m.territory.tag.furnace}</span>
-            <Select
-              value={selected.furnace ?? ''}
-              options={furnaceOptions}
-              onChange={(v) => setTag('furnace', v)}
-              ariaLabel={i18n.m.territory.tag.furnace}
-            />
-          </label>
-          <label class="ed-field">
-            <span class="field-label">{i18n.m.territory.tag.power}</span>
-            <NumberInput
-              value={selected.power ?? 0}
-              onChange={(n) => setTag('power', n)}
-              ariaLabel={i18n.m.territory.tag.power}
-            />
-          </label>
-          {#if hasBears && bearTraps.length > 0}
-            <div class="ed-field">
-              <span class="field-label">{i18n.m.territory.tag.bear}</span>
-              <div class="bear-chips">
-                {#each bearTraps as _, i (i)}
-                  <button
-                    type="button"
-                    class="bear-chip"
-                    class:on={selected.bear?.includes(i + 1)}
-                    onclick={() => toggleBear(i + 1)}>🐻 {i + 1}</button
-                  >
-                {/each}
-              </div>
-            </div>
-          {/if}
-        {/if}
-      </div>
-      <button class="ed-remove" type="button" onclick={removeSelected}
-        >× {i18n.m.territory.remove}</button
-      >
-    </div>
+    <Editor
+      {selected}
+      typeLabel={objName(OBJECT_DEFS[selected.type].i18n)}
+      isCity={!!OBJECT_DEFS[selected.type].city}
+      {hasBears}
+      bearCount={bearTraps.length}
+      {furnaceOptions}
+      {setTag}
+      {toggleBear}
+      onRemove={removeSelected}
+      onClose={() => (selectedIds = [])}
+    />
   {/if}
 
   <div class="legend">
@@ -872,7 +845,13 @@
   <div class="footer">
     <p class="hint">{i18n.m.territory.hint}</p>
     <div class="footer-actions">
-      <button class="act" type="button" onclick={doExport} disabled={objects.length === 0}>
+      <button
+        class="act"
+        type="button"
+        onclick={doExport}
+        disabled={objects.length === 0 || urlTooLong}
+        title={urlTooLong ? i18n.m.territory.urlLong : ''}
+      >
         <Icon name={copied ? 'check' : 'share-2'} size={13} />
         {copied ? i18n.m.territory.copied : i18n.m.territory.share}
       </button>
@@ -880,8 +859,12 @@
         <Icon name={codeCopied ? 'check' : 'copy'} size={13} />
         {codeCopied ? i18n.m.territory.codeCopied : i18n.m.territory.copyCode}
       </button>
-      <button class="act" type="button" onclick={() => (importOpen = !importOpen)}>
+      <button class="act" type="button" onclick={doDownload} disabled={objects.length === 0}>
         <Icon name="download" size={13} />
+        {i18n.m.territory.download}
+      </button>
+      <button class="act" type="button" onclick={() => (importOpen = !importOpen)}>
+        <Icon name="upload" size={13} />
         {i18n.m.territory.import}
       </button>
       <button class="reset" type="button" onclick={reset} disabled={objects.length === 0}>
@@ -901,76 +884,27 @@
         rows="2"
         aria-label={i18n.m.territory.import}
       ></textarea>
-      <button class="act" type="button" onclick={doImport} disabled={!importText.trim()}>
-        {i18n.m.territory.import}
-      </button>
+      <div class="import-actions">
+        <button class="act" type="button" onclick={doImport} disabled={!importText.trim()}>
+          {i18n.m.territory.import}
+        </button>
+        <label class="act file-act">
+          <Icon name="upload" size={13} />
+          {i18n.m.territory.fromFile}
+          <input type="file" accept=".txt,text/plain" onchange={onImportFile} />
+        </label>
+      </div>
     </div>
   {/if}
 
-  <div class="maps" class:open={mapsOpen}>
-    <button
-      class="maps-head"
-      type="button"
-      aria-expanded={mapsOpen}
-      onclick={() => (mapsOpen = !mapsOpen)}
-    >
-      <span class="maps-icon" aria-hidden="true">🗺️</span>
-      <span class="maps-title">{i18n.m.territory.maps.title}</span>
-      {#if savedMaps.all(mode).length > 0}<span class="maps-count"
-          >{savedMaps.all(mode).length}</span
-        >{/if}
-      <Icon name="chevron-down" size={14} class="caret {mapsOpen ? 'up' : ''}" />
-    </button>
-    {#if mapsOpen}
-      <div class="maps-body">
-        <div class="maps-save">
-          <input
-            type="text"
-            bind:value={mapName}
-            placeholder={i18n.m.territory.maps.name}
-            aria-label={i18n.m.territory.maps.name}
-          />
-          <button
-            class="act"
-            type="button"
-            onclick={saveMap}
-            disabled={!mapName.trim() || objects.length === 0}
-          >
-            {i18n.m.territory.maps.save}
-          </button>
-        </div>
-        {#if savedMaps.all(mode).length === 0}
-          <p class="maps-empty">{i18n.m.territory.maps.empty}</p>
-        {:else}
-          <ul class="maps-list">
-            {#each savedMaps.all(mode) as m (m.id)}
-              <li class="map-row">
-                <button class="map-load" type="button" onclick={() => loadMap(m.id)}>
-                  <span class="map-name">{m.name}</span>
-                  <span class="map-meta">{m.objects.length} · {i18n.m.territory.maps.load}</span>
-                </button>
-                <button
-                  class="map-upd"
-                  type="button"
-                  onclick={() => updateMap(m.id, m.name)}
-                  disabled={objects.length === 0}
-                  title={i18n.m.territory.maps.updateHint}
-                >
-                  {i18n.m.territory.maps.update}
-                </button>
-                <button
-                  class="map-del"
-                  type="button"
-                  onclick={() => savedMaps.remove(mode, m.id)}
-                  aria-label={i18n.m.territory.remove}>×</button
-                >
-              </li>
-            {/each}
-          </ul>
-        {/if}
-      </div>
-    {/if}
-  </div>
+  <MapsPanel
+    {mode}
+    hasObjects={objects.length > 0}
+    bind:mapName
+    onSave={saveMap}
+    onUpdate={updateMap}
+    onLoad={loadMap}
+  />
 
   <ConfirmDialog
     open={!!confirmAction}
@@ -1019,35 +953,6 @@
     margin: 0 auto;
     padding: 32px 24px 96px;
   }
-  .modebar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 16px;
-  }
-  .mode-btn {
-    flex: 1;
-    min-width: 90px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text-mid);
-    font-family: var(--font-display);
-    font-style: italic;
-    font-weight: 700;
-    font-size: 14px;
-    padding: 10px 14px;
-    cursor: pointer;
-    transition:
-      color 0.2s ease,
-      border-color 0.2s ease,
-      background 0.2s ease;
-  }
-  .mode-btn.active {
-    color: var(--accent);
-    border-color: var(--border-accent);
-    background: var(--accent-glow);
-  }
   .viewbar {
     display: flex;
     align-items: center;
@@ -1074,42 +979,6 @@
   .help-btn:hover {
     color: var(--accent);
     border-color: var(--border-accent);
-  }
-  .palette {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 18px;
-  }
-  .tool {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text-mid);
-    font-family: var(--font-mono);
-    font-size: 12px;
-    cursor: pointer;
-    transition:
-      border-color 0.2s ease,
-      color 0.2s ease;
-  }
-  .tool.active {
-    border-color: var(--c);
-    color: var(--text);
-  }
-  .swatch {
-    width: 12px;
-    height: 12px;
-    border-radius: 3px;
-    flex-shrink: 0;
-  }
-  .tool-count {
-    color: var(--text-dim);
-    font-size: 11px;
   }
   .controls {
     display: flex;
@@ -1234,100 +1103,6 @@
   .bear-num.dim {
     opacity: 0.2;
   }
-  .editor {
-    margin-top: 14px;
-    background: var(--surface);
-    border: 1px solid var(--border-accent);
-    border-radius: var(--r-card);
-    padding: 14px 16px;
-  }
-  .ed-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
-  }
-  .ed-title {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--text-mid);
-  }
-  .ed-close {
-    background: none;
-    border: 0;
-    color: var(--text-dim);
-    font-size: 20px;
-    cursor: pointer;
-    line-height: 1;
-  }
-  .ed-fields {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  .ed-field {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
-  .ed-field input {
-    width: 100%;
-    box-sizing: border-box;
-    background: var(--bg-soft);
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text);
-    font-family: var(--font-mono);
-    font-size: 14px;
-    padding: 10px 12px;
-  }
-  .ed-field input:focus-visible {
-    outline: none;
-    border-color: var(--accent);
-  }
-  .field-label {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--text-dim);
-  }
-  .ed-remove {
-    margin-top: 12px;
-    background: transparent;
-    border: 1px solid rgba(251, 113, 133, 0.4);
-    border-radius: var(--r-pill);
-    color: #fb7185;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    padding: 7px 14px;
-    cursor: pointer;
-  }
-  .bear-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-  .bear-chip {
-    background: var(--bg-soft);
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text-mid);
-    font-family: var(--font-mono);
-    font-size: 12px;
-    padding: 7px 12px;
-    cursor: pointer;
-    transition:
-      color 0.2s ease,
-      border-color 0.2s ease;
-  }
-  .bear-chip.on {
-    color: var(--text);
-    border-color: var(--border-accent);
-    background: var(--accent-glow);
-  }
   .group-bar {
     display: flex;
     align-items: center;
@@ -1404,159 +1179,21 @@
     outline: none;
     border-color: var(--accent);
   }
-  .maps {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-card);
-    margin-top: 14px;
-  }
-  .maps.open {
-    border-color: var(--border-accent);
-  }
-  .maps-head {
+  .import-actions {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    background: transparent;
-    border: 0;
-    color: var(--text);
-    padding: 14px 16px;
-    cursor: pointer;
-    font-family: var(--font-mono);
-  }
-  .maps-icon {
-    font-size: 14px;
-  }
-  .maps-title {
-    font-size: 11px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--text-mid);
-  }
-  .maps-count {
-    font-size: 11px;
-    color: var(--text-dim);
-  }
-  .maps-head :global(.caret) {
-    color: var(--text-dim);
-    transition: transform 0.2s ease;
-    margin-inline-start: auto;
-  }
-  .maps-head :global(.caret.up) {
-    transform: rotate(180deg);
-  }
-  .maps-body {
-    padding: 0 16px 14px;
-    display: grid;
-    gap: 12px;
-  }
-  .maps-save {
-    display: flex;
+    flex-direction: column;
     gap: 8px;
   }
-  .maps-save input {
-    flex: 1;
-    box-sizing: border-box;
-    background: var(--bg-soft);
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text);
-    font-family: var(--font-mono);
-    font-size: 13px;
-    padding: 8px 12px;
-  }
-  .maps-save input:focus-visible {
-    outline: none;
-    border-color: var(--accent);
-  }
-  .maps-empty {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-dim);
-    margin: 0;
-  }
-  .maps-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 6px;
-  }
-  .map-row {
-    display: flex;
-    gap: 8px;
-  }
-  .map-load {
-    flex: 1;
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 10px;
-    background: var(--bg-soft);
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text);
-    font-family: var(--font-mono);
-    padding: 9px 14px;
-    cursor: pointer;
-    text-align: start;
-    transition: border-color 0.2s ease;
-  }
-  .map-load:hover {
-    border-color: var(--border-accent);
-  }
-  .map-name {
-    font-size: 13px;
-  }
-  .map-meta {
-    font-size: 10px;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-  .map-upd {
-    flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
+  .file-act {
+    position: relative;
+    overflow: hidden;
     justify-content: center;
-    padding: 0 14px;
-    height: 36px;
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text-mid);
-    font-family: var(--font-mono);
-    font-size: 11px;
+  }
+  .file-act input[type='file'] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
     cursor: pointer;
-    transition:
-      color 0.2s ease,
-      border-color 0.2s ease;
-  }
-  .map-upd:hover:not(:disabled) {
-    color: var(--accent);
-    border-color: var(--border-accent);
-  }
-  .map-upd:disabled {
-    opacity: 0.4;
-    cursor: default;
-  }
-  .map-del {
-    flex-shrink: 0;
-    width: 36px;
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text-dim);
-    font-size: 18px;
-    cursor: pointer;
-    transition:
-      color 0.2s ease,
-      border-color 0.2s ease;
-  }
-  .map-del:hover {
-    color: #fb7185;
-    border-color: rgba(251, 113, 133, 0.4);
   }
   /* The iso view just swaps the viewBox + plane transform; nothing extra here. */
   .legend {
