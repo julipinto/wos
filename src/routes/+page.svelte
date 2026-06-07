@@ -1,14 +1,38 @@
 <script lang="ts">
+  import type { Component } from 'svelte';
   import { base } from '$app/paths';
   import { i18n } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
+  import Icon from '$lib/components/Icon.svelte';
+  import GlyphUpgrade from '$lib/components/icons/GlyphUpgrade.svelte';
+  import GlyphTerritory from '$lib/components/icons/GlyphTerritory.svelte';
+  import GlyphTz from '$lib/components/icons/GlyphTz.svelte';
+  import GlyphSlush from '$lib/components/icons/GlyphSlush.svelte';
+  import GlyphGingado from '$lib/components/icons/GlyphGingado.svelte';
+  import GlyphSoon from '$lib/components/icons/GlyphSoon.svelte';
 
-  const slushJars: { x: number; hex: string; dark: string; delay: number }[] = [
-    { x: 2, hex: '#ef4444', dark: '#a83333', delay: 0 },
-    { x: 46, hex: '#60a5fa', dark: '#3a78c4', delay: 0.3 },
-    { x: 90, hex: '#4ade80', dark: '#2c8a4f', delay: 0.6 }
+  // Each everyday tool: its route, glyph component, and i18n key.
+  const tools: { href: string; glyph: Component; key: 'upgrade' | 'territory' | 'tz' }[] = [
+    { href: 'upgrade', glyph: GlyphUpgrade, key: 'upgrade' },
+    { href: 'territory', glyph: GlyphTerritory, key: 'territory' },
+    { href: 'tz', glyph: GlyphTz, key: 'tz' }
+  ];
+  const events: { href: string; glyph: Component; key: 'slush' | 'gingado' }[] = [
+    { href: 'slush', glyph: GlyphSlush, key: 'slush' },
+    { href: 'gingado', glyph: GlyphGingado, key: 'gingado' }
   ];
 </script>
+
+{#snippet toolCard(href: string, Glyph: Component, title: string, desc: string)}
+  <a href="{base}/{href}" class="tool-card">
+    <div class="tool-visual" aria-hidden="true"><Glyph /></div>
+    <div class="tool-body">
+      <h2 class="tool-name">{title}</h2>
+      <p class="tool-desc">{desc}</p>
+    </div>
+    <Icon name="arrow-right" size={20} class="tool-arrow" />
+  </a>
+{/snippet}
 
 <svelte:head>
   <title>{i18n.m.landing.title} · {i18n.m.landing.kicker}</title>
@@ -19,295 +43,17 @@
 
   <div class="tools">
     <h2 class="section-label">{i18n.m.landing.sectionEveryday}</h2>
-    <a href="{base}/upgrade" class="tool-card">
-      <div class="tool-visual" aria-hidden="true">
-        <svg viewBox="0 0 132 60" xmlns="http://www.w3.org/2000/svg">
-          {#each [10, 38, 66, 94] as x, i (i)}
-            {@const h = 10 + i * 9}
-            <rect
-              {x}
-              y={50 - h}
-              width="22"
-              height={h}
-              rx="2"
-              fill={i === 3 ? 'rgba(255,209,102,0.18)' : 'rgba(147,212,255,0.10)'}
-              stroke={i === 3 ? 'rgba(255,209,102,0.55)' : 'rgba(147,212,255,0.3)'}
-            />
-          {/each}
-          <g class="t-bob" style="transform-origin: 105px 6px;">
-            <path
-              d="M105 0.5 L106.5 4.9 L111.2 5 L107.5 7.8 L108.8 12.3 L105 9.6 L101.2 12.3 L102.5 7.8 L98.8 5 L103.5 4.9 Z"
-              fill="rgba(255,209,102,0.7)"
-            />
-          </g>
-        </svg>
-      </div>
-      <div class="tool-body">
-        <h2 class="tool-name">{i18n.m.landing.upgrade.title}</h2>
-        <p class="tool-desc">{i18n.m.landing.upgrade.desc}</p>
-      </div>
-      <svg
-        class="tool-arrow"
-        width="20"
-        height="20"
-        viewBox="0 0 20 20"
-        fill="none"
-        aria-hidden="true"
-      >
-        <path
-          d="M5 10 H14 M10 6 L14 10 L10 14"
-          stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
-    </a>
-
-    <a href="{base}/territory" class="tool-card">
-      <div class="tool-visual" aria-hidden="true">
-        <svg viewBox="0 0 132 60" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="hg" width="13" height="13" patternUnits="userSpaceOnUse">
-              <rect width="13" height="13" fill="none" stroke="rgba(147,212,255,0.12)" />
-            </pattern>
-          </defs>
-          <rect x="9" y="5" width="104" height="52" fill="url(#hg)" />
-          {#each [22, 35, 48] as x, i (i)}
-            <rect {x} y="18" width="13" height="13" fill="rgba(147,212,255,0.16)" />
-            <rect {x} y="31" width="13" height="13" fill="rgba(147,212,255,0.16)" />
-          {/each}
-          <rect x="35" y="18" width="13" height="13" fill="rgba(147,212,255,0.5)" />
-          <g class="t-bob" style="transform-origin: 54.5px 37.5px;">
-            <circle cx="54.5" cy="37.5" r="2.6" fill="#ffd166" />
-          </g>
-        </svg>
-      </div>
-      <div class="tool-body">
-        <h2 class="tool-name">{i18n.m.landing.territory.title}</h2>
-        <p class="tool-desc">{i18n.m.landing.territory.desc}</p>
-      </div>
-      <svg
-        class="tool-arrow"
-        width="20"
-        height="20"
-        viewBox="0 0 20 20"
-        fill="none"
-        aria-hidden="true"
-      >
-        <path
-          d="M5 10 H14 M10 6 L14 10 L10 14"
-          stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
-    </a>
-
-    <a href="{base}/tz" class="tool-card">
-      <div class="tool-visual" aria-hidden="true">
-        <svg viewBox="0 0 132 60" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="tz-track" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stop-color="rgba(255,255,255,0.05)" />
-              <stop offset="50%" stop-color="rgba(255,255,255,0.15)" />
-              <stop offset="100%" stop-color="rgba(255,255,255,0.05)" />
-            </linearGradient>
-          </defs>
-          <rect x="8" y="28" width="116" height="4" rx="2" fill="url(#tz-track)" />
-          <line x1="8" y1="24" x2="8" y2="36" stroke="rgba(255,255,255,0.18)" />
-          <line x1="37" y1="26" x2="37" y2="34" stroke="rgba(255,255,255,0.10)" />
-          <line x1="66" y1="24" x2="66" y2="36" stroke="rgba(255,255,255,0.18)" />
-          <line x1="95" y1="26" x2="95" y2="34" stroke="rgba(255,255,255,0.10)" />
-          <line x1="124" y1="24" x2="124" y2="36" stroke="rgba(255,255,255,0.18)" />
-          <g class="t-bob" style="animation-delay: 0s; transform-origin: 66px 30px;">
-            <line
-              x1="66"
-              y1="16"
-              x2="66"
-              y2="44"
-              stroke="#93d4ff"
-              stroke-width="1.8"
-              stroke-linecap="round"
-            />
-            <circle cx="66" cy="14" r="3.5" fill="#93d4ff" />
-          </g>
-          <g class="t-bob" style="animation-delay: 0.25s; transform-origin: 42px 32px;">
-            <line
-              x1="42"
-              y1="20"
-              x2="42"
-              y2="44"
-              stroke="#fb923c"
-              stroke-width="1.8"
-              stroke-linecap="round"
-            />
-            <circle cx="42" cy="18" r="3" fill="#fb923c" />
-          </g>
-          <g class="t-bob" style="animation-delay: 0.5s; transform-origin: 100px 32px;">
-            <line
-              x1="100"
-              y1="20"
-              x2="100"
-              y2="44"
-              stroke="#4ade80"
-              stroke-width="1.8"
-              stroke-linecap="round"
-            />
-            <circle cx="100" cy="18" r="3" fill="#4ade80" />
-          </g>
-        </svg>
-      </div>
-      <div class="tool-body">
-        <h2 class="tool-name">{i18n.m.landing.tz.title}</h2>
-        <p class="tool-desc">{i18n.m.landing.tz.desc}</p>
-      </div>
-      <svg
-        class="tool-arrow"
-        width="20"
-        height="20"
-        viewBox="0 0 20 20"
-        fill="none"
-        aria-hidden="true"
-      >
-        <path
-          d="M5 10 H14 M10 6 L14 10 L10 14"
-          stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
-    </a>
+    {#each tools as t (t.href)}
+      {@render toolCard(t.href, t.glyph, i18n.m.landing[t.key].title, i18n.m.landing[t.key].desc)}
+    {/each}
 
     <h2 class="section-label section-label--later">{i18n.m.landing.sectionEvents}</h2>
-    <a href="{base}/slush" class="tool-card">
-      <div class="tool-visual" aria-hidden="true">
-        <svg viewBox="0 0 132 60" xmlns="http://www.w3.org/2000/svg">
-          {#each slushJars as jar, i (i)}
-            <g transform="translate({jar.x}, 5)">
-              <g class="t-bob" style="animation-delay: {jar.delay}s;">
-                <rect x="10" y="2" width="20" height="7" rx="1.5" fill="#2a2f4a" />
-                <rect x="10" y="2" width="20" height="2" fill="rgba(255,255,255,0.18)" />
-                <rect x="10" y="7" width="20" height="2" fill="rgba(0,0,0,0.25)" />
-                <rect x="12" y="9" width="16" height="3" fill={jar.dark} />
-                <path
-                  d="M 5 16 Q 5 12 10 12 L 30 12 Q 35 12 35 16 L 35 46 Q 35 50 31 50 L 9 50 Q 5 50 5 46 Z"
-                  fill={jar.hex}
-                />
-                <path
-                  d="M 5 16 Q 5 12 10 12 L 30 12 Q 35 12 35 16 L 35 18 L 5 18 Z"
-                  fill="rgba(0,0,0,0.18)"
-                />
-                <ellipse cx="13" cy="30" rx="2.5" ry="11" fill="rgba(255,255,255,0.3)" />
-                <ellipse cx="13" cy="30" rx="1" ry="9" fill="rgba(255,255,255,0.4)" />
-                <rect x="9" y="28" width="22" height="10" fill="rgba(255,255,255,0.08)" />
-                <rect x="9" y="28" width="22" height="1" fill="rgba(255,255,255,0.15)" />
-                <rect x="9" y="37" width="22" height="1" fill="rgba(0,0,0,0.15)" />
-                <path
-                  d="M 5 44 L 35 44 L 35 46 Q 35 50 31 50 L 9 50 Q 5 50 5 46 Z"
-                  fill="rgba(0,0,0,0.2)"
-                />
-              </g>
-            </g>
-          {/each}
-        </svg>
-      </div>
-      <div class="tool-body">
-        <h2 class="tool-name">{i18n.m.landing.slush.title}</h2>
-        <p class="tool-desc">{i18n.m.landing.slush.desc}</p>
-      </div>
-      <svg
-        class="tool-arrow"
-        width="20"
-        height="20"
-        viewBox="0 0 20 20"
-        fill="none"
-        aria-hidden="true"
-      >
-        <path
-          d="M5 10 H14 M10 6 L14 10 L10 14"
-          stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
-    </a>
-
-    <a href="{base}/gingado" class="tool-card">
-      <div class="tool-visual" aria-hidden="true">
-        <svg viewBox="0 0 132 60" xmlns="http://www.w3.org/2000/svg">
-          {#each [22, 44, 66, 88, 110, 33, 55, 77, 99, 44, 66, 88] as cx, i (i)}
-            {@const cy = i < 5 ? 16 : i < 9 ? 30 : 44}
-            <circle {cx} {cy} r="2.2" fill="rgba(205,233,255,0.55)" />
-          {/each}
-          {#each [22, 46, 70, 94] as x, i (i)}
-            <rect
-              x={x - 1}
-              y="50"
-              width="20"
-              height="8"
-              rx="1.5"
-              fill={i === 1 ? 'rgba(255,209,102,0.16)' : 'rgba(147,212,255,0.08)'}
-              stroke={i === 1 ? 'rgba(255,209,102,0.5)' : 'rgba(147,212,255,0.25)'}
-            />
-          {/each}
-          <g class="t-bob" style="transform-origin: 66px 8px;">
-            <circle cx="66" cy="8" r="4" fill="#fff" />
-          </g>
-        </svg>
-      </div>
-      <div class="tool-body">
-        <h2 class="tool-name">{i18n.m.landing.gingado.title}</h2>
-        <p class="tool-desc">{i18n.m.landing.gingado.desc}</p>
-      </div>
-      <svg
-        class="tool-arrow"
-        width="20"
-        height="20"
-        viewBox="0 0 20 20"
-        fill="none"
-        aria-hidden="true"
-      >
-        <path
-          d="M5 10 H14 M10 6 L14 10 L10 14"
-          stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
-    </a>
+    {#each events as t (t.href)}
+      {@render toolCard(t.href, t.glyph, i18n.m.landing[t.key].title, i18n.m.landing[t.key].desc)}
+    {/each}
 
     <div class="tool-card is-ghost">
-      <div class="tool-visual" aria-hidden="true">
-        <svg viewBox="0 0 132 60" xmlns="http://www.w3.org/2000/svg">
-          {#each [2, 46, 90] as x, i (i)}
-            <g transform="translate({x}, 5)" opacity="0.35">
-              <rect
-                x="11"
-                y="3"
-                width="18"
-                height="6"
-                rx="1.5"
-                fill="none"
-                stroke="rgba(255,255,255,0.25)"
-                stroke-width="1"
-                stroke-dasharray="2 2"
-              />
-              <path
-                d="M 5 16 Q 5 11 10 11 L 30 11 Q 35 11 35 16 L 35 46 Q 35 50 31 50 L 9 50 Q 5 50 5 46 Z"
-                fill="rgba(255,255,255,0.02)"
-                stroke="rgba(255,255,255,0.18)"
-                stroke-width="1"
-                stroke-dasharray="3 3"
-              />
-            </g>
-          {/each}
-        </svg>
-      </div>
+      <div class="tool-visual" aria-hidden="true"><GlyphSoon /></div>
       <div class="tool-body">
         <h2 class="tool-name">{i18n.m.landing.ghost.title}</h2>
         <p class="tool-desc">{i18n.m.landing.ghost.desc}</p>
@@ -403,7 +149,8 @@
     width: 104px;
     height: 48px;
   }
-  .tool-visual svg {
+  /* The glyph svg lives inside a child component, so reach it with :global. */
+  .tool-visual :global(svg) {
     width: 100%;
     height: 100%;
     overflow: visible;
@@ -428,14 +175,16 @@
     line-height: 1.6;
     margin: 0;
   }
-  .tool-arrow {
+  /* tool-arrow is the shared Icon (a child component), so target it globally
+     but scoped under .tool-card to stay contained. */
+  .tool-card :global(.tool-arrow) {
     flex-shrink: 0;
     color: var(--text-dim);
     transition:
       color 0.25s ease,
       transform 0.25s ease;
   }
-  a.tool-card:hover .tool-arrow {
+  a.tool-card:hover :global(.tool-arrow) {
     color: var(--accent);
     transform: translateX(4px);
   }
