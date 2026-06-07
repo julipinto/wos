@@ -165,6 +165,9 @@
         {/each}
       </div>
     </div>
+    {#if buildingsCalc.queues > 1}
+      <p class="queues-note">{i18n.m.upgrade.buildings.queuesNote}</p>
+    {/if}
 
     <div class="meta-row">
       <div class="meta">
@@ -263,6 +266,13 @@
   .seg-btn.active {
     background: var(--bg-soft);
     color: var(--text);
+  }
+  .queues-note {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--text-dim);
+    margin: 8px 0 0;
   }
   .build-times {
     display: grid;
