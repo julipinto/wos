@@ -1,5 +1,12 @@
 <script lang="ts">
-  import { i18n, SUPPORTED_LOCALES, LOCALE_NAMES, type Locale } from '$lib/i18n/index.svelte';
+  import {
+    i18n,
+    SUPPORTED_LOCALES,
+    LOCALE_NAMES,
+    numberFormat,
+    NUMBER_FORMATS,
+    type Locale
+  } from '$lib/i18n/index.svelte';
   import Icon from './Icon.svelte';
 
   let open = $state(false);
@@ -58,6 +65,25 @@
           <span class="item-code">{code}</span>
           <span class="item-name">{LOCALE_NAMES[code]}</span>
           {#if code === i18n.locale}
+            <Icon name="check" size={14} />
+          {/if}
+        </button>
+      {/each}
+
+      <div class="divider" role="separator"></div>
+      <span class="group-label">{i18n.m.common.numbers}</span>
+      {#each NUMBER_FORMATS as fmt (fmt)}
+        <button
+          class="item"
+          class:active={fmt === numberFormat.value}
+          role="option"
+          aria-selected={fmt === numberFormat.value}
+          type="button"
+          onclick={() => numberFormat.set(fmt)}
+        >
+          <span class="item-code">{fmt === 'auto' ? 'A' : '#'}</span>
+          <span class="item-name">{fmt === 'auto' ? 'Auto' : numberFormat.sample(fmt)}</span>
+          {#if fmt === numberFormat.value}
             <Icon name="check" size={14} />
           {/if}
         </button>
@@ -164,5 +190,19 @@
     font-size: 12px;
     letter-spacing: 0;
     text-transform: none;
+  }
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 6px 4px;
+  }
+  .group-label {
+    display: block;
+    padding: 2px 10px 4px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
   }
 </style>
