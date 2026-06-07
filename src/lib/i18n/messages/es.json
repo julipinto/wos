@@ -350,6 +350,12 @@
         "have": "tengo",
         "left": "falta",
         "hint": "Indica lo que ya tienes; el faltante se actualiza al instante."
+      },
+      "speedups": {
+        "title": "aceleradores",
+        "hint": "Indica tu reserva de aceleradores (en días) por cola para ver el tiempo real restante.",
+        "days": "días",
+        "remaining": "queda tras aceleradores"
       }
     },
     "steps": {

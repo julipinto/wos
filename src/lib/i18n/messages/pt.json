@@ -350,6 +350,12 @@
         "have": "tenho",
         "left": "falta",
         "hint": "Informe o que você já tem; o que falta atualiza na hora."
+      },
+      "speedups": {
+        "title": "acelerações",
+        "hint": "Informe seu estoque de speedup (em dias) por fila pra ver o tempo real restante.",
+        "days": "dias",
+        "remaining": "resta após speedups"
       }
     },
     "steps": {
