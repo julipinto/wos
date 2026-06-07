@@ -3,6 +3,8 @@ import {
   computeTerritory,
   coverageCells,
   footprintCells,
+  exportLayout,
+  importLayout,
   type PlacedObject
 } from '../../src/lib/tools/territory/territory';
 
@@ -47,5 +49,25 @@ describe('territory connectivity', () => {
     expect(r.connected.size).toBe(0);
     expect(r.orphaned.size).toBe(2);
     expect(r.cells.size).toBe(0);
+  });
+});
+
+describe('import / export', () => {
+  it('round-trips a layout incl. tags (ids regenerated)', () => {
+    const objs: PlacedObject[] = [
+      hq(10, 10),
+      { id: 'c1', type: 'city', x: 12, y: 12, name: 'Juli', furnace: 'FC7', power: 42000000 },
+      banner('b', 11, 11)
+    ];
+    const code = exportLayout(objs);
+    const back = importLayout(code)!;
+    expect(back).toHaveLength(3);
+    expect(back.map((o) => o.type)).toEqual(['hq', 'city', 'banner']);
+    const city = back.find((o) => o.type === 'city')!;
+    expect(city).toMatchObject({ x: 12, y: 12, name: 'Juli', furnace: 'FC7', power: 42000000 });
+  });
+  it('rejects garbage', () => {
+    expect(importLayout('nope')).toBeNull();
+    expect(importLayout('T1@@@')).toBeNull();
   });
 });
