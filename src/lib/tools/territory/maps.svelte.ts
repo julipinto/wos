@@ -66,6 +66,14 @@ export const savedMaps = {
     }
     persist(mode);
   },
+  /** Overwrite an existing map (by id) with the current board, keeping its name. */
+  update(mode: string, id: string, objects: PlacedObject[]): void {
+    const m = ensure(mode).find((x) => x.id === id);
+    if (!m) return;
+    m.objects = clone(objects);
+    m.savedAt = Date.now();
+    persist(mode);
+  },
   /** A fresh copy of a saved map's objects (new for the live board). */
   objectsOf(mode: string, id: string): PlacedObject[] {
     const m = ensure(mode).find((x) => x.id === id);

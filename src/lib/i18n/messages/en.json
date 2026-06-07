@@ -8,7 +8,9 @@
     "help": "help",
     "settings": "settings",
     "reset": "reset",
-    "numbers": "Numbers"
+    "numbers": "Numbers",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
   },
   "landing": {
     "kicker": "whiteout survival",
@@ -405,7 +407,8 @@
     },
     "legend": {
       "reach": "Banner reach (7×7)",
-      "connected": "Connected territory"
+      "connected": "Connected territory",
+      "orphan": "not connected (expires)"
     },
     "labels": "labels",
     "heatmap": "heatmap",
@@ -425,7 +428,9 @@
       "save": "Save",
       "name": "map name",
       "load": "load",
-      "empty": "No saved maps yet."
+      "empty": "No saved maps yet.",
+      "update": "update",
+      "overwrite": "Overwrite the map “{name}”?"
     },
     "share": "Share",
     "modes": {
@@ -435,6 +440,29 @@
       "state": "State"
     },
     "bearFocus": "bear",
-    "bearAll": "all"
+    "bearAll": "all",
+    "labelFurnace": "furnace",
+    "labelName": "name",
+    "copyCode": "copy code",
+    "codeCopied": "code copied",
+    "urlLong": "Link is long — some apps may cut it. Use “copy code” + Import instead.",
+    "boardMode": {
+      "label": "Mode",
+      "edit": "Edit",
+      "view": "View"
+    },
+    "selectedN": "{n} selected",
+    "help": {
+      "title": "How it works",
+      "items": [
+        "✏️ Edit: tap empty to place the selected piece; tap a piece to select it; drag a piece to move it.",
+        "🖐 View: drag anywhere to pan around the board (great when zoomed in).",
+        "Select several: in Edit, drag over empty space to box-select, then drag any of them to move the group.",
+        "Double-tap a piece to delete it. Cities can be tagged with name, furnace, power and which bear traps they join.",
+        "Bear traps are numbered; use 🐻 focus to highlight one trap and its cities.",
+        "Buildings can’t overlap (a banner’s 7×7 area can). Banners that don’t connect to the HQ turn red — they’d expire.",
+        "Share a link, or “copy code” + Import if the link gets too long. Save named maps and overwrite them with ↻."
+      ]
+    }
   }
 }

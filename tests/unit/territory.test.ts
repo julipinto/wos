@@ -5,6 +5,7 @@ import {
   footprintCells,
   exportLayout,
   importLayout,
+  collides,
   type PlacedObject
 } from '../../src/lib/tools/territory/territory';
 
@@ -53,6 +54,21 @@ describe('territory connectivity', () => {
   });
 });
 
+describe('collision', () => {
+  it('overlapping footprints collide; touching edges do not', () => {
+    const a: PlacedObject = { id: 'a', type: 'city', x: 5, y: 5 }; // 2×2 → 5..6
+    const overlap: PlacedObject = { id: 'b', type: 'city', x: 6, y: 6 }; // shares 6,6
+    const apart: PlacedObject = { id: 'c', type: 'city', x: 7, y: 7 }; // 7..8, no shared cell
+    expect(collides([a, overlap], overlap)).toBe(true);
+    expect(collides([a, apart], apart)).toBe(false);
+  });
+  it("a banner's coverage is not a footprint, so banners can sit under coverage", () => {
+    const b1: PlacedObject = { id: 'b1', type: 'banner', x: 10, y: 10 };
+    const b2: PlacedObject = { id: 'b2', type: 'banner', x: 11, y: 11 }; // inside b1's 7×7
+    expect(collides([b1, b2], b2)).toBe(false); // different 1×1 footprints
+  });
+});
+
 describe('import / export', () => {
   it('round-trips a layout incl. mode + tags (ids regenerated)', async () => {
     const objs: PlacedObject[] = [
@@ -67,15 +83,21 @@ describe('import / export', () => {
     const city = back.objects.find((o) => o.type === 'city')!;
     expect(city).toMatchObject({ x: 12, y: 12, name: 'Juli', furnace: 'FC7', power: 42000000 });
   });
-  it('round-trips a city bear-trap assignment', async () => {
+  it('round-trips a city joining several bear traps', async () => {
     const objs: PlacedObject[] = [
       hq(10, 10),
       { id: 'bt', type: 'bearTrap', x: 30, y: 30 },
-      { id: 'c1', type: 'city', x: 12, y: 12, name: 'Ana', bear: 2 }
+      { id: 'c1', type: 'city', x: 12, y: 12, name: 'Ana', bear: [1, 3] }
     ];
     const back = (await importLayout(await exportLayout('hive', objs)))!;
     const city = back.objects.find((o) => o.type === 'city')!;
-    expect(city.bear).toBe(2);
+    expect(city.bear).toEqual([1, 3]);
+  });
+  it('reads an older single-number bear field as an array', async () => {
+    // Simulate a legacy compact code where bear was a single number (index 6).
+    const legacy = 'T1' + btoa(JSON.stringify({ m: 0, o: [[2, 12, 12, '', 0, 0, 2]] }));
+    const back = (await importLayout(legacy))!;
+    expect(back.objects[0].bear).toEqual([2]);
   });
   it('carries the mode and drops objects foreign to it', async () => {
     const code = await exportLayout('sunfire', [{ id: 's', type: 'sunCastle', x: 5, y: 5 }]);

@@ -8,7 +8,9 @@
     "help": "ayuda",
     "settings": "ajustes",
     "reset": "reiniciar",
-    "numbers": "Números"
+    "numbers": "Números",
+    "confirm": "Confirmar",
+    "cancel": "Cancelar"
   },
   "landing": {
     "kicker": "whiteout survival",
@@ -405,7 +407,8 @@
     },
     "legend": {
       "reach": "Alcance del banner (7×7)",
-      "connected": "Territorio conectado"
+      "connected": "Territorio conectado",
+      "orphan": "sin conexión (expira)"
     },
     "labels": "etiquetas",
     "heatmap": "mapa de calor",
@@ -425,7 +428,9 @@
       "save": "Guardar",
       "name": "nombre del mapa",
       "load": "cargar",
-      "empty": "Aún no hay mapas guardados."
+      "empty": "Aún no hay mapas guardados.",
+      "update": "actualizar",
+      "overwrite": "¿Sobrescribir el mapa “{name}”?"
     },
     "share": "Compartir",
     "modes": {
@@ -435,6 +440,29 @@
       "state": "Estado"
     },
     "bearFocus": "oso",
-    "bearAll": "todos"
+    "bearAll": "todos",
+    "labelFurnace": "horno",
+    "labelName": "nombre",
+    "copyCode": "copiar código",
+    "codeCopied": "código copiado",
+    "urlLong": "Enlace largo — algunas apps lo cortan. Usa “copiar código” + Importar.",
+    "boardMode": {
+      "label": "Modo",
+      "edit": "Editar",
+      "view": "Ver"
+    },
+    "selectedN": "{n} seleccionados",
+    "help": {
+      "title": "Cómo funciona",
+      "items": [
+        "✏️ Editar: toca el vacío para colocar la pieza; toca una pieza para seleccionarla; arrastra para moverla.",
+        "🖐 Ver: arrastra en cualquier lugar para desplazarte por el mapa (ideal con zoom).",
+        "Seleccionar varios: en Editar, arrastra sobre el vacío para seleccionar en caja y luego arrastra para mover el grupo.",
+        "Doble toque en una pieza para borrarla. Las ciudades llevan nombre, horno, poder y en qué osos participan.",
+        "Las trampas de oso están numeradas; usa el foco 🐻 para resaltar un oso y sus ciudades.",
+        "Los edificios no pueden solaparse (el área 7×7 del banner sí). Los banners sin conexión a la HQ se ponen rojos — expirarían.",
+        "Comparte un enlace, o “copiar código” + Importar si el enlace es largo. Guarda mapas con nombre y sobrescribe con ↻."
+      ]
+    }
   }
 }
