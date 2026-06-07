@@ -401,6 +401,18 @@
     "legend": {
       "reach": "Banner reach (7×7)",
       "connected": "Connected territory"
+    },
+    "labels": "labels",
+    "heatmap": "heatmap",
+    "remove": "remove",
+    "export": "Export",
+    "import": "Import",
+    "copied": "Copied!",
+    "importHint": "Paste a layout code",
+    "tag": {
+      "name": "name",
+      "furnace": "furnace",
+      "power": "power"
     }
   }
 }
