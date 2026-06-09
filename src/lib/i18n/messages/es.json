@@ -381,7 +381,23 @@
       "base": "valores base por nivel — el total de arriba ya aplica tus boosters"
     },
     "summed": "Sumado",
-    "individual": "Individual"
+    "individual": "Individual",
+    "refinement": {
+      "title": "Refinamiento",
+      "blurb": "Esta mejora necesita {rfc} Cristales de Fuego Refinados. Estima los Cristales de Fuego y el tiempo.",
+      "intensity": "Intensidad",
+      "economic": "Económico",
+      "balanced": "Equilibrado",
+      "fast": "Rápido",
+      "rush": "Máximo",
+      "fcNeeded": "Cristales de Fuego necesarios",
+      "time": "Tiempo",
+      "perRfc": "{n} FC por RFC",
+      "weeks": "~{n} semanas",
+      "weeksMonths": "~{n} semanas (~{m} meses)",
+      "vs": "Económico ≈ {eco} FC · Máximo ≈ {rush} FC",
+      "note": "El refinado es RNG — son promedios esperados. Probabilidades de la comunidad."
+    }
   },
   "territory": {
     "sub": "Coloca en la cuadrícula; las banderas cubren 7×7 y deben conectarse al HQ para mantener territorio.",
