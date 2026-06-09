@@ -522,6 +522,7 @@
       "bearsCaption": "Cidades participam de ursos (🐻); compartilhe um link, ou copie o código se ficar grande."
     },
     "download": "Arquivo",
-    "fromFile": "De arquivo"
+    "fromFile": "De arquivo",
+    "selectHint": "Selecione uma peça pra editar."
   }
 }
