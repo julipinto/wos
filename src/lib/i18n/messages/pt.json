@@ -322,7 +322,12 @@
       "hyena": "Hiena",
       "jasser": "Jasser (nível skill)",
       "lingXue": "Ling Xue (nível skill)",
-      "doubleTime": "Double Time"
+      "doubleTime": "Double Time",
+      "abbr": {
+        "construction": "constr",
+        "research": "pesq",
+        "training": "trein"
+      }
     },
     "researchTime": "tempo de pesquisa",
     "trainTime": "tempo de treinamento",
@@ -401,7 +406,8 @@
       "vs": "Econômico ≈ {eco} FC · Máximo ≈ {rush} FC",
       "note": "O refino é RNG — os números são médias esperadas. As probabilidades vêm da comunidade.",
       "rhythm": "≈ {refines} refinos/semana · ~{fc} FC/semana",
-      "ecoNote": "≈20 refinos no tier 1, depois 1/dia pra pegar o 50% diário"
+      "ecoNote": "≈20 refinos no tier 1, depois 1/dia pra pegar o 50% diário",
+      "refineTime": "tempo de refino"
     }
   },
   "territory": {

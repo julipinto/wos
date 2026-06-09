@@ -322,7 +322,12 @@
       "hyena": "Hiena",
       "jasser": "Jasser (nivel hab.)",
       "lingXue": "Ling Xue (nivel hab.)",
-      "doubleTime": "Double Time"
+      "doubleTime": "Double Time",
+      "abbr": {
+        "construction": "constr",
+        "research": "invest",
+        "training": "entren"
+      }
     },
     "researchTime": "tiempo de investigación",
     "trainTime": "tiempo de entrenamiento",
@@ -401,7 +406,8 @@
       "vs": "Económico ≈ {eco} FC · Máximo ≈ {rush} FC",
       "note": "El refinado es RNG — son promedios esperados. Probabilidades de la comunidad.",
       "rhythm": "≈ {refines} refinados/semana · ~{fc} FC/semana",
-      "ecoNote": "≈20 refinados en el tier 1, luego 1/día para el 50% diario"
+      "ecoNote": "≈20 refinados en el tier 1, luego 1/día para el 50% diario",
+      "refineTime": "tiempo de refinado"
     }
   },
   "territory": {
