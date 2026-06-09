@@ -204,7 +204,8 @@
       "helios": "Helios",
       "experts": "эксперты",
       "plan": "мой план",
-      "expertSkills": "Навыки экспертов"
+      "expertSkills": "Навыки экспертов",
+      "materials": "Материалы"
     },
     "res": {
       "meat": "мясо",
@@ -413,6 +414,25 @@
       "ecoNote": "≈20 в тире 1, затем 1/день ради ежедневной скидки 50%",
       "refineTime": "время переработки",
       "totalLabel": "всего ~{n}"
+    },
+    "materials": {
+      "sub": "Где взять каждый материал улучшения.",
+      "caveat": "Надёжные регулярные источники — магазины событий и цены меняются.",
+      "conf": {
+        "high": "Выс.",
+        "medium": "Сред.",
+        "low": "Низк."
+      },
+      "systems": {
+        "economy": "Экономика",
+        "fireCrystal": "Fire Crystal",
+        "chiefGear": "Chief Gear",
+        "chiefCharms": "Chief Charms",
+        "pets": "Питомцы",
+        "heroGear": "Hero Gear",
+        "heroes": "Герои",
+        "experts": "Эксперты"
+      }
     }
   },
   "territory": {

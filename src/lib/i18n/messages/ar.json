@@ -204,7 +204,8 @@
       "helios": "Helios",
       "experts": "الخبراء",
       "plan": "خطتي",
-      "expertSkills": "مهارات الخبراء"
+      "expertSkills": "مهارات الخبراء",
+      "materials": "المواد"
     },
     "res": {
       "meat": "لحم",
@@ -413,6 +414,25 @@
       "ecoNote": "≈20 في الطبقة 1، ثم 1/يوم للخصم اليومي 50%",
       "refineTime": "وقت التكرير",
       "totalLabel": "الإجمالي ~{n}"
+    },
+    "materials": {
+      "sub": "أين تحصل على كل مادة ترقية.",
+      "caveat": "مصادر موثوقة ومتكررة — متاجر الفعاليات والأسعار تتغير.",
+      "conf": {
+        "high": "عالية",
+        "medium": "متوسطة",
+        "low": "منخفضة"
+      },
+      "systems": {
+        "economy": "الاقتصاد",
+        "fireCrystal": "Fire Crystal",
+        "chiefGear": "Chief Gear",
+        "chiefCharms": "Chief Charms",
+        "pets": "الحيوانات",
+        "heroGear": "Hero Gear",
+        "heroes": "الأبطال",
+        "experts": "الخبراء"
+      }
     }
   },
   "territory": {

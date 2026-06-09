@@ -204,7 +204,8 @@
       "helios": "Helios",
       "experts": "experts",
       "plan": "mi plan",
-      "expertSkills": "Habilidades de Expertos"
+      "expertSkills": "Habilidades de Expertos",
+      "materials": "Materiales"
     },
     "res": {
       "meat": "carne",
@@ -413,6 +414,25 @@
       "ecoNote": "≈20 refinados en el tier 1, luego 1/día para el 50% diario",
       "refineTime": "tiempo de refinado",
       "totalLabel": "total ~{n}"
+    },
+    "materials": {
+      "sub": "Dónde conseguir cada material de mejora.",
+      "caveat": "Fuentes fiables y recurrentes — las tiendas de evento y precios rotan.",
+      "conf": {
+        "high": "Alta",
+        "medium": "Media",
+        "low": "Baja"
+      },
+      "systems": {
+        "economy": "Economía",
+        "fireCrystal": "Fire Crystal",
+        "chiefGear": "Chief Gear",
+        "chiefCharms": "Chief Charms",
+        "pets": "Mascotas",
+        "heroGear": "Hero Gear",
+        "heroes": "Héroes",
+        "experts": "Expertos"
+      }
     }
   },
   "territory": {
