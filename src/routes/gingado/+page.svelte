@@ -1424,6 +1424,10 @@
     .real-grid {
       grid-template-columns: repeat(4, 1fr);
     }
+    .stat-val,
+    .cmp-ev {
+      font-size: 21px;
+    }
   }
   .real-btn {
     display: flex;

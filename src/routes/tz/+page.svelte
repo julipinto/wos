@@ -887,4 +887,20 @@
     font-size: 11px;
     color: var(--text-dim);
   }
+
+  @media (max-width: 540px) {
+    .zone-row {
+      gap: 8px;
+      padding: 12px;
+    }
+    .time-24h {
+      font-size: 18px;
+    }
+    .tag-x,
+    .tag-add,
+    .zone-remove {
+      min-width: 32px;
+      min-height: 32px;
+    }
+  }
 </style>

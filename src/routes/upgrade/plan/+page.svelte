@@ -633,5 +633,13 @@
     .wrap {
       padding: 24px 18px 72px;
     }
+    .res.refine {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .refine-right {
+      margin-inline-start: 0;
+      justify-content: space-between;
+    }
   }
 </style>
