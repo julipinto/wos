@@ -322,7 +322,12 @@
       "hyena": "Hyena",
       "jasser": "Jasser (skill lvl)",
       "lingXue": "Ling Xue (skill lvl)",
-      "doubleTime": "Double Time"
+      "doubleTime": "Double Time",
+      "abbr": {
+        "construction": "build",
+        "research": "research",
+        "training": "train"
+      }
     },
     "researchTime": "research time",
     "trainTime": "training time",
@@ -401,7 +406,8 @@
       "vs": "Economic ≈ {eco} FC · Rush ≈ {rush} FC",
       "note": "Refining is RNG — figures are expected averages. Probability data is community-sourced.",
       "rhythm": "≈ {refines} refines/week · ~{fc} FC/week",
-      "ecoNote": "≈20 refines in tier 1, then 1/day to catch the daily 50% off"
+      "ecoNote": "≈20 refines in tier 1, then 1/day to catch the daily 50% off",
+      "refineTime": "refine time"
     }
   },
   "territory": {

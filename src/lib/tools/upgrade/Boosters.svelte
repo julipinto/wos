@@ -54,21 +54,34 @@
     return SRC_ORDER.filter((s) => map.has(s)).map((s) => ({ src: s, defs: map.get(s)! }));
   });
 
-  // Collapsed summary: per-category totals, e.g. "+35% · −2h".
+  const abbr = (c: BoosterCategory) => (i18n.m.upgrade.boosters.abbr as Record<string, string>)[c];
+  const catLabel = (c: BoosterCategory) =>
+    c === 'construction'
+      ? i18n.m.upgrade.buildTime
+      : c === 'research'
+        ? i18n.m.upgrade.researchTime
+        : i18n.m.upgrade.trainTime;
+  // Per-category value: "+35% −2h" (only the parts that apply). Labelled when
+  // several categories share the panel (My Plan) so the numbers aren't ambiguous.
+  const catValue = (c: BoosterCategory) => {
+    const parts: string[] = [];
+    if (boosters.total(c) > 0) parts.push(`+${boosters.total(c)}%`);
+    if (boosters.flatTotal(c) > 0) parts.push(`−${formatDuration(boosters.flatTotal(c))}`);
+    return parts.join(' ');
+  };
+  const multi = $derived(categories.length > 1);
+  // Collapsed summary: per-category, e.g. "build +35% · train +10%".
   const summary = $derived(
     categories
       .map((c) => {
-        const parts: string[] = [];
-        if (boosters.total(c) > 0) parts.push(`+${boosters.total(c)}%`);
-        if (boosters.flatTotal(c) > 0) parts.push(`−${formatDuration(boosters.flatTotal(c))}`);
-        return parts.join(' ');
+        const v = catValue(c);
+        return v && multi ? `${abbr(c)} ${v}` : v;
       })
       .filter(Boolean)
       .join(' · ')
   );
-
-  // Combined flat reduction across the shown categories (for the total line).
-  const flatSum = $derived(categories.reduce((s, c) => s + boosters.flatTotal(c), 0));
+  // Categories that actually carry a bonus — for the per-category total rows.
+  const activeCats = $derived(categories.filter((c) => catValue(c)));
 
   // Dropdown options for a tiered booster. index 0 = off. `unit:'time'` shows a
   // flat reduction ("Lv 1 · −2h"); a `tierUnit` on a % booster shows the level
@@ -183,10 +196,15 @@
 
       <div class="total">
         <span class="field-label">{i18n.m.upgrade.boosters.total}</span>
-        <span class="total-val">
-          +{categories.reduce((s, c) => s + boosters.total(c), 0)}%{#if flatSum > 0}
-            <span class="total-flat">· −{formatDuration(flatSum)}</span>{/if}
-        </span>
+        <div class="total-rows">
+          {#each activeCats as c (c)}
+            <div class="total-row">
+              {#if multi}<span class="total-cat">{catLabel(c)}</span>{/if}
+              <span class="total-val">{catValue(c)}</span>
+            </div>
+          {/each}
+          {#if activeCats.length === 0}<span class="total-none">—</span>{/if}
+        </div>
       </div>
     </div>
   {/if}
@@ -350,10 +368,27 @@
   }
   .total {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     justify-content: space-between;
-    padding-top: 4px;
+    gap: 12px;
+    padding-top: 8px;
     border-top: 1px solid var(--border);
+  }
+  .total-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-end;
+  }
+  .total-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .total-cat {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
   }
   .total-val {
     font-family: var(--font-display);
@@ -361,8 +396,7 @@
     font-size: 18px;
     color: var(--accent);
   }
-  .total-flat {
-    font-size: 13px;
-    color: var(--text-mid);
+  .total-none {
+    color: var(--text-dim);
   }
 </style>

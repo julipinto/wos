@@ -1,6 +1,6 @@
 <script lang="ts">
   import { base } from '$app/paths';
-  import { i18n } from '$lib/i18n/index.svelte';
+  import { i18n, fmt } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import Icon from '$lib/components/Icon.svelte';
   import Boosters from '$lib/tools/upgrade/Boosters.svelte';
@@ -84,9 +84,20 @@
   const refineRfc = $derived(grand.refinedFireCrystal ?? 0);
   let refineMode = $state('economic');
   const refinePlan = $derived(planById(PRESETS.find((p) => p.key === refineMode)?.plan ?? 'L3'));
-  const refineFc = $derived(estimate(refineRfc, refinePlan).fcTotal);
+  const refineEst = $derived(estimate(refineRfc, refinePlan));
+  const refineFc = $derived(refineEst.fcTotal);
   const refineModeName = $derived(
     (i18n.m.upgrade.refinement as Record<string, string>)[refineMode]
+  );
+  // Refining runs on its own weekly clock — shown as its own meta, NOT summed
+  // into build/research/training time.
+  const refineWeeks = $derived(
+    refineEst.weeks >= 8
+      ? fmt(i18n.m.upgrade.refinement.weeksMonths, {
+          n: refineEst.weeks,
+          m: Math.round(refineEst.weeks / 4.345)
+        })
+      : fmt(i18n.m.upgrade.refinement.weeks, { n: refineEst.weeks })
   );
 
   // Time runs in parallel queues, so report per category — never one summed total.
@@ -180,7 +191,7 @@
 
     <DeficitPanel needed={grand} />
 
-    {#if timeRows.length > 0 || learningTime > 0}
+    {#if timeRows.length > 0 || learningTime > 0 || refineRfc > 0}
       <div class="meta-row">
         {#each timeRows as t (t.cat)}
           <div class="meta">
@@ -196,6 +207,13 @@
           <div class="meta">
             <span class="meta-label">{i18n.m.upgrade.experts.learningTime}</span>
             <span class="meta-val">{formatDuration(learningTime)}</span>
+          </div>
+        {/if}
+        {#if refineRfc > 0}
+          <div class="meta">
+            <span class="meta-label">✨ {i18n.m.upgrade.refinement.refineTime}</span>
+            <span class="meta-val">{refineWeeks}</span>
+            <span class="meta-base">{refineModeName}</span>
           </div>
         {/if}
       </div>

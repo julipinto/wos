@@ -322,7 +322,12 @@
       "hyena": "Гиена",
       "jasser": "Jasser (ур. навыка)",
       "lingXue": "Ling Xue (ур. навыка)",
-      "doubleTime": "Double Time"
+      "doubleTime": "Double Time",
+      "abbr": {
+        "construction": "стр",
+        "research": "иссл",
+        "training": "обуч"
+      }
     },
     "researchTime": "время исследования",
     "trainTime": "время обучения",
@@ -401,7 +406,8 @@
       "vs": "Экономно ≈ {eco} FC · Максимум ≈ {rush} FC",
       "note": "Переработка — RNG, числа усреднённые. Вероятности от сообщества.",
       "rhythm": "≈ {refines} переработок/нед. · ~{fc} FC/нед.",
-      "ecoNote": "≈20 в тире 1, затем 1/день ради ежедневной скидки 50%"
+      "ecoNote": "≈20 в тире 1, затем 1/день ради ежедневной скидки 50%",
+      "refineTime": "время переработки"
     }
   },
   "territory": {
