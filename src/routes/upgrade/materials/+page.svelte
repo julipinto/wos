@@ -23,7 +23,10 @@
     backHref="/upgrade"
   />
 
-  <p class="caveat">ℹ️ {i18n.m.upgrade.materials.caveat}</p>
+  <p class="caveat">
+    ℹ️ {i18n.m.upgrade.materials.caveat}
+    <span class="conf-note">{i18n.m.upgrade.materials.confNote}</span>
+  </p>
 
   {#each MATERIAL_SYSTEMS as sys (sys)}
     <h2 class="section-label">{sysLabel(sys)}</h2>
@@ -66,6 +69,12 @@
     border-radius: var(--r-card);
     padding: 10px 14px;
     margin: 0 0 20px;
+  }
+  .conf-note {
+    display: block;
+    margin-top: 6px;
+    color: var(--text-dim);
+    opacity: 0.85;
   }
   .section-label {
     font-family: var(--font-mono);

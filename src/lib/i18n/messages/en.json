@@ -432,7 +432,8 @@
         "heroGear": "Hero Gear",
         "heroes": "Heroes",
         "experts": "Experts"
-      }
+      },
+      "confNote": "Confidence = how sure we are about the sources (high → cross-checked · low → uncertain)."
     }
   },
   "territory": {
