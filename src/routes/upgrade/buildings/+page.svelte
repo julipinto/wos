@@ -53,8 +53,11 @@
       ) - boosters.flatTotal('construction')
     )
   );
-  // Sequential sum (1 queue) for the "base" reference line.
-  const seqTime = $derived(buildingTimes.reduce((s, b) => s + b.time, 0));
+  // Sequential total (1 queue) — apply the same flat (Agnes) cut as effTime so
+  // the "1 ⏱" reference matches what 1-queue mode actually shows.
+  const seqTime = $derived(
+    Math.max(0, buildingTimes.reduce((s, b) => s + b.time, 0) - boosters.flatTotal('construction'))
+  );
 
   // Combined per-building step breakdown — each level prefixed with its building.
   const steps = $derived.by(() => {
