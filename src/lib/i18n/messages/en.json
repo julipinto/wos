@@ -204,7 +204,8 @@
       "helios": "Helios",
       "experts": "experts",
       "plan": "my plan",
-      "expertSkills": "Expert Skills"
+      "expertSkills": "Expert Skills",
+      "materials": "Materials"
     },
     "res": {
       "meat": "meat",
@@ -413,6 +414,25 @@
       "ecoNote": "≈20 refines in tier 1, then 1/day to catch the daily 50% off",
       "refineTime": "refine time",
       "totalLabel": "total ~{n}"
+    },
+    "materials": {
+      "sub": "Where to get each upgrade material.",
+      "caveat": "Reliable, recurring sources — event shops & prices rotate over time.",
+      "conf": {
+        "high": "High",
+        "medium": "Med",
+        "low": "Low"
+      },
+      "systems": {
+        "economy": "Economy",
+        "fireCrystal": "Fire Crystal",
+        "chiefGear": "Chief Gear",
+        "chiefCharms": "Chief Charms",
+        "pets": "Pets",
+        "heroGear": "Hero Gear",
+        "heroes": "Heroes",
+        "experts": "Experts"
+      }
     }
   },
   "territory": {

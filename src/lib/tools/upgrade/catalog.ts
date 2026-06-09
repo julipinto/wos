@@ -30,6 +30,13 @@ export const SHOW_PREVIEWS = true;
 export const HUB_CARDS: HubCard[] = [
   { id: 'plan', route: '/upgrade/plan', icon: '📋', i18n: 'plan', status: 'available' },
   {
+    id: 'materials',
+    route: '/upgrade/materials',
+    icon: '📦',
+    i18n: 'materials',
+    status: 'available'
+  },
+  {
     id: 'buildings',
     route: '/upgrade/buildings',
     icon: '🏭',
