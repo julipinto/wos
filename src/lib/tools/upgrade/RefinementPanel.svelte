@@ -7,8 +7,9 @@
   // Estimates the Fire Crystals + time to refine the RFC the calc already found.
   interface Props {
     rfc: number;
+    directFc?: number;
   }
-  let { rfc }: Props = $props();
+  let { rfc, directFc = 0 }: Props = $props();
 
   const t = $derived(i18n.m.upgrade.refinement);
   let presetKey = $state('economic');
@@ -52,6 +53,11 @@
       <span class="meta-label">{t.fcNeeded}</span>
       <span class="meta-val">🔥 {groupNumber(est.fcTotal)}</span>
       <span class="meta-base">{fmt(t.perRfc, { n: est.fcPerRfc.toFixed(1) })}</span>
+      {#if directFc > 0}
+        <span class="meta-base"
+          >{fmt(t.totalLabel, { n: groupNumber(directFc + est.fcTotal) })}</span
+        >
+      {/if}
     </div>
     <div class="meta">
       <span class="meta-label">{t.time}</span>

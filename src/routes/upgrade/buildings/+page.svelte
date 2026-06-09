@@ -232,7 +232,10 @@
     </div>
 
     {#if (result.totals.refinedFireCrystal ?? 0) > 0}
-      <RefinementPanel rfc={result.totals.refinedFireCrystal ?? 0} />
+      <RefinementPanel
+        rfc={result.totals.refinedFireCrystal ?? 0}
+        directFc={result.totals.fireCrystal ?? 0}
+      />
     {/if}
 
     {#if buildingTimes.filter((b) => b.time > 0).length > 1}
