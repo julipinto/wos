@@ -178,4 +178,32 @@
     border-color: var(--border-accent);
     background: var(--accent-glow);
   }
+  /* Phone: the editor becomes a bottom sheet floating over the canvas (Figma /
+     Excalidraw style) instead of a block that pushes the board off-screen. */
+  @media (max-width: 540px) {
+    .editor {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      margin: 0;
+      border-radius: 16px 16px 0 0;
+      border-bottom: 0;
+      max-height: 72vh;
+      overflow-y: auto;
+      z-index: 60;
+      box-shadow: 0 -14px 44px rgba(0, 0, 0, 0.55);
+      padding-bottom: max(16px, env(safe-area-inset-bottom));
+    }
+    /* a grabber so it reads as a sheet */
+    .editor::before {
+      content: '';
+      display: block;
+      width: 36px;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--border-strong);
+      margin: -4px auto 12px;
+    }
+  }
 </style>
