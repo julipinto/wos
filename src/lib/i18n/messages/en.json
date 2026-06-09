@@ -381,7 +381,23 @@
       "base": "base per-level values — the total above applies your boosters"
     },
     "summed": "Summed",
-    "individual": "Individual"
+    "individual": "Individual",
+    "refinement": {
+      "title": "Refinement",
+      "blurb": "This upgrade needs {rfc} Refined Fire Crystals. Estimate the Fire Crystals & time to refine them.",
+      "intensity": "Intensity",
+      "economic": "Economic",
+      "balanced": "Balanced",
+      "fast": "Fast",
+      "rush": "Rush",
+      "fcNeeded": "Fire Crystals needed",
+      "time": "Time",
+      "perRfc": "{n} FC per RFC",
+      "weeks": "~{n} weeks",
+      "weeksMonths": "~{n} weeks (~{m} mo)",
+      "vs": "Economic ≈ {eco} FC · Rush ≈ {rush} FC",
+      "note": "Refining is RNG — figures are expected averages. Probability data is community-sourced."
+    }
   },
   "territory": {
     "sub": "Place buildings on the grid; banners cover 7×7 and must connect to the HQ to hold territory.",

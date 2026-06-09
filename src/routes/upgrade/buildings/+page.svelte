@@ -6,6 +6,7 @@
   import Boosters from '$lib/tools/upgrade/Boosters.svelte';
   import StepList from '$lib/tools/upgrade/StepList.svelte';
   import Totals from '$lib/tools/upgrade/Totals.svelte';
+  import RefinementPanel from '$lib/tools/upgrade/RefinementPanel.svelte';
   import { buildingsCalc } from '$lib/tools/upgrade/store.svelte';
   import {
     sumRange,
@@ -220,6 +221,10 @@
         <span class="meta-val">{result.steps}</span>
       </div>
     </div>
+
+    {#if (result.totals.refinedFireCrystal ?? 0) > 0}
+      <RefinementPanel rfc={result.totals.refinedFireCrystal ?? 0} />
+    {/if}
 
     {#if buildingTimes.filter((b) => b.time > 0).length > 1}
       <div class="build-times">

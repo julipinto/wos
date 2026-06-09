@@ -381,7 +381,23 @@
       "base": "valores base por nível — o total acima já aplica seus boosters"
     },
     "summed": "Somado",
-    "individual": "Individual"
+    "individual": "Individual",
+    "refinement": {
+      "title": "Refinamento",
+      "blurb": "Este upgrade precisa de {rfc} Cristais de Fogo Refinados. Estime os Cristais de Fogo e o tempo pra refinar.",
+      "intensity": "Intensidade",
+      "economic": "Econômico",
+      "balanced": "Equilibrado",
+      "fast": "Rápido",
+      "rush": "Máximo",
+      "fcNeeded": "Cristais de Fogo necessários",
+      "time": "Tempo",
+      "perRfc": "{n} FC por RFC",
+      "weeks": "~{n} semanas",
+      "weeksMonths": "~{n} semanas (~{m} meses)",
+      "vs": "Econômico ≈ {eco} FC · Máximo ≈ {rush} FC",
+      "note": "O refino é RNG — os números são médias esperadas. As probabilidades vêm da comunidade."
+    }
   },
   "territory": {
     "sub": "Posicione no grid; banners cobrem 7×7 e precisam conectar ao HQ pra segurar território.",
