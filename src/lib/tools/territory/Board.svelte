@@ -471,6 +471,14 @@
     border: 1px solid var(--border);
     border-radius: var(--r-card);
   }
+  /* On phones the 60×60 board is taller than the screen, which buried the
+     controls above/below it. Bound it to a viewport you pan inside (Excalidraw
+     style) so the toolbars stay in reach. */
+  @media (max-width: 540px) {
+    .board-scroll {
+      height: 50vh;
+    }
+  }
   .board {
     overflow: hidden;
     background: var(--bg);

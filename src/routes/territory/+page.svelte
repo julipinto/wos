@@ -708,5 +708,18 @@
       flex: 1 1 100%;
       text-align: center;
     }
+    /* Multi-select bar floats as a bottom sheet (like the editor) instead of
+       pushing the page. */
+    .group-bar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      margin: 0;
+      border-radius: 16px 16px 0 0;
+      z-index: 60;
+      padding: 14px 16px max(14px, env(safe-area-inset-bottom));
+      box-shadow: 0 -14px 44px rgba(0, 0, 0, 0.55);
+    }
   }
 </style>

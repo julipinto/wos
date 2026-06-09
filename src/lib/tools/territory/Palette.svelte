@@ -67,4 +67,21 @@
     color: var(--text-dim);
     font-size: 11px;
   }
+  /* Phone: one swipeable row instead of wrapping into several (which ate the
+     vertical space and pushed the canvas / controls around). */
+  @media (max-width: 540px) {
+    .palette {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+      margin-bottom: 12px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .palette::-webkit-scrollbar {
+      display: none;
+    }
+    .tool {
+      flex: 0 0 auto;
+    }
+  }
 </style>
