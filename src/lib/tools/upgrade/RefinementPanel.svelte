@@ -42,6 +42,11 @@
     />
   </div>
 
+  <p class="rhythm">{fmt(t.rhythm, { refines: plan.refines, fc: groupNumber(plan.fcPerWeek) })}</p>
+  {#if presetKey === 'economic'}
+    <p class="rhythm eco">{t.ecoNote}</p>
+  {/if}
+
   <div class="meta-row">
     <div class="meta">
       <span class="meta-label">{t.fcNeeded}</span>
@@ -87,7 +92,17 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
+  }
+  .rhythm {
+    margin: 0 0 4px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-mid);
+  }
+  .rhythm.eco {
+    color: var(--text-dim);
+    margin-bottom: 12px;
   }
   .field-label {
     font-family: var(--font-mono);

@@ -14,6 +14,7 @@
     formatDuration,
     applySpeed,
     makespan,
+    queueLoads,
     presentResources
   } from '$lib/tools/upgrade/engine';
   import { boosters } from '$lib/tools/upgrade/boosters-store.svelte';
@@ -53,10 +54,13 @@
       ) - boosters.flatTotal('construction')
     )
   );
-  // Sequential total (1 queue) — apply the same flat (Agnes) cut as effTime so
-  // the "1 ⏱" reference matches what 1-queue mode actually shows.
-  const seqTime = $derived(
-    Math.max(0, buildingTimes.reduce((s, b) => s + b.time, 0) - boosters.flatTotal('construction'))
+  // Per-queue load (when >1 queue), so each lane's time is visible. The flat
+  // (Agnes) cut lands on the critical (longest) lane, so lane 1 == effTime.
+  const queueTimes = $derived(
+    queueLoads(
+      buildingTimes.map((b) => b.time),
+      buildingsCalc.queues
+    ).map((secs, i) => (i === 0 ? Math.max(0, secs - boosters.flatTotal('construction')) : secs))
   );
 
   // Combined per-building step breakdown — each level prefixed with its building.
@@ -212,8 +216,10 @@
       <div class="meta">
         <span class="meta-label">{i18n.m.upgrade.buildTime}</span>
         <span class="meta-val">{result.time > 0 ? formatDuration(effTime) : '—'}</span>
-        {#if result.time > 0 && buildingsCalc.queues > 1 && seqTime !== effTime}
-          <span class="meta-base">1 ⏱ {formatDuration(seqTime)}</span>
+        {#if result.time > 0 && buildingsCalc.queues > 1 && queueTimes.length > 1}
+          <span class="meta-base">
+            {#each queueTimes as qt, i (i)}{i > 0 ? ' · ' : ''}⏱{i + 1} {formatDuration(qt)}{/each}
+          </span>
         {/if}
         {#if timeUnsourced}
           <span class="meta-base">{i18n.m.upgrade.timePartial}</span>

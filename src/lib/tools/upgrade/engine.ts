@@ -124,15 +124,24 @@ export function formatQty(n: number): string {
  * never go below its own length.
  */
 export function makespan(jobs: number[], queues: number): number {
+  return Math.max(0, ...queueLoads(jobs, queues));
+}
+
+/**
+ * Per-queue total seconds after greedily packing `jobs` into `queues` lanes
+ * (same LPT packing makespan uses), returned largest-first. queues=1 → one lane
+ * holding the full sum. Lets the UI show the load of each build queue.
+ */
+export function queueLoads(jobs: number[], queues: number): number[] {
   const q = Math.max(1, Math.floor(queues) || 1);
-  if (q === 1) return jobs.reduce((a, b) => a + b, 0);
+  if (q === 1) return [jobs.reduce((a, b) => a + b, 0)];
   const bins = new Array<number>(q).fill(0);
   for (const j of [...jobs].sort((a, b) => b - a)) {
     let lightest = 0;
     for (let i = 1; i < q; i++) if (bins[i] < bins[lightest]) lightest = i;
     bins[lightest] += j;
   }
-  return Math.max(0, ...bins);
+  return bins.sort((a, b) => b - a);
 }
 
 /**
