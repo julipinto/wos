@@ -15,7 +15,7 @@
   } from '$lib/tools/upgrade/engine';
   import { RESOURCES, type ResourceBag } from '$lib/tools/upgrade/types';
   import { boosters, type BoosterCategory } from '$lib/tools/upgrade/boosters-store.svelte';
-  import { planLines, cutBase, PLAN_STORAGE_KEYS } from '$lib/tools/upgrade/plan';
+  import { planLines, cutBase, PLAN_STORAGE_KEYS, type PlanLine } from '$lib/tools/upgrade/plan';
   import { estimate, planById, PRESETS } from '$lib/tools/upgrade/refinement';
   import Segmented from '$lib/components/Segmented.svelte';
 
@@ -58,23 +58,35 @@
   }
 
   const zimanPct = $derived(boosters.contribution('zinman'));
-  // Apply Zinman's construction base-resource cut to the buildings line.
-  const adjLines = $derived(
-    lines.map((l) =>
-      l.id === 'buildings' && zimanPct > 0 ? { ...l, totals: cutBase(l.totals, zimanPct) } : l
-    )
-  );
 
-  // Toggle which plan lines count toward the totals — lets you vary "what if I
-  // do this upgrade or not" without leaving the page.
-  let enabled = $state(new Set(lines.map((l) => l.id)));
-  function toggleLine(id: string) {
+  // Toggle individual upgrades in/out of the totals — vary "what if I do this
+  // one or not" without leaving the page. Default: everything on.
+  let enabled = $state(new Set(lines.flatMap((l) => l.items.map((it) => it.id))));
+  function toggleItem(id: string) {
     const next = new Set(enabled);
     if (next.has(id)) next.delete(id);
     else next.add(id);
     enabled = next;
   }
-  const activeLines = $derived(adjLines.filter((l) => enabled.has(l.id)));
+  // Each line with only its enabled items, re-summed (Zinman's construction cut
+  // applied to the buildings line). Lines with nothing enabled drop out.
+  const activeLines = $derived(
+    lines
+      .map((l) => {
+        const items = l.items.filter((it) => enabled.has(it.id));
+        if (items.length === 0) return null;
+        let totals = items.reduce<ResourceBag>((acc, it) => addBags(acc, it.totals), {});
+        if (l.id === 'buildings' && zimanPct > 0) totals = cutBase(totals, zimanPct);
+        return {
+          ...l,
+          items,
+          totals,
+          time: items.reduce((s, it) => s + it.time, 0),
+          detail: items.map((it) => it.label)
+        };
+      })
+      .filter((l): l is PlanLine => l !== null)
+  );
 
   const grand = $derived(activeLines.reduce<ResourceBag>((acc, l) => addBags(acc, l.totals), {}));
   const grandRows = $derived(presentResources(grand));
@@ -266,39 +278,28 @@
 
     <h2 class="section-label">{i18n.m.upgrade.plan.includes}</h2>
     <div class="lines">
-      {#each adjLines as l (l.id)}
-        <div class="line" class:off={!enabled.has(l.id)}>
-          <button
-            class="line-toggle"
-            class:on={enabled.has(l.id)}
-            type="button"
-            onclick={() => toggleLine(l.id)}
-            aria-pressed={enabled.has(l.id)}
-            title={i18n.m.upgrade.plan.includeToggle}
-            aria-label={i18n.m.upgrade.plan.includeToggle}
-          >
-            {#if enabled.has(l.id)}<Icon name="check" size={13} />{/if}
-          </button>
-          <a class="line-link" href="{base}{l.route ?? `/upgrade/${l.id}`}">
-            <div class="line-head">
-              <span class="line-name">{catName(l.id)}</span>
-              <span class="line-res">
-                {#each presentResources(l.totals).slice(0, 4) as k (k)}
-                  <span class="chip">{resDef(k).icon} {formatQty(l.totals[k] ?? 0)}</span>
-                {/each}
-              </span>
-            </div>
-            {#if l.detail.length > 0}
-              <div class="line-detail">
-                {#each l.detail.slice(0, 6) as d, i (i)}
-                  <span class="dchip">{d}</span>
-                {/each}
-                {#if l.detail.length > 6}
-                  <span class="dchip more">+{l.detail.length - 6}</span>
-                {/if}
-              </div>
-            {/if}
+      {#each lines as l (l.id)}
+        <div class="line">
+          <a class="line-head" href="{base}{l.route ?? `/upgrade/${l.id}`}">
+            <span class="line-name">{catName(l.id)}</span>
           </a>
+          <div class="line-items">
+            {#each l.items as it (it.id)}
+              <button
+                class="item-toggle"
+                class:off={!enabled.has(it.id)}
+                type="button"
+                onclick={() => toggleItem(it.id)}
+                aria-pressed={enabled.has(it.id)}
+                title={i18n.m.upgrade.plan.includeToggle}
+              >
+                <span class="check" class:on={enabled.has(it.id)}>
+                  {#if enabled.has(it.id)}<Icon name="check" size={11} />{/if}
+                </span>
+                <span class="item-label">{it.label}</span>
+              </button>
+            {/each}
+          </div>
         </div>
       {/each}
     </div>
@@ -559,57 +560,18 @@
   }
   .line {
     display: flex;
-    align-items: stretch;
-    gap: 10px;
-  }
-  .line.off {
-    opacity: 0.42;
-  }
-  .line-toggle {
-    flex-shrink: 0;
-    align-self: center;
-    width: 30px;
-    height: 30px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg-soft);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text-dim);
-    cursor: pointer;
-    transition:
-      color 0.2s ease,
-      border-color 0.2s ease,
-      background 0.2s ease;
-  }
-  .line-toggle.on {
-    background: var(--accent-glow);
-    border-color: var(--border-accent);
-    color: var(--accent);
-  }
-  .line-link {
-    flex: 1;
-    min-width: 0;
-    display: flex;
     flex-direction: column;
     gap: 8px;
     padding: 12px 16px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--r-card);
-    text-decoration: none;
-    color: inherit;
-    transition: border-color 0.2s ease;
-  }
-  .line-link:hover {
-    border-color: var(--border-accent);
   }
   .line-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
+    display: inline-flex;
+    width: fit-content;
+    text-decoration: none;
+    color: inherit;
   }
   .line-name {
     font-family: var(--font-display);
@@ -617,33 +579,55 @@
     font-weight: 700;
     font-size: 16px;
   }
-  .line-res {
+  .line-head:hover .line-name {
+    color: var(--accent);
+  }
+  .line-items {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: flex-end;
+    flex-direction: column;
+    gap: 4px;
   }
-  .chip {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-mid);
-  }
-  .line-detail {
+  .item-toggle {
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-  .dchip {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-dim);
+    align-items: center;
+    gap: 10px;
+    width: 100%;
     background: var(--bg-soft);
     border: 1px solid var(--border);
     border-radius: var(--r-pill);
-    padding: 2px 8px;
+    color: var(--text);
+    padding: 8px 12px;
+    cursor: pointer;
+    text-align: start;
+    font-family: var(--font-mono);
+    transition:
+      opacity 0.2s ease,
+      border-color 0.2s ease;
   }
-  .dchip.more {
-    color: var(--text-mid);
+  .item-toggle.off {
+    opacity: 0.4;
+  }
+  .item-toggle:hover {
+    border-color: var(--border-accent);
+  }
+  .check {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-strong);
+    border-radius: 5px;
+    color: var(--bg);
+    background: transparent;
+  }
+  .check.on {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .item-label {
+    font-size: 12px;
   }
   @media (max-width: 540px) {
     .wrap {

@@ -29,6 +29,15 @@ import { HELIOS_NODES } from './data/helios';
 import { HERO_TRACKS } from './data/heroes';
 import type { LevelCost } from './types';
 
+/** One toggleable sub-item inside a plan line (e.g. a single building range). */
+export interface PlanItem {
+  /** Unique across the whole plan (`<lineId>:<subId>`). */
+  id: string;
+  label: string;
+  totals: ResourceBag;
+  time: number;
+}
+
 export interface PlanLine {
   /** Matches the hub i18n suffix under upgrade.cat.* */
   id: string;
@@ -39,6 +48,8 @@ export interface PlanLine {
   timeCategory: BoosterCategory | 'learning' | null;
   /** Human-readable summary of what was configured, e.g. "Furnace 25 → 30". */
   detail: string[];
+  /** The individual upgrades that make up this line (toggleable in My Plan). */
+  items: PlanItem[];
   /** Route override for the plan link (defaults to /upgrade/<id>). */
   route?: string;
 }
@@ -47,6 +58,28 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const range = (from: string, to: string) => `${from} → ${to}`;
 
 const has = (b: ResourceBag) => presentResources(b).length > 0;
+
+/** Build a line from its items (totals/time are the sum of the kept items). */
+function lineFrom(
+  id: string,
+  timeCategory: PlanLine['timeCategory'],
+  items: PlanItem[],
+  route?: string
+): PlanLine | null {
+  const kept = items.filter((it) => has(it.totals));
+  if (kept.length === 0) return null;
+  const totals = kept.reduce<ResourceBag>((acc, it) => addBags(acc, it.totals), {});
+  if (!has(totals)) return null;
+  return {
+    id,
+    totals,
+    time: kept.reduce((s, it) => s + it.time, 0),
+    timeCategory,
+    detail: kept.map((it) => it.label),
+    items: kept,
+    ...(route ? { route } : {})
+  };
+}
 
 interface Pair {
   from: string;
@@ -71,15 +104,16 @@ function ladderLine(
       ladder.some((l) => l.label === p.from) &&
       ladder.some((l) => l.label === p.to)
   );
-  const r = combine(valid.map((p) => sumLadder(ladder, p.from, p.to)));
-  if (!has(r.totals)) return null;
-  return {
+  return lineFrom(
     id,
-    totals: r.totals,
-    time: 0,
-    timeCategory: null,
-    detail: valid.map((p) => `${nameFor(p.sid)} ${range(p.from, p.to)}`)
-  };
+    null,
+    valid.map((p) => ({
+      id: `${id}:${p.sid}`,
+      label: `${nameFor(p.sid)} ${range(p.from, p.to)}`,
+      totals: sumLadder(ladder, p.from, p.to).totals,
+      time: 0
+    }))
+  );
 }
 
 const gearName = (sid: string): string | undefined => GEAR_PIECES.find((p) => p.id === sid)?.name;
@@ -102,90 +136,91 @@ function buildingsLine(): PlanLine | null {
       b.levels.some((l) => l.label === p.to)
     );
   });
-  const r = combine(valid.map((p) => sumRange(buildingById(p.buildingId)!, p.from, p.to)));
-  if (!has(r.totals)) return null;
-  return {
-    id: 'buildings',
-    totals: r.totals,
-    time: r.time,
-    timeCategory: 'construction',
-    detail: valid.map((p) => `${buildingById(p.buildingId)!.name} ${range(p.from, p.to)}`)
-  };
+  return lineFrom(
+    'buildings',
+    'construction',
+    valid.map((p) => {
+      const b = buildingById(p.buildingId)!;
+      const r = sumRange(b, p.from, p.to);
+      return {
+        id: `buildings:${p.buildingId}`,
+        label: `${b.name} ${range(p.from, p.to)}`,
+        totals: r.totals,
+        time: r.time
+      };
+    })
+  );
 }
 
 function troopsLine(): PlanLine | null {
   const rows = readJson<{ type: string; tier: number; qty: number }[]>('upgrade-troops-v1');
   if (!Array.isArray(rows)) return null;
-  let totals: ResourceBag = {};
-  let time = 0;
-  const detail: string[] = [];
-  for (const row of rows) {
+  const items: PlanItem[] = [];
+  rows.forEach((row, i) => {
     const e = TROOP_COST[row.type]?.[row.tier - 1];
     const q = Math.max(0, Math.floor(row.qty) || 0);
-    if (!e || q <= 0) continue;
-    totals = addBags(totals, scaleBag(e.cost, q));
-    time += e.time * q;
-    detail.push(`${cap(row.type)} T${row.tier} ×${q}`);
-  }
-  return has(totals) ? { id: 'troops', totals, time, timeCategory: 'training', detail } : null;
+    if (!e || q <= 0) return;
+    items.push({
+      id: `troops:${row.type}-${row.tier}-${i}`,
+      label: `${cap(row.type)} T${row.tier} ×${q}`,
+      totals: scaleBag(e.cost, q),
+      time: e.time * q
+    });
+  });
+  return lineFrom('troops', 'training', items);
 }
 
 function researchLine(): PlanLine | null {
   const sel = readJson<Record<string, boolean>>('upgrade-research-v1');
   if (!sel) return null;
-  let totals: ResourceBag = {};
-  let time = 0;
-  const detail: string[] = [];
-  for (const t of RESEARCH_TREES) {
-    if (sel[t.id]) {
-      totals = addBags(totals, t.total);
-      time += t.time;
-      detail.push(t.id);
-    }
-  }
-  return has(totals) ? { id: 'research', totals, time, timeCategory: 'research', detail } : null;
+  return lineFrom(
+    'research',
+    'research',
+    RESEARCH_TREES.filter((t) => sel[t.id]).map((t) => ({
+      id: `research:${t.id}`,
+      label: t.id,
+      totals: t.total,
+      time: t.time
+    }))
+  );
 }
 
 function petsLine(): PlanLine | null {
   const rows = readJson<({ pet: string } & Pair)[]>('upgrade-pets-v2');
   if (!Array.isArray(rows) || rows.length === 0) return null;
   const valid = rows.filter((r) => PETS.find((p) => p.id === r.pet));
-  const r = combine(
-    valid.map((row) =>
-      sumLadder(petLadder(PETS.find((x) => x.id === row.pet)!.max), row.from, row.to)
-    )
+  return lineFrom(
+    'pets',
+    null,
+    valid.map((row) => {
+      const pet = PETS.find((x) => x.id === row.pet)!;
+      return {
+        id: `pets:${row.pet}`,
+        label: `${pet.name} ${range(row.from, row.to)}`,
+        totals: sumLadder(petLadder(pet.max), row.from, row.to).totals,
+        time: 0
+      };
+    })
   );
-  if (!has(r.totals)) return null;
-  return {
-    id: 'pets',
-    totals: r.totals,
-    time: 0,
-    timeCategory: null,
-    detail: valid.map(
-      (row) => `${PETS.find((p) => p.id === row.pet)!.name} ${range(row.from, row.to)}`
-    )
-  };
 }
 
 function expertsLine(): PlanLine | null {
   const rows = readJson<({ expert: string } & Pair)[]>('upgrade-experts-v1');
   if (!Array.isArray(rows) || rows.length === 0) return null;
   const valid = rows.filter((r) => EXPERTS.find((e) => e.id === r.expert));
-  const r = combine(
-    valid.map((row) =>
-      sumLadder(EXPERTS.find((x) => x.id === row.expert)!.ladder, row.from, row.to)
-    )
+  return lineFrom(
+    'experts',
+    null,
+    valid.map((row) => {
+      const ex = EXPERTS.find((x) => x.id === row.expert)!;
+      return {
+        id: `experts:${row.expert}`,
+        label: `${ex.name} ${range(row.from, row.to)}`,
+        totals: sumLadder(ex.ladder, row.from, row.to).totals,
+        time: 0
+      };
+    })
   );
-  if (!has(r.totals)) return null;
-  return {
-    id: 'experts',
-    totals: r.totals,
-    time: 0,
-    timeCategory: null,
-    detail: valid.map(
-      (row) => `${EXPERTS.find((e) => e.id === row.expert)!.name} ${range(row.from, row.to)}`
-    )
-  };
 }
 
 function heliosLine(): PlanLine | null {
@@ -198,10 +233,10 @@ function heliosLine(): PlanLine | null {
     })
   );
   const count = s.count >= 1 ? s.count : 1;
-  const totals = scaleBag(r.totals, count);
-  return has(totals)
-    ? { id: 'helios', totals, time: 0, timeCategory: null, detail: [`×${count} troop types`] }
-    : null;
+  // Helios scales the combined node cost by troop-type count → a single item.
+  return lineFrom('helios', null, [
+    { id: 'helios:all', label: `×${count} troop types`, totals: scaleBag(r.totals, count), time: 0 }
+  ]);
 }
 
 function expertSkillsLine(): PlanLine | null {
@@ -216,21 +251,21 @@ function expertSkillsLine(): PlanLine | null {
       s.ladder.some((l) => l.label === p.to)
     );
   });
-  const r = combine(
-    valid.map((p) => sumLadder(EXPERT_SKILLS.find((x) => x.id === p.skill)!.ladder, p.from, p.to))
-  );
-  if (!has(r.totals)) return null;
-  return {
-    id: 'expertSkills',
-    route: '/upgrade/experts',
-    totals: r.totals,
-    time: r.time,
-    timeCategory: 'learning',
-    detail: valid.map((p) => {
+  return lineFrom(
+    'expertSkills',
+    'learning',
+    valid.map((p) => {
       const s = EXPERT_SKILLS.find((x) => x.id === p.skill)!;
-      return `${s.expertName} · ${s.skill} ${range(p.from, p.to)}`;
-    })
-  };
+      const r = sumLadder(s.ladder, p.from, p.to);
+      return {
+        id: `expertSkills:${p.skill}`,
+        label: `${s.expertName} · ${s.skill} ${range(p.from, p.to)}`,
+        totals: r.totals,
+        time: r.time
+      };
+    }),
+    '/upgrade/experts'
+  );
 }
 
 const HERO_NAME: Record<string, string> = {
@@ -240,18 +275,18 @@ const HERO_NAME: Record<string, string> = {
   enhance: 'Gear Enhancement'
 };
 function heroesLine(): PlanLine | null {
-  const detail: string[] = [];
-  const r = combine(
-    HERO_TRACKS.map((t) => {
-      const p = readJson<Pair>(t.storageKey);
-      if (!p) return emptyResult();
-      if (p.from !== p.to) detail.push(`${HERO_NAME[t.id] ?? t.id} ${range(p.from, p.to)}`);
-      return sumLadder(t.ladder, p.from, p.to);
-    })
-  );
-  return has(r.totals)
-    ? { id: 'heroes', totals: r.totals, time: 0, timeCategory: null, detail }
-    : null;
+  const items: PlanItem[] = [];
+  for (const t of HERO_TRACKS) {
+    const p = readJson<Pair>(t.storageKey);
+    if (!p || p.from === p.to) continue;
+    items.push({
+      id: `heroes:${t.id}`,
+      label: `${HERO_NAME[t.id] ?? t.id} ${range(p.from, p.to)}`,
+      totals: sumLadder(t.ladder, p.from, p.to).totals,
+      time: 0
+    });
+  }
+  return lineFrom('heroes', null, items);
 }
 
 /** Every localStorage key holding a plan SELECTION (what you're upgrading), for
