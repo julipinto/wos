@@ -341,47 +341,55 @@
     {bearCount}
   />
 
-  <Board
-    {objects}
-    bind:selectedIds
-    bind:bearFocus
-    {view}
-    {zoom}
-    {boardMode}
-    {tool}
-    {showLabels}
-    {labelField}
-    {heatmap}
-    connectivity={!!activeMode.connectivity}
-    onPersist={persist}
-  />
-
-  {#if selectedIds.length > 1}
-    <div class="group-bar">
-      <span class="group-count">{fmt(i18n.m.territory.selectedN, { n: selectedIds.length })}</span>
-      <button class="reset" type="button" onclick={removeSelected}>
-        × {i18n.m.territory.remove}
-      </button>
-      <button class="reset" type="button" onclick={() => (selectedIds = [])}>
-        {i18n.m.common.close}
-      </button>
+  <div class="stage">
+    <div class="stage-board">
+      <Board
+        {objects}
+        bind:selectedIds
+        bind:bearFocus
+        {view}
+        {zoom}
+        {boardMode}
+        {tool}
+        {showLabels}
+        {labelField}
+        {heatmap}
+        connectivity={!!activeMode.connectivity}
+        onPersist={persist}
+      />
     </div>
-  {/if}
 
-  {#if selected}
-    <Editor
-      {selected}
-      typeLabel={objName(OBJECT_DEFS[selected.type].i18n)}
-      isCity={!!OBJECT_DEFS[selected.type].city}
-      {hasBears}
-      {bearCount}
-      {furnaceOptions}
-      {setTag}
-      {toggleBear}
-      onRemove={removeSelected}
-      onClose={() => (selectedIds = [])}
-    />
-  {/if}
+    <div class="stage-side">
+      {#if selectedIds.length > 1}
+        <div class="group-bar">
+          <span class="group-count"
+            >{fmt(i18n.m.territory.selectedN, { n: selectedIds.length })}</span
+          >
+          <button class="reset" type="button" onclick={removeSelected}>
+            × {i18n.m.territory.remove}
+          </button>
+          <button class="reset" type="button" onclick={() => (selectedIds = [])}>
+            {i18n.m.common.close}
+          </button>
+        </div>
+      {:else if selected}
+        <Editor
+          {selected}
+          typeLabel={objName(OBJECT_DEFS[selected.type].i18n)}
+          isCity={!!OBJECT_DEFS[selected.type].city}
+          {hasBears}
+          {bearCount}
+          {furnaceOptions}
+          {setTag}
+          {toggleBear}
+          onRemove={removeSelected}
+          onClose={() => (selectedIds = [])}
+        />
+      {:else}
+        <p class="side-hint">{i18n.m.territory.selectHint}</p>
+      {/if}
+    </div>
+  </div>
 
   <div class="legend">
     <span class="leg"><span class="dot reach"></span>{i18n.m.territory.legend.reach}</span>
@@ -501,6 +509,47 @@
     max-width: 640px;
     margin: 0 auto;
     padding: 32px 24px 96px;
+  }
+  .stage {
+    display: grid;
+    gap: 14px;
+  }
+  /* Desktop: board on the left, a sticky editor column on the right (Figma /
+     slush style) so editing a city doesn't push the page into a scroll. */
+  @media (min-width: 860px) {
+    .wrap {
+      max-width: 980px;
+    }
+    .stage {
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 20px;
+      align-items: start;
+    }
+    .stage-side {
+      position: sticky;
+      top: 20px;
+    }
+    .stage-side :global(.editor),
+    .stage-side .group-bar {
+      margin-top: 0;
+    }
+  }
+  .side-hint {
+    display: none;
+  }
+  @media (min-width: 860px) {
+    .side-hint {
+      display: block;
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--text-dim);
+      text-align: center;
+      padding: 28px 18px;
+      border: 1px dashed var(--border);
+      border-radius: var(--r-card);
+    }
   }
   .viewbar {
     display: flex;

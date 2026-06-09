@@ -522,6 +522,7 @@
       "bearsCaption": "Cities join bear traps (🐻); share a link, or copy the code if it gets long."
     },
     "download": "File",
-    "fromFile": "From file"
+    "fromFile": "From file",
+    "selectHint": "Select a piece to edit its tags."
   }
 }

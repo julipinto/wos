@@ -522,6 +522,7 @@
       "bearsCaption": "Las ciudades participan en osos (🐻); comparte un enlace o copia el código si es largo."
     },
     "download": "Archivo",
-    "fromFile": "Desde archivo"
+    "fromFile": "Desde archivo",
+    "selectHint": "Selecciona una pieza para editar."
   }
 }
