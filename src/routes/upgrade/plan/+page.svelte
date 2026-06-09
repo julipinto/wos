@@ -143,29 +143,28 @@
           <span class="res-name">{resName(key)}</span>
           <span class="res-val">{formatQty(grand[key] ?? 0)}</span>
         </div>
-      {/each}
-
-      {#if refineRfc > 0}
-        <div class="res refine">
-          <span class="res-icon" style="--c: #fb923c" aria-hidden="true">🔥</span>
-          <span class="res-name">
-            {i18n.m.upgrade.plan.toRefine}
-            <span class="approx">{i18n.m.upgrade.plan.approx}</span>
-          </span>
-          <div class="refine-right">
-            <span class="res-val">~{formatQty(refineFc)}</span>
-            <Segmented
-              value={refineMode}
-              ariaLabel={i18n.m.upgrade.refinement.intensity}
-              options={PRESETS.map((p) => ({
-                value: p.key,
-                label: (i18n.m.upgrade.refinement as Record<string, string>)[p.key]
-              }))}
-              onChange={(v) => (refineMode = v)}
-            />
+        {#if key === 'refinedFireCrystal' && refineRfc > 0}
+          <div class="res refine">
+            <span class="res-icon" style="--c: #fb923c" aria-hidden="true">🔥</span>
+            <span class="res-name">
+              {i18n.m.upgrade.plan.toRefine}
+              <span class="approx">{i18n.m.upgrade.plan.approx}</span>
+            </span>
+            <div class="refine-right">
+              <span class="res-val">~{formatQty(refineFc)}</span>
+              <Segmented
+                value={refineMode}
+                ariaLabel={i18n.m.upgrade.refinement.intensity}
+                options={PRESETS.map((p) => ({
+                  value: p.key,
+                  label: (i18n.m.upgrade.refinement as Record<string, string>)[p.key]
+                }))}
+                onChange={(v) => (refineMode = v)}
+              />
+            </div>
           </div>
-        </div>
-      {/if}
+        {/if}
+      {/each}
     </div>
 
     <DeficitPanel needed={grand} />
