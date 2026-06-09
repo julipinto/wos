@@ -41,7 +41,7 @@
         out.push(`  ${timeLabel(t.cat)}: ${formatDuration(speedups.any ? t.left : t.secs)}`);
     }
     out.push('', i18n.m.upgrade.plan.includes.toUpperCase());
-    for (const l of adjLines) out.push(`  ${catName(l.id)}: ${l.detail.join(', ')}`);
+    for (const l of activeLines) out.push(`  ${catName(l.id)}: ${l.detail.join(', ')}`);
     try {
       await navigator.clipboard.writeText(out.join('\n'));
       copied = true;
@@ -65,7 +65,18 @@
     )
   );
 
-  const grand = $derived(adjLines.reduce<ResourceBag>((acc, l) => addBags(acc, l.totals), {}));
+  // Toggle which plan lines count toward the totals — lets you vary "what if I
+  // do this upgrade or not" without leaving the page.
+  let enabled = $state(new Set(lines.map((l) => l.id)));
+  function toggleLine(id: string) {
+    const next = new Set(enabled);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    enabled = next;
+  }
+  const activeLines = $derived(adjLines.filter((l) => enabled.has(l.id)));
+
+  const grand = $derived(activeLines.reduce<ResourceBag>((acc, l) => addBags(acc, l.totals), {}));
   const grandRows = $derived(presentResources(grand));
 
   // Refinement: how many FC to refine the plan's Refined Fire Crystals, at a
@@ -81,7 +92,7 @@
   // Time runs in parallel queues, so report per category — never one summed total.
   const TIME_CATS: BoosterCategory[] = ['construction', 'research', 'training'];
   const catTime = (cat: BoosterCategory) => {
-    const summed = adjLines
+    const summed = activeLines
       .filter((l) => l.timeCategory === cat)
       .reduce((t, l) => t + applySpeed(l.time, boosters.total(cat)), 0);
     // Subtract any flat reduction (Agnes, construction), clamped at 0.
@@ -96,7 +107,7 @@
   );
   // Expert-skill learning time runs on its own (no speed booster / queue).
   const learningTime = $derived(
-    adjLines.filter((l) => l.timeCategory === 'learning').reduce((t, l) => t + l.time, 0)
+    activeLines.filter((l) => l.timeCategory === 'learning').reduce((t, l) => t + l.time, 0)
   );
   const timeLabel = (cat: BoosterCategory) =>
     cat === 'construction'
@@ -231,26 +242,39 @@
     <h2 class="section-label">{i18n.m.upgrade.plan.includes}</h2>
     <div class="lines">
       {#each adjLines as l (l.id)}
-        <a class="line" href="{base}{l.route ?? `/upgrade/${l.id}`}">
-          <div class="line-head">
-            <span class="line-name">{catName(l.id)}</span>
-            <span class="line-res">
-              {#each presentResources(l.totals).slice(0, 4) as k (k)}
-                <span class="chip">{resDef(k).icon} {formatQty(l.totals[k] ?? 0)}</span>
-              {/each}
-            </span>
-          </div>
-          {#if l.detail.length > 0}
-            <div class="line-detail">
-              {#each l.detail.slice(0, 6) as d, i (i)}
-                <span class="dchip">{d}</span>
-              {/each}
-              {#if l.detail.length > 6}
-                <span class="dchip more">+{l.detail.length - 6}</span>
-              {/if}
+        <div class="line" class:off={!enabled.has(l.id)}>
+          <button
+            class="line-toggle"
+            class:on={enabled.has(l.id)}
+            type="button"
+            onclick={() => toggleLine(l.id)}
+            aria-pressed={enabled.has(l.id)}
+            title={i18n.m.upgrade.plan.includeToggle}
+            aria-label={i18n.m.upgrade.plan.includeToggle}
+          >
+            {#if enabled.has(l.id)}<Icon name="check" size={13} />{/if}
+          </button>
+          <a class="line-link" href="{base}{l.route ?? `/upgrade/${l.id}`}">
+            <div class="line-head">
+              <span class="line-name">{catName(l.id)}</span>
+              <span class="line-res">
+                {#each presentResources(l.totals).slice(0, 4) as k (k)}
+                  <span class="chip">{resDef(k).icon} {formatQty(l.totals[k] ?? 0)}</span>
+                {/each}
+              </span>
             </div>
-          {/if}
-        </a>
+            {#if l.detail.length > 0}
+              <div class="line-detail">
+                {#each l.detail.slice(0, 6) as d, i (i)}
+                  <span class="dchip">{d}</span>
+                {/each}
+                {#if l.detail.length > 6}
+                  <span class="dchip more">+{l.detail.length - 6}</span>
+                {/if}
+              </div>
+            {/if}
+          </a>
+        </div>
       {/each}
     </div>
   {/if}
@@ -499,6 +523,39 @@
   }
   .line {
     display: flex;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .line.off {
+    opacity: 0.42;
+  }
+  .line-toggle {
+    flex-shrink: 0;
+    align-self: center;
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition:
+      color 0.2s ease,
+      border-color 0.2s ease,
+      background 0.2s ease;
+  }
+  .line-toggle.on {
+    background: var(--accent-glow);
+    border-color: var(--border-accent);
+    color: var(--accent);
+  }
+  .line-link {
+    flex: 1;
+    min-width: 0;
+    display: flex;
     flex-direction: column;
     gap: 8px;
     padding: 12px 16px;
@@ -509,7 +566,7 @@
     color: inherit;
     transition: border-color 0.2s ease;
   }
-  .line:hover {
+  .line-link:hover {
     border-color: var(--border-accent);
   }
   .line-head {
