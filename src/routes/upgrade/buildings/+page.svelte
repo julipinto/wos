@@ -220,6 +220,7 @@
           <span class="meta-base">
             {#each queueTimes as qt, i (i)}{i > 0 ? ' · ' : ''}⏱{i + 1} {formatDuration(qt)}{/each}
           </span>
+          <span class="meta-base">Σ {formatDuration(queueTimes.reduce((a, b) => a + b, 0))}</span>
         {/if}
         {#if timeUnsourced}
           <span class="meta-base">{i18n.m.upgrade.timePartial}</span>
