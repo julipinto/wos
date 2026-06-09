@@ -374,7 +374,9 @@
       "copy": "Copiar",
       "copied": "Copiado!",
       "clear": "Limpar plano",
-      "clearConfirm": "Limpar todas as seleções das calculadoras? Seus boosters e estoque são mantidos."
+      "clearConfirm": "Limpar todas as seleções das calculadoras? Seus boosters e estoque são mantidos.",
+      "toRefine": "pra refinar",
+      "approx": "aproximadamente"
     },
     "steps": {
       "title": "etapas",

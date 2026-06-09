@@ -374,7 +374,9 @@
       "copy": "Copiar",
       "copied": "¡Copiado!",
       "clear": "Limpiar plan",
-      "clearConfirm": "¿Limpiar todas las selecciones? Tus boosters y stock se mantienen."
+      "clearConfirm": "¿Limpiar todas las selecciones? Tus boosters y stock se mantienen.",
+      "toRefine": "para refinar",
+      "approx": "aproximadamente"
     },
     "steps": {
       "title": "pasos",

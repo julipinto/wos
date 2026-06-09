@@ -374,7 +374,9 @@
       "copy": "Copy",
       "copied": "Copied!",
       "clear": "Clear plan",
-      "clearConfirm": "Clear every calculator selection? Your boosters and stock are kept."
+      "clearConfirm": "Clear every calculator selection? Your boosters and stock are kept.",
+      "toRefine": "to refine",
+      "approx": "approximately"
     },
     "steps": {
       "title": "steps",
