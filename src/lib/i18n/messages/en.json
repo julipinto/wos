@@ -372,9 +372,13 @@
       },
       "speedups": {
         "title": "speedups",
-        "hint": "Enter your speedup stash (in days) per queue to see the real time left.",
-        "days": "days",
-        "remaining": "left after speedups"
+        "hint": "Enter your speedup stash per queue to see the real time left.",
+        "remaining": "left after speedups",
+        "units": {
+          "d": "days",
+          "h": "hours",
+          "m": "min"
+        }
       },
       "copy": "Copy",
       "copied": "Copied!",

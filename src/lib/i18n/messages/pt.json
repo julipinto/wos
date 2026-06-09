@@ -372,9 +372,13 @@
       },
       "speedups": {
         "title": "acelerações",
-        "hint": "Informe seu estoque de speedup (em dias) por fila pra ver o tempo real restante.",
-        "days": "dias",
-        "remaining": "resta após speedups"
+        "hint": "Informe seu estoque de acelerações por fila pra ver o tempo real restante.",
+        "remaining": "resta após speedups",
+        "units": {
+          "d": "dias",
+          "h": "horas",
+          "m": "min"
+        }
       },
       "copy": "Copiar",
       "copied": "Copiado!",

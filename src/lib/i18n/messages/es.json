@@ -372,9 +372,13 @@
       },
       "speedups": {
         "title": "aceleradores",
-        "hint": "Indica tu reserva de aceleradores (en días) por cola para ver el tiempo real restante.",
-        "days": "días",
-        "remaining": "queda tras aceleradores"
+        "hint": "Indica tu reserva de aceleradores por cola para ver el tiempo real restante.",
+        "remaining": "queda tras aceleradores",
+        "units": {
+          "d": "días",
+          "h": "horas",
+          "m": "min"
+        }
       },
       "copy": "Copiar",
       "copied": "¡Copiado!",
