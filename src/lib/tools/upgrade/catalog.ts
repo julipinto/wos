@@ -30,13 +30,6 @@ export const SHOW_PREVIEWS = true;
 export const HUB_CARDS: HubCard[] = [
   { id: 'plan', route: '/upgrade/plan', icon: '📋', i18n: 'plan', status: 'available' },
   {
-    id: 'materials',
-    route: '/upgrade/materials',
-    icon: '📦',
-    i18n: 'materials',
-    status: 'available'
-  },
-  {
     id: 'buildings',
     route: '/upgrade/buildings',
     icon: '🏭',
@@ -50,7 +43,14 @@ export const HUB_CARDS: HubCard[] = [
   { id: 'helios', route: '/upgrade/helios', icon: '🔆', i18n: 'helios', status: 'available' },
   { id: 'pets', route: '/upgrade/pets', icon: '🐺', i18n: 'pets', status: 'available' },
   { id: 'experts', route: '/upgrade/experts', icon: '🎓', i18n: 'experts', status: 'available' },
-  { id: 'heroes', route: '/upgrade/heroes', icon: '🦸', i18n: 'heroes', status: 'available' }
+  { id: 'heroes', route: '/upgrade/heroes', icon: '🦸', i18n: 'heroes', status: 'available' },
+  {
+    id: 'materials',
+    route: '/upgrade/materials',
+    icon: '📦',
+    i18n: 'materials',
+    status: 'available'
+  }
 ];
 
 /** Effective status after applying the preview gate. */
