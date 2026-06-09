@@ -16,6 +16,8 @@
   import { RESOURCES, type ResourceBag } from '$lib/tools/upgrade/types';
   import { boosters, type BoosterCategory } from '$lib/tools/upgrade/boosters-store.svelte';
   import { planLines, cutBase, PLAN_STORAGE_KEYS } from '$lib/tools/upgrade/plan';
+  import { estimate, planById, PRESETS } from '$lib/tools/upgrade/refinement';
+  import Segmented from '$lib/components/Segmented.svelte';
 
   // Snapshot of saved selections (read once on load).
   const lines = planLines();
@@ -29,6 +31,10 @@
     out.push(i18n.m.upgrade.totalEyebrow.toUpperCase());
     for (const k of grandRows)
       out.push(`  ${resDef(k).icon} ${resName(k)}: ${formatQty(grand[k] ?? 0)}`);
+    if (refineRfc > 0)
+      out.push(
+        `  🔥 ${i18n.m.upgrade.plan.toRefine}: ~${formatQty(refineFc)} FC (${refineModeName})`
+      );
     if (timeRows.length > 0) {
       out.push('');
       for (const t of timeRows)
@@ -61,6 +67,16 @@
 
   const grand = $derived(adjLines.reduce<ResourceBag>((acc, l) => addBags(acc, l.totals), {}));
   const grandRows = $derived(presentResources(grand));
+
+  // Refinement: how many FC to refine the plan's Refined Fire Crystals, at a
+  // chosen intensity. Approximate (RNG) — shown low-key, mode included.
+  const refineRfc = $derived(grand.refinedFireCrystal ?? 0);
+  let refineMode = $state('economic');
+  const refinePlan = $derived(planById(PRESETS.find((p) => p.key === refineMode)?.plan ?? 'L3'));
+  const refineFc = $derived(estimate(refineRfc, refinePlan).fcTotal);
+  const refineModeName = $derived(
+    (i18n.m.upgrade.refinement as Record<string, string>)[refineMode]
+  );
 
   // Time runs in parallel queues, so report per category — never one summed total.
   const TIME_CATS: BoosterCategory[] = ['construction', 'research', 'training'];
@@ -128,6 +144,28 @@
           <span class="res-val">{formatQty(grand[key] ?? 0)}</span>
         </div>
       {/each}
+
+      {#if refineRfc > 0}
+        <div class="res refine">
+          <span class="res-icon" style="--c: #fb923c" aria-hidden="true">🔥</span>
+          <span class="res-name">
+            {i18n.m.upgrade.plan.toRefine}
+            <span class="approx">{i18n.m.upgrade.plan.approx}</span>
+          </span>
+          <div class="refine-right">
+            <span class="res-val">~{formatQty(refineFc)}</span>
+            <Segmented
+              value={refineMode}
+              ariaLabel={i18n.m.upgrade.refinement.intensity}
+              options={PRESETS.map((p) => ({
+                value: p.key,
+                label: (i18n.m.upgrade.refinement as Record<string, string>)[p.key]
+              }))}
+              onChange={(v) => (refineMode = v)}
+            />
+          </div>
+        </div>
+      {/if}
     </div>
 
     <DeficitPanel needed={grand} />
@@ -314,6 +352,24 @@
     font-weight: 700;
     font-size: 22px;
     letter-spacing: -0.01em;
+  }
+  .res.refine {
+    flex-wrap: wrap;
+    border-style: dashed;
+  }
+  .approx {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-inline-start: 6px;
+  }
+  .refine-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-inline-start: auto;
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
   .meta-row {
     display: flex;
