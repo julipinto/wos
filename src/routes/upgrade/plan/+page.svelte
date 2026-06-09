@@ -23,6 +23,7 @@
   const lines = planLines();
 
   let speedOpen = $state(false);
+  let spUnit = $state<'d' | 'h' | 'm'>('d'); // speedup entry unit
   let copied = $state(false);
 
   // Build a plain-text summary (paste into alliance chat) and copy it.
@@ -256,19 +257,32 @@
         {#if speedOpen}
           <div class="sp-body">
             <p class="sp-hint">{i18n.m.upgrade.plan.speedups.hint}</p>
+            <Segmented
+              value={spUnit}
+              ariaLabel={i18n.m.upgrade.plan.speedups.title}
+              options={(['d', 'h', 'm'] as const).map((u) => ({
+                value: u,
+                label: (i18n.m.upgrade.plan.speedups.units as Record<string, string>)[u]
+              }))}
+              onChange={(v) => (spUnit = v as 'd' | 'h' | 'm')}
+            />
             {#each timeRows as t (t.cat)}
               <div class="sp-row">
                 <span class="sp-label">{timeLabel(t.cat)}</span>
                 <input
                   type="number"
                   min="0"
-                  step="0.5"
+                  step={spUnit === 'd' ? '0.5' : '1'}
                   inputmode="decimal"
-                  value={speedups.days(t.cat)}
-                  oninput={(e) => speedups.setDays(t.cat, Number(e.currentTarget.value))}
-                  aria-label="{timeLabel(t.cat)} {i18n.m.upgrade.plan.speedups.days}"
+                  value={speedups.amount(t.cat, spUnit)}
+                  oninput={(e) => speedups.setAmount(t.cat, Number(e.currentTarget.value), spUnit)}
+                  aria-label="{timeLabel(t.cat)} {(
+                    i18n.m.upgrade.plan.speedups.units as Record<string, string>
+                  )[spUnit]}"
                 />
-                <span class="sp-unit">{i18n.m.upgrade.plan.speedups.days}</span>
+                <span class="sp-unit"
+                  >{(i18n.m.upgrade.plan.speedups.units as Record<string, string>)[spUnit]}</span
+                >
               </div>
             {/each}
           </div>
