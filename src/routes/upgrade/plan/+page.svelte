@@ -173,7 +173,14 @@
               <span class="approx">{i18n.m.upgrade.plan.approx}</span>
             </span>
             <div class="refine-right">
-              <span class="res-val">~{formatQty(refineFc)}</span>
+              <div class="refine-num">
+                <span class="res-val">~{formatQty(refineFc)}</span>
+                <span class="refine-total"
+                  >{fmt(i18n.m.upgrade.refinement.totalLabel, {
+                    n: formatQty((grand.fireCrystal ?? 0) + refineFc)
+                  })}</span
+                >
+              </div>
               <Segmented
                 value={refineMode}
                 ariaLabel={i18n.m.upgrade.refinement.intensity}
@@ -403,6 +410,17 @@
     font-size: 10px;
     color: var(--text-dim);
     margin-inline-start: 6px;
+  }
+  .refine-num {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+  .refine-total {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
   }
   .refine-right {
     display: flex;
