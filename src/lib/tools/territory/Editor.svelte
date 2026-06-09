@@ -187,12 +187,16 @@
       right: 0;
       bottom: 0;
       margin: 0;
+      /* Opaque fill — the translucent --surface let the footer bleed through and
+         became unreadable as a floating sheet. */
+      background: var(--bg-soft);
+      border: 1px solid var(--border-strong);
+      border-top: 1px solid var(--border-accent);
       border-radius: 16px 16px 0 0;
-      border-bottom: 0;
       max-height: 72vh;
       overflow-y: auto;
       z-index: 60;
-      box-shadow: 0 -14px 44px rgba(0, 0, 0, 0.55);
+      box-shadow: 0 -14px 44px rgba(0, 0, 0, 0.6);
       padding-bottom: max(16px, env(safe-area-inset-bottom));
     }
     /* a grabber so it reads as a sheet */

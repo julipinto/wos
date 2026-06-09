@@ -716,10 +716,12 @@
       right: 0;
       bottom: 0;
       margin: 0;
+      background: var(--bg-soft);
+      border-top: 1px solid var(--border-accent);
       border-radius: 16px 16px 0 0;
       z-index: 60;
       padding: 14px 16px max(14px, env(safe-area-inset-bottom));
-      box-shadow: 0 -14px 44px rgba(0, 0, 0, 0.55);
+      box-shadow: 0 -14px 44px rgba(0, 0, 0, 0.6);
     }
   }
 </style>
