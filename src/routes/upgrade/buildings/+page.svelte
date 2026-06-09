@@ -444,5 +444,9 @@
     .wrap {
       padding: 24px 18px 72px;
     }
+    .meta-row {
+      flex-direction: column;
+      gap: 12px;
+    }
   }
 </style>

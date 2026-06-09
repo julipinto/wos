@@ -92,4 +92,9 @@
     background: var(--surface);
     color: var(--text);
   }
+  @media (max-width: 540px) {
+    .modal {
+      padding: 20px;
+    }
+  }
 </style>
