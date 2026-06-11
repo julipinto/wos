@@ -35,7 +35,7 @@ export interface TerritoryDef {
 // system is reused for several organisation types. NOTE: Sunfire Castle and
 // State objects are sensible PLACEHOLDERS — easy to refine, they're just data.
 const HIVE_OBJECTS: Record<string, TerritoryDef> = {
-  hq: { w: 15, h: 15, seed: true, max: 1, i18n: 'hq', color: '#93d4ff' },
+  hq: { w: 3, h: 3, seed: true, max: 1, i18n: 'hq', color: '#93d4ff' },
   banner: { w: 1, h: 1, coverage: 7, i18n: 'banner', color: '#fbbf24' },
   city: { w: 2, h: 2, city: true, i18n: 'city', color: '#4ade80' },
   // Officially 2 bear traps (the counter caps at 2); a 3rd is an extraordinary
