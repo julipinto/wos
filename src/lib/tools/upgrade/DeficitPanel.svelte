@@ -28,7 +28,10 @@
   let open = $state(false);
   const resDef = (k: string) => RESOURCES.find((r) => r.key === k)!;
   const resName = (k: string) => (i18n.m.upgrade.res as Record<string, string>)[k];
-  const keys = $derived(presentResources(needed));
+  // Refined Fire Crystals aren't gathered, they're refined — the Refinement
+  // section owns "how many you have" (needed → saved → still to refine), so we
+  // keep it out of here to avoid a second, conflicting RFC stock input.
+  const keys = $derived(presentResources(needed).filter((k) => k !== 'refinedFireCrystal'));
   const deficit = (k: string) =>
     Math.max(0, (needed[k as keyof ResourceBag] ?? 0) - (stock[k] ?? 0));
   const shortCount = $derived(keys.filter((k) => deficit(k) > 0).length);
