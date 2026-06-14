@@ -142,7 +142,7 @@
     </div>
   </div>
 
-  {#if directFc > 0}
+  {#if directFc > 0 && !manual}
     <p class="total-line">{fmt(t.totalLabel, { n: groupNumber(directFc + fcTotal) })}</p>
   {/if}
 
