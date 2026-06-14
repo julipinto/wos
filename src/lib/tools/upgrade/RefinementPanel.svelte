@@ -52,9 +52,11 @@
       ? fmt(t.daysWeeks, { n: est.days, m: Math.round(est.days / 7) })
       : fmt(t.days, { n: est.days })
   );
-  const tipKey = $derived(
-    'tip' + refinementStore.intensity[0].toUpperCase() + refinementStore.intensity.slice(1)
-  );
+  // What the chosen intensity concretely means: refines/week and the top tier it
+  // reaches (each tier holds 20 refines, filled cheap-first).
+  const topTier = $derived(Math.min(5, Math.ceil(plan.refines / 20)));
+  // Concrete weekly play: bulk in one day + 6 spread 1/day to catch the daily 50%-off.
+  const bulk = $derived(Math.max(0, plan.refines - 6));
 
   const num = (e: Event) => {
     const v = Number((e.currentTarget as HTMLInputElement).value);
@@ -135,6 +137,7 @@
           options={PRESETS.map((p) => ({ value: p.key, label: tx[p.key] }))}
           onChange={(v) => (refinementStore.intensity = v)}
         />
+        <p class="rhythm">{fmt(t.weekly, { n: plan.refines, tier: topTier })}</p>
       </div>
 
       <div class="meta-row">
@@ -158,8 +161,8 @@
         <p class="total-line">{fmt(t.totalLabel, { n: groupNumber(directFc + fcTotal) })}</p>
       {/if}
 
-      {#if tx[tipKey]}
-        <p class="tip">💡 {tx[tipKey]}</p>
+      {#if plan.refines > 6}
+        <p class="tip">💡 {fmt(t.play, { bulk })}</p>
       {/if}
 
       <details class="method">
@@ -327,6 +330,12 @@
     flex-direction: column;
     gap: 6px;
     margin-bottom: 12px;
+  }
+  .rhythm {
+    margin: 2px 0 0;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
   }
   .field-label {
     font-family: var(--font-mono);
