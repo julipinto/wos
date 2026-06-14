@@ -453,7 +453,8 @@
         "experts": "Especialistas"
       },
       "confNote": "Confiança = o quanto temos certeza das fontes (alta → cross-checada · baixa → incerta)."
-    }
+    },
+    "filter": "Filtrar… (ex.: FC5)"
   },
   "territory": {
     "sub": "Posicione no grid; banners cobrem 7×7 e precisam conectar ao HQ pra segurar território.",

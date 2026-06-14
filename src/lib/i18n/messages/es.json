@@ -453,7 +453,8 @@
         "experts": "Expertos"
       },
       "confNote": "Confianza = qué tan seguros estamos de las fuentes (alta → contrastada · baja → incierta)."
-    }
+    },
+    "filter": "Filtrar… (ej.: FC5)"
   },
   "territory": {
     "sub": "Coloca en la cuadrícula; las banderas cubren 7×7 y deben conectarse al HQ para mantener territorio.",

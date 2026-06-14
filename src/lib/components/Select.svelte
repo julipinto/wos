@@ -5,6 +5,10 @@
    * popups render in the OS colour scheme and can't be fully styled. Mirrors
    * the accessible pattern in LocaleSwitcher: button trigger + listbox popup,
    * click-outside + Escape to close, arrow-key navigation.
+   *
+   * Long lists (e.g. the 41-step level ladder, 1–30 + FC1–FC10) get a type-to-
+   * filter box so you can jump straight to "FC5" instead of scrolling. It only
+   * appears past a threshold, so short dropdowns stay plain.
    */
   import Icon from './Icon.svelte';
 
@@ -19,24 +23,40 @@
     onChange: (value: string) => void;
     /** Accessible name for the control (e.g. the field label text). */
     ariaLabel?: string;
+    /** Placeholder for the filter box on long lists (already localised). */
+    searchPlaceholder?: string;
   }
 
-  let { value, options, onChange, ariaLabel }: Props = $props();
+  let { value, options, onChange, ariaLabel, searchPlaceholder = '' }: Props = $props();
 
   let open = $state(false);
   let activeIndex = $state(-1);
+  let query = $state('');
   let menuEl = $state<HTMLDivElement | null>(null);
   let triggerEl = $state<HTMLButtonElement | null>(null);
+  let searchEl = $state<HTMLInputElement | null>(null);
   const itemEls: HTMLButtonElement[] = [];
 
+  const SEARCH_THRESHOLD = 10; // show the filter box only on long lists
+  const searchable = $derived(options.length > SEARCH_THRESHOLD);
   const selected = $derived(options.find((o) => o.value === value));
-  const selectedIndex = $derived(options.findIndex((o) => o.value === value));
+  // The rows currently rendered (filtered while typing); activeIndex/itemEls track these.
+  const shown = $derived(
+    searchable && query.trim()
+      ? options.filter((o) => o.label.toLowerCase().includes(query.trim().toLowerCase()))
+      : options
+  );
 
   function openMenu() {
     open = true;
-    activeIndex = selectedIndex >= 0 ? selectedIndex : 0;
-    // Scroll the active row into view once the popup has rendered.
-    queueMicrotask(() => itemEls[activeIndex]?.scrollIntoView({ block: 'nearest' }));
+    query = '';
+    const si = options.findIndex((o) => o.value === value);
+    activeIndex = si >= 0 ? si : 0;
+    // Focus the filter (if any) and scroll the active row into view once rendered.
+    queueMicrotask(() => {
+      if (searchable) searchEl?.focus();
+      itemEls[activeIndex]?.scrollIntoView({ block: 'nearest' });
+    });
   }
   function closeMenu(refocus = true) {
     open = false;
@@ -47,8 +67,8 @@
     closeMenu();
   }
   function moveActive(delta: number) {
-    if (options.length === 0) return;
-    const next = (activeIndex + delta + options.length) % options.length;
+    if (shown.length === 0) return;
+    const next = (activeIndex + delta + shown.length) % shown.length;
     activeIndex = next;
     itemEls[next]?.scrollIntoView({ block: 'nearest' });
   }
@@ -66,17 +86,22 @@
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       moveActive(-1);
-    } else if (e.key === 'Home') {
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      const opt = shown[activeIndex];
+      if (opt) pick(opt);
+    } else if (!searchable && e.key === 'Home') {
       e.preventDefault();
       activeIndex = 0;
       itemEls[0]?.scrollIntoView({ block: 'nearest' });
-    } else if (e.key === 'End') {
+    } else if (!searchable && e.key === 'End') {
       e.preventDefault();
-      activeIndex = options.length - 1;
+      activeIndex = shown.length - 1;
       itemEls[activeIndex]?.scrollIntoView({ block: 'nearest' });
-    } else if (e.key === 'Enter' || e.key === ' ') {
+    } else if (!searchable && e.key === ' ') {
+      // On searchable lists the space bar belongs to the filter input.
       e.preventDefault();
-      const opt = options[activeIndex];
+      const opt = shown[activeIndex];
       if (opt) pick(opt);
     }
   }
@@ -122,7 +147,20 @@
       aria-label={ariaLabel}
       onkeydown={onMenuKey}
     >
-      {#each options as opt, i (opt.value)}
+      {#if searchable}
+        <div class="search">
+          <span class="mag" aria-hidden="true">🔍</span>
+          <input
+            bind:this={searchEl}
+            bind:value={query}
+            placeholder={searchPlaceholder}
+            aria-label={ariaLabel}
+            oninput={() => (activeIndex = 0)}
+          />
+        </div>
+      {/if}
+
+      {#each shown as opt, i (opt.value)}
         <button
           bind:this={itemEls[i]}
           class="item"
@@ -139,6 +177,8 @@
             <Icon name="check" size={14} />
           {/if}
         </button>
+      {:else}
+        <div class="empty">—</div>
       {/each}
     </div>
   {/if}
@@ -206,6 +246,31 @@
     display: grid;
     gap: 2px;
   }
+  .search {
+    position: sticky;
+    top: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px 8px;
+    margin-bottom: 4px;
+    background: var(--bg-soft);
+    border-bottom: 1px solid var(--border);
+  }
+  .search input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: 0;
+    outline: none;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+  .mag {
+    font-size: 12px;
+    opacity: 0.7;
+  }
   .item {
     display: flex;
     align-items: center;
@@ -232,5 +297,12 @@
   }
   .item.selected.active {
     background: var(--accent-glow);
+  }
+  .empty {
+    padding: 12px;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
   }
 </style>
