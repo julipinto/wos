@@ -92,6 +92,8 @@ export interface RefineEstimate {
   /** Low / high ends of the ~85% typical band. */
   fcLow: number;
   fcHigh: number;
+  /** Days to finish (throughput is independent of the FC discount). */
+  days: number;
   /** Whole weeks to finish at this plan. */
   weeks: number;
   /** FC spent per RFC at this plan (efficiency). */
@@ -109,9 +111,12 @@ export interface RefineEstimate {
  */
 export function estimate(rfcNeeded: number, plan: RefinePlan): RefineEstimate {
   const fcPerRfc = plan.fcPerWeek / plan.rfcPerWeek;
-  if (rfcNeeded <= 0) return { fcTotal: 0, fcLow: 0, fcHigh: 0, weeks: 0, fcPerRfc };
+  if (rfcNeeded <= 0) return { fcTotal: 0, fcLow: 0, fcHigh: 0, days: 0, weeks: 0, fcPerRfc };
 
   const fcTotal = Math.round(rfcNeeded * fcPerRfc);
+  // RFC throughput is independent of the FC discount, so time is pure throughput:
+  // a smooth daily rate (rfcPerWeek / 7) gives a day-granular estimate.
+  const days = Math.ceil((rfcNeeded * 7) / plan.rfcPerWeek);
   const weeks = Math.ceil(rfcNeeded / plan.rfcPerWeek);
 
   // Per-refine stats for this plan's tier mix.
@@ -127,6 +132,7 @@ export function estimate(rfcNeeded: number, plan: RefinePlan): RefineEstimate {
     fcTotal,
     fcLow: Math.max(0, Math.round(fcTotal - Z_85 * sd)),
     fcHigh: Math.round(fcTotal + Z_85 * sd),
+    days,
     weeks,
     fcPerRfc
   };

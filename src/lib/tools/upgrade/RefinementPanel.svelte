@@ -36,16 +36,16 @@
   );
 
   const est = $derived(estimate(netRfc, plan));
-  // Saved FC abates the bill of what's left to farm, clamped at 0.
-  const fcTotal = $derived(Math.max(0, est.fcTotal - refinementStore.stockFc));
-  const fcLow = $derived(Math.max(0, est.fcLow - refinementStore.stockFc));
-  const fcHigh = $derived(Math.max(0, est.fcHigh - refinementStore.stockFc));
+  const fcTotal = $derived(est.fcTotal);
+  const fcLow = $derived(est.fcLow);
+  const fcHigh = $derived(est.fcHigh);
   const hasBand = $derived(fcHigh > fcLow);
 
+  // Time in days (more granular than weeks, better for SvS); weeks hint when long.
   const timeLabel = $derived(
-    est.weeks >= 8
-      ? fmt(t.weeksMonths, { n: est.weeks, m: Math.round(est.weeks / 4.345) })
-      : fmt(t.weeks, { n: est.weeks })
+    est.days >= 21
+      ? fmt(t.daysWeeks, { n: est.days, m: Math.round(est.days / 7) })
+      : fmt(t.days, { n: est.days })
   );
   const tipKey = $derived(
     'tip' + refinementStore.intensity[0].toUpperCase() + refinementStore.intensity.slice(1)
@@ -141,22 +141,6 @@
       <span class="meta-val">{timeLabel}</span>
     </div>
   </div>
-
-  <label class="field inline">
-    <span class="field-label">{t.savedFcLabel}</span>
-    <span class="ov-input">
-      −
-      <input
-        type="number"
-        min="0"
-        inputmode="numeric"
-        value={refinementStore.stockFc || ''}
-        oninput={(e) => (refinementStore.stockFc = num(e))}
-        placeholder="0"
-      />
-      FC
-    </span>
-  </label>
 
   {#if directFc > 0}
     <p class="total-line">{fmt(t.totalLabel, { n: groupNumber(directFc + fcTotal) })}</p>
@@ -296,12 +280,6 @@
     flex-direction: column;
     gap: 6px;
     margin-bottom: 12px;
-  }
-  .field.inline {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 12px;
   }
   .intensity {
     display: flex;
