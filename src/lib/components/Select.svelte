@@ -37,7 +37,8 @@
   let searchEl = $state<HTMLInputElement | null>(null);
   const itemEls: HTMLButtonElement[] = [];
 
-  const SEARCH_THRESHOLD = 10; // show the filter box only on long lists
+  const SEARCH_THRESHOLD = 16; // only genuinely long ladders (e.g. the 41-step
+  // furnace list); short ones like the 11 troop tiers stay plain.
   const searchable = $derived(options.length > SEARCH_THRESHOLD);
   const selected = $derived(options.find((o) => o.value === value));
   // The rows currently rendered (filtered while typing); activeIndex/itemEls track these.
@@ -237,6 +238,7 @@
     inset-inline: 0;
     max-height: 280px;
     overflow-y: auto;
+    overflow-x: hidden;
     background: var(--bg-soft);
     border: 1px solid var(--border-strong);
     border-radius: 14px;
