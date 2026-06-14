@@ -89,6 +89,17 @@ describe('tier-by-tier cost (rush fills one week cheap-first)', () => {
       estimate(260, planById('L10')).fcPerRfc
     );
   });
+
+  it('a target past one weekly quota rolls into the next week (reset reused)', () => {
+    // ~278 RFC fills one rush week; 600 needs the quota to reset across ~3 weeks.
+    const oneWeek = estimate(278, rush);
+    const big = estimate(600, rush);
+    expect(oneWeek.weeks).toBe(1);
+    expect(big.weeks).toBe(3);
+    // Each fresh week repeats the cheap→expensive cycle, so the rate stays steady
+    // instead of climbing forever — proof the weekly reset is applied.
+    expect(Math.abs(big.fcPerRfc - oneWeek.fcPerRfc)).toBeLessThan(2);
+  });
 });
 
 describe('typical band (RNG spread)', () => {
