@@ -11,8 +11,8 @@
   import { RESOURCES, type LevelCost } from './types';
 
   interface Props {
-    /** The levels to list (already sliced to the from→to range). */
-    steps: LevelCost[];
+    /** The levels to list (already sliced to the from→to range), tagged by building. */
+    steps: (LevelCost & { group?: string })[];
   }
   let { steps }: Props = $props();
 
@@ -31,6 +31,9 @@
     {#if open}
       <ol class="list">
         {#each steps as s, i (i)}
+          {#if s.group && s.group !== steps[i - 1]?.group}
+            <li class="group-head">{s.group}</li>
+          {/if}
           <li class="step">
             <span class="step-label">{s.label}</span>
             <span class="step-body">
@@ -99,12 +102,24 @@
     display: grid;
     gap: 6px;
   }
+  .group-head {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--accent);
+    padding: 12px 0 2px;
+  }
   .step {
     display: flex;
     align-items: baseline;
     gap: 12px;
     padding: 8px 0;
     border-top: 1px solid var(--border);
+  }
+  /* The first step under a group header doesn't need its own separator. */
+  .group-head + .step {
+    border-top: 0;
   }
   .step-label {
     font-family: var(--font-mono);

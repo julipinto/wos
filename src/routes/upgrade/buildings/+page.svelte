@@ -65,7 +65,7 @@
 
   // Combined per-building step breakdown — each level prefixed with its building.
   const steps = $derived.by(() => {
-    const out: LevelCost[] = [];
+    const out: (LevelCost & { group?: string })[] = [];
     for (const r of rows) {
       const t = buildingsCalc.tableOf(r.buildingId);
       const lv = t.levels;
@@ -73,7 +73,7 @@
       const toI = lv.findIndex((l) => l.label === r.to);
       if (fromI < 0 || toI < 0) continue;
       for (const level of lv.slice(fromI + 1, toI + 1))
-        out.push({ label: `${t.name} · ${level.label}`, cost: level.cost, time: level.time });
+        out.push({ group: t.name, label: level.label, cost: level.cost, time: level.time });
     }
     return out;
   });
