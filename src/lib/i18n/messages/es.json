@@ -413,7 +413,7 @@
       "rhythm": "≈ {refines} refinados/semana · ~{fc} FC/semana",
       "ecoNote": "≈20 refinados en el tier 1, luego 1/día para el 50% diario",
       "refineTime": "tiempo de refinado",
-      "totalLabel": "total ~{n}",
+      "totalLabel": "total (construcción + refinado) ~{n}",
       "totalNeeded": "Necesita en total",
       "haveSaved": "Ya guardado",
       "stillToRefine": "Falta refinar",
@@ -422,7 +422,7 @@
       "fromPlan": "Del plan",
       "manualToggle": "Escribir",
       "manualLabel": "RFC que necesitas",
-      "typical": "típico {low}–{high}",
+      "typical": "entre {low} y {high}",
       "tipEconomic": "20 refinados en el nivel 1 el lunes, luego 1/día para aprovechar el −50% diario.",
       "tipBalanced": "Limpia los niveles baratos y avanza en los medios — equilibra coste y tiempo.",
       "tipFast": "Haz más niveles por semana — más rápido, pero más caro por RFC.",
@@ -430,7 +430,9 @@
       "methodTitle": "Cómo calculamos",
       "methodSources": "Las tasas por nivel son de la comunidad (Century Games no las publica) — trátalas como estimación, no garantía.",
       "methodEstimate": "FC = RFC × el FC-por-RFC de tu intensidad, que ya incluye el primer refinado diario con −50%.",
-      "methodBand": "Refinar es aleatorio, así que mostramos un rango típico (~85% de los casos), no un número exacto."
+      "methodBand": "Refinar es aleatorio, así que mostramos un rango típico (~85% de los casos), no un número exacto.",
+      "days": "~{n} días",
+      "daysWeeks": "~{n} días (~{m} sem)"
     },
     "materials": {
       "sub": "Dónde conseguir cada material de mejora.",

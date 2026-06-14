@@ -102,9 +102,7 @@
     planById(PRESETS.find((p) => p.key === refinementStore.intensity)?.plan ?? 'L3')
   );
   const refineNet = $derived(Math.max(0, refineRfc - refinementStore.stockRfc));
-  const refineFc = $derived(
-    Math.max(0, estimate(refineNet, refinePlan).fcTotal - refinementStore.stockFc)
-  );
+  const refineFc = $derived(estimate(refineNet, refinePlan).fcTotal);
   const refineModeName = $derived(
     (i18n.m.upgrade.refinement as Record<string, string>)[refinementStore.intensity]
   );
