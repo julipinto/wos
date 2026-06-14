@@ -6,8 +6,11 @@
  *
  * Super-refine = FC → RFC, 100/week across 5 tiers of 20 refines. Cost per RFC
  * worsens up the tiers (cheap tiers are efficient, expensive tiers buy speed),
- * so the "how hard do you push" choice trades FC cost against time. The plan
- * ladder below is pre-computed weekly throughput from the strategy guide.
+ * so the "how hard do you push" choice trades FC cost against time. `estimate`
+ * simulates this week by week (cheap tiers first) rather than using a blended
+ * rate, so a small target — which never leaves tier 1 — costs the same at any
+ * intensity. The plan ladder below sets the refines/week per intensity; its
+ * pre-computed fcPerWeek/rfcPerWeek are kept as reference (the guide's figures).
  *
  * Because each refine is a dice roll, the FC bill is a range, not a point. We
  * report a *typical band* (~85% of outcomes) alongside the expected value: the
@@ -70,21 +73,12 @@ const TIERS = [
   { mu: 3.435, variance: 0.896 }, // T4: 3@75% 4@15% 5@5% 6@3% 7@1% 8@0.5% 9@0.5%
   { mu: 3.71, variance: 2.156 } // T5: 3@70% 4@12% 5@9% 6@4% 7@1.5% 8@1% 9@1% 10@.5% 11@.5% 12@.5%
 ];
+const TIER_COST = [20, 50, 100, 130, 160]; // FC to start a refine, per tier
 const TIER_CAP = 20; // refines available per tier per week
+const DAYS_PER_WEEK = 7; // also the max daily 50%-off discounts per week
 
 /** z for an ~85% two-sided band (7.5% each tail). */
 const Z_85 = 1.44;
-
-/** How a week's `refines` spread across tiers under optimal (cheap-first) play. */
-function composition(refines: number): number[] {
-  const n = [0, 0, 0, 0, 0];
-  let left = Math.max(0, refines);
-  for (let i = 0; i < TIERS.length && left > 0; i++) {
-    n[i] = Math.min(TIER_CAP, left);
-    left -= n[i];
-  }
-  return n;
-}
 
 export interface RefineEstimate {
   /** Fire Crystals needed (expected value). */
@@ -101,33 +95,70 @@ export interface RefineEstimate {
 }
 
 /**
- * Estimate FC + weeks to produce `rfcNeeded` RFC at the given plan, with a
+ * Estimate FC + time to produce `rfcNeeded` RFC at the given plan, with a
  * typical (~85%) band around the expected FC.
  *
- * Mean FC = rfcNeeded × (FC/RFC). The band comes from renewal-process variance:
- * reaching N RFC takes a random number of refines R with Var(R) ≈ N·σ̄²/μ̄³,
- * and FC ≈ R × c̄ (mean FC per refine), so SD(FC) ≈ c̄·√(N·σ̄²/μ̄³). σ̄² is the
- * per-refine RFC variance for this plan's tier mix (law of total variance).
+ * We simulate week by week, filling the CHEAPEST tier first (20 refines/tier,
+ * resetting each week) and stopping the moment the target is reached. The cost
+ * therefore reflects the tiers you ACTUALLY use — a small target never leaves
+ * tier 1, so all intensities cost ~the same; a big target pushed hard burns the
+ * expensive tiers in fewer weeks. The 50%-off first refine of each day is spent
+ * on the week's most expensive refines (up to 7/week).
+ *
+ * The intensity (`plan.refines` per week) drives speed: more refines/week → more
+ * days of throughput consumed at once, and a bigger week reaches higher tiers.
+ *
+ * Band: reaching N RFC takes a random number of refines R with Var(R) ≈ N·σ̄²/μ̄³,
+ * and FC ≈ R · c̄ (mean FC per refine), so SD(FC) ≈ c̄·√(N·σ̄²/μ̄³); σ̄² is the
+ * per-refine RFC variance over the tiers actually used (law of total variance).
  */
 export function estimate(rfcNeeded: number, plan: RefinePlan): RefineEstimate {
-  const fcPerRfc = plan.fcPerWeek / plan.rfcPerWeek;
-  if (rfcNeeded <= 0) return { fcTotal: 0, fcLow: 0, fcHigh: 0, days: 0, weeks: 0, fcPerRfc };
+  if (rfcNeeded <= 0) return { fcTotal: 0, fcLow: 0, fcHigh: 0, days: 0, weeks: 0, fcPerRfc: 0 };
 
-  const fcTotal = Math.round(rfcNeeded * fcPerRfc);
-  // RFC throughput is independent of the FC discount, so time is pure throughput:
-  // a smooth daily rate (rfcPerWeek / 7) gives a day-granular estimate.
-  const days = Math.ceil((rfcNeeded * 7) / plan.rfcPerWeek);
-  const weeks = Math.ceil(rfcNeeded / plan.rfcPerWeek);
+  const R = plan.refines;
+  const perDay = Math.max(1, Math.ceil(R / DAYS_PER_WEEK));
+  const used = [0, 0, 0, 0, 0]; // refines per tier across the whole job (for the band)
+  let rfc = 0;
+  let fc = 0;
+  let weeks = 0;
+  let finalWeekRefines = 0;
 
-  // Per-refine stats for this plan's tier mix.
-  const comp = composition(plan.refines);
-  const total = comp.reduce((s, n) => s + n, 0) || 1;
-  const muBar = comp.reduce((s, n, i) => s + n * TIERS[i].mu, 0) / total;
-  const eX2 = comp.reduce((s, n, i) => s + n * (TIERS[i].variance + TIERS[i].mu ** 2), 0) / total;
+  while (rfc < rfcNeeded && weeks < 5000) {
+    weeks++;
+    const week = [0, 0, 0, 0, 0]; // refines per tier THIS week (tiers reset weekly)
+    let inWeek = 0;
+    for (let t = 0; t < TIERS.length && inWeek < R && rfc < rfcNeeded; t++) {
+      while (week[t] < TIER_CAP && inWeek < R && rfc < rfcNeeded) {
+        rfc += TIERS[t].mu;
+        week[t]++;
+        used[t]++;
+        inWeek++;
+      }
+    }
+    finalWeekRefines = inWeek;
+    // Spend the daily 50%-off on this week's most expensive refines (top tiers).
+    let discounts = Math.min(DAYS_PER_WEEK, Math.ceil(inWeek / perDay));
+    for (let t = 0; t < TIERS.length; t++) fc += week[t] * TIER_COST[t];
+    for (let t = TIERS.length - 1; t >= 0 && discounts > 0; t--) {
+      const take = Math.min(discounts, week[t]);
+      fc -= 0.5 * take * TIER_COST[t];
+      discounts -= take;
+    }
+  }
+
+  const fcTotal = Math.round(fc);
+  const days = (weeks - 1) * DAYS_PER_WEEK + Math.ceil(finalWeekRefines / perDay);
+  const fcPerRfc = fcTotal / rfcNeeded;
+
+  // Typical band from the per-refine RFC variance over the tiers actually used.
+  const totalRef = used.reduce((s, n) => s + n, 0) || 1;
+  const muBar = used.reduce((s, n, i) => s + n * TIERS[i].mu, 0) / totalRef;
+  const eX2 =
+    used.reduce((s, n, i) => s + n * (TIERS[i].variance + TIERS[i].mu ** 2), 0) / totalRef;
   const varBar = Math.max(0, eX2 - muBar ** 2);
-  const cBar = plan.fcPerWeek / total;
-
+  const cBar = fc / totalRef;
   const sd = cBar * Math.sqrt((rfcNeeded * varBar) / muBar ** 3);
+
   return {
     fcTotal,
     fcLow: Math.max(0, Math.round(fcTotal - Z_85 * sd)),
