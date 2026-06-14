@@ -1,6 +1,7 @@
 <script lang="ts">
   import { i18n, fmt, groupNumber } from '$lib/i18n/index.svelte';
   import Segmented from '$lib/components/Segmented.svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import { PRESETS, planById, estimate } from './refinement';
   import { refinementStore } from './refinement-store.svelte';
 
@@ -17,6 +18,10 @@
 
   const t = $derived(i18n.m.upgrade.refinement);
   const tx = $derived(t as unknown as Record<string, string>);
+
+  // Collapsed by default (like the deficit / speedups panels); the header shows a
+  // summary so the key number is visible without expanding.
+  let open = $state(false);
 
   // "From plan" vs "Type" (what-if). In manual mode the number you type IS the
   // amount left to refine — a pure what-if, no stockpile subtracted.
@@ -57,105 +62,114 @@
   };
 </script>
 
-<section class="refine">
-  <div class="head">
+<section class="refine" class:open>
+  <button class="head" type="button" aria-expanded={open} onclick={() => (open = !open)}>
     <span class="eyebrow">✨ {t.title}</span>
-    <div class="src">
-      <button class="src-btn" class:on={!manual} type="button" onclick={() => (manual = false)}>
-        {t.fromPlan}
-      </button>
-      <button class="src-btn" class:on={manual} type="button" onclick={() => (manual = true)}>
-        {t.manualToggle}
-      </button>
-    </div>
-  </div>
+    {#if !open}
+      <span class="summary">🔥 {groupNumber(fcTotal)} · {timeLabel}</span>
+    {/if}
+    <Icon name="chevron-down" size={14} class="caret {open ? 'up' : ''}" />
+  </button>
 
-  {#if manual}
-    <label class="field">
-      <span class="field-label">{t.manualLabel}</span>
-      <input
-        type="number"
-        min="0"
-        inputmode="numeric"
-        value={manualRfc || ''}
-        oninput={(e) => (manualRfc = num(e))}
-        placeholder="0"
-      />
-    </label>
-  {:else}
-    <!-- Overview: total → minus what you've saved → what's left. -->
-    <div class="overview">
-      <div class="ov-row">
-        <span class="ov-label">{t.totalNeeded}</span>
-        <span class="ov-val">{groupNumber(rfc)} RFC</span>
+  {#if open}
+    <div class="body">
+      <div class="src">
+        <button class="src-btn" class:on={!manual} type="button" onclick={() => (manual = false)}>
+          {t.fromPlan}
+        </button>
+        <button class="src-btn" class:on={manual} type="button" onclick={() => (manual = true)}>
+          {t.manualToggle}
+        </button>
       </div>
-      <label class="ov-row input">
-        <span class="ov-label">{t.haveSaved}</span>
-        <span class="ov-input">
-          −
+
+      {#if manual}
+        <label class="field">
+          <span class="field-label">{t.manualLabel}</span>
           <input
             type="number"
             min="0"
             inputmode="numeric"
-            value={refinementStore.stockRfc || ''}
-            oninput={(e) => (refinementStore.stockRfc = num(e))}
+            value={manualRfc || ''}
+            oninput={(e) => (manualRfc = num(e))}
             placeholder="0"
           />
-          RFC
-        </span>
-      </label>
-      <div class="ov-row total">
-        <span class="ov-label">{t.stillToRefine}</span>
-        <span class="ov-val big">{groupNumber(netRfc)} RFC</span>
-      </div>
-      <div class="bar" role="presentation">
-        <div class="bar-fill" style="width: {pctDone}%"></div>
-      </div>
-      <span class="pct">{fmt(t.ready, { n: pctDone })}</span>
-    </div>
-  {/if}
-
-  <div class="intensity">
-    <span class="field-label">{t.intensity}</span>
-    <Segmented
-      value={refinementStore.intensity}
-      ariaLabel={t.intensity}
-      options={PRESETS.map((p) => ({ value: p.key, label: tx[p.key] }))}
-      onChange={(v) => (refinementStore.intensity = v)}
-    />
-  </div>
-
-  <div class="meta-row">
-    <div class="meta">
-      <span class="meta-label">{t.fcNeeded}</span>
-      <span class="meta-val">🔥 {groupNumber(fcTotal)}</span>
-      {#if hasBand}
-        <span class="meta-base"
-          >{fmt(t.typical, { low: groupNumber(fcLow), high: groupNumber(fcHigh) })}</span
-        >
+        </label>
+      {:else}
+        <!-- Overview: total → minus what you've saved → what's left. -->
+        <div class="overview">
+          <div class="ov-row">
+            <span class="ov-label">{t.totalNeeded}</span>
+            <span class="ov-val">{groupNumber(rfc)} RFC</span>
+          </div>
+          <label class="ov-row input">
+            <span class="ov-label">{t.haveSaved}</span>
+            <span class="ov-input">
+              −
+              <input
+                type="number"
+                min="0"
+                inputmode="numeric"
+                value={refinementStore.stockRfc || ''}
+                oninput={(e) => (refinementStore.stockRfc = num(e))}
+                placeholder="0"
+              />
+              RFC
+            </span>
+          </label>
+          <div class="ov-row total">
+            <span class="ov-label">{t.stillToRefine}</span>
+            <span class="ov-val big">{groupNumber(netRfc)} RFC</span>
+          </div>
+          <div class="bar" role="presentation">
+            <div class="bar-fill" style="width: {pctDone}%"></div>
+          </div>
+          <span class="pct">{fmt(t.ready, { n: pctDone })}</span>
+        </div>
       {/if}
-      <span class="meta-base">{fmt(t.perRfc, { n: est.fcPerRfc.toFixed(1) })}</span>
+
+      <div class="intensity">
+        <span class="field-label">{t.intensity}</span>
+        <Segmented
+          value={refinementStore.intensity}
+          ariaLabel={t.intensity}
+          options={PRESETS.map((p) => ({ value: p.key, label: tx[p.key] }))}
+          onChange={(v) => (refinementStore.intensity = v)}
+        />
+      </div>
+
+      <div class="meta-row">
+        <div class="meta">
+          <span class="meta-label">{t.fcNeeded}</span>
+          <span class="meta-val">🔥 {groupNumber(fcTotal)}</span>
+          {#if hasBand}
+            <span class="meta-base"
+              >{fmt(t.typical, { low: groupNumber(fcLow), high: groupNumber(fcHigh) })}</span
+            >
+          {/if}
+          <span class="meta-base">{fmt(t.perRfc, { n: est.fcPerRfc.toFixed(1) })}</span>
+        </div>
+        <div class="meta">
+          <span class="meta-label">{t.time}</span>
+          <span class="meta-val">{timeLabel}</span>
+        </div>
+      </div>
+
+      {#if directFc > 0 && !manual}
+        <p class="total-line">{fmt(t.totalLabel, { n: groupNumber(directFc + fcTotal) })}</p>
+      {/if}
+
+      {#if tx[tipKey]}
+        <p class="tip">💡 {tx[tipKey]}</p>
+      {/if}
+
+      <details class="method">
+        <summary>ⓘ {t.methodTitle}</summary>
+        <p>{t.methodSources}</p>
+        <p>{t.methodEstimate}</p>
+        <p>{t.methodBand}</p>
+      </details>
     </div>
-    <div class="meta">
-      <span class="meta-label">{t.time}</span>
-      <span class="meta-val">{timeLabel}</span>
-    </div>
-  </div>
-
-  {#if directFc > 0 && !manual}
-    <p class="total-line">{fmt(t.totalLabel, { n: groupNumber(directFc + fcTotal) })}</p>
   {/if}
-
-  {#if tx[tipKey]}
-    <p class="tip">💡 {tx[tipKey]}</p>
-  {/if}
-
-  <details class="method">
-    <summary>ⓘ {t.methodTitle}</summary>
-    <p>{t.methodSources}</p>
-    <p>{t.methodEstimate}</p>
-    <p>{t.methodBand}</p>
-  </details>
 </section>
 
 <style>
@@ -164,14 +178,20 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--r-card);
-    padding: 16px;
+  }
+  .refine.open {
+    border-color: var(--border-accent);
   }
   .head {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 12px;
+    gap: 10px;
+    width: 100%;
+    background: transparent;
+    border: 0;
+    color: var(--text);
+    padding: 16px;
+    cursor: pointer;
   }
   .eyebrow {
     font-family: var(--font-mono);
@@ -180,11 +200,32 @@
     text-transform: uppercase;
     color: #c084fc;
   }
+  .summary {
+    margin-inline-start: auto;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-mid);
+  }
+  .head :global(.caret) {
+    color: var(--text-dim);
+    transition: transform 0.2s ease;
+    margin-inline-start: auto;
+  }
+  .summary + :global(.caret) {
+    margin-inline-start: 10px;
+  }
+  .head :global(.caret.up) {
+    transform: rotate(180deg);
+  }
+  .body {
+    padding: 0 16px 16px;
+  }
   .src {
     display: inline-flex;
     border: 1px solid var(--border);
     border-radius: 999px;
     overflow: hidden;
+    margin-bottom: 12px;
   }
   .src-btn {
     appearance: none;
