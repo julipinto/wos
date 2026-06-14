@@ -11,10 +11,8 @@
   interface Props {
     /** Refined Fire Crystals the plan/upgrade needs in total. */
     rfc: number;
-    /** Other Fire Crystals the plan needs directly (for the all-in total). */
-    directFc?: number;
   }
-  let { rfc, directFc = 0 }: Props = $props();
+  let { rfc }: Props = $props();
 
   const t = $derived(i18n.m.upgrade.refinement);
   const tx = $derived(t as unknown as Record<string, string>);
@@ -156,10 +154,6 @@
           <span class="meta-val">{timeLabel}</span>
         </div>
       </div>
-
-      {#if directFc > 0 && !manual}
-        <p class="total-line">{fmt(t.totalLabel, { n: groupNumber(directFc + fcTotal) })}</p>
-      {/if}
 
       {#if plan.refines > 6}
         <p class="tip">💡 {fmt(t.play, { bulk })}</p>
@@ -372,12 +366,6 @@
     font-family: var(--font-mono);
     font-size: 10px;
     color: var(--text-dim);
-  }
-  .total-line {
-    margin: 12px 0 0;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--text-mid);
   }
   .tip {
     margin: 12px 0 0;

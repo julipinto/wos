@@ -1,6 +1,6 @@
 <script lang="ts">
   import { base } from '$app/paths';
-  import { i18n } from '$lib/i18n/index.svelte';
+  import { i18n, fmt } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import Icon from '$lib/components/Icon.svelte';
   import Boosters from '$lib/tools/upgrade/Boosters.svelte';
@@ -170,7 +170,16 @@
         <div class="res">
           <span class="res-icon" style="--c: {def.color}" aria-hidden="true">{def.icon}</span>
           <span class="res-name">{resName(key)}</span>
-          <span class="res-val">{formatQty(grand[key] ?? 0)}</span>
+          <span class="res-val-wrap">
+            <span class="res-val">{formatQty(grand[key] ?? 0)}</span>
+            {#if key === 'fireCrystal' && refineRfc > 0}
+              <span class="res-sub"
+                >{fmt(i18n.m.upgrade.refinement.totalLabel, {
+                  n: formatQty((grand.fireCrystal ?? 0) + refineFc)
+                })}</span
+              >
+            {/if}
+          </span>
         </div>
       {/each}
     </div>
@@ -178,7 +187,7 @@
     <DeficitPanel needed={grand} />
 
     {#if refineRfc > 0}
-      <RefinementPanel rfc={refineRfc} directFc={grand.fireCrystal ?? 0} />
+      <RefinementPanel rfc={refineRfc} />
     {/if}
 
     {#if timeRows.length > 0 || learningTime > 0}
@@ -373,11 +382,22 @@
     color: var(--text-mid);
     flex: 1;
   }
+  .res-val-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
   .res-val {
     font-family: var(--font-display);
     font-weight: 700;
     font-size: 22px;
     letter-spacing: -0.01em;
+  }
+  .res-sub {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
   }
   .meta-row {
     display: flex;

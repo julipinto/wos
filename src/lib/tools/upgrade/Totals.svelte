@@ -6,7 +6,7 @@
    * page (it varies with boosters/speedups). `adjust` lets a page tweak a
    * displayed amount (e.g. the buildings Zinman cut).
    */
-  import { i18n } from '$lib/i18n/index.svelte';
+  import { i18n, fmt } from '$lib/i18n/index.svelte';
   import { addBags, presentResources, formatQty } from './engine';
   import { RESOURCES, type ResourceBag } from './types';
   import { totalsMode } from './totals-mode.svelte';
@@ -19,8 +19,10 @@
     items: Item[];
     adjust?: (key: string, amount: number) => number;
     emptyHint: string;
+    /** Refinement FC (selected intensity) shown as a "+ refinement" total under FC. */
+    fcRefine?: number;
   }
-  let { items, adjust = (_k, a) => a, emptyHint }: Props = $props();
+  let { items, adjust = (_k, a) => a, emptyHint, fcRefine = 0 }: Props = $props();
 
   const resName = (k: string) => (i18n.m.upgrade.res as Record<string, string>)[k];
   const resDef = (k: string) => RESOURCES.find((r) => r.key === k)!;
@@ -78,7 +80,16 @@
       <div class="res">
         <span class="res-icon" style="--c: {def.color}" aria-hidden="true">{def.icon}</span>
         <span class="res-name">{resName(k)}</span>
-        <span class="res-val">{formatQty(amt(summed, k))}</span>
+        <span class="res-val-wrap">
+          <span class="res-val">{formatQty(amt(summed, k))}</span>
+          {#if k === 'fireCrystal' && fcRefine > 0}
+            <span class="res-sub"
+              >{fmt(i18n.m.upgrade.refinement.totalLabel, {
+                n: formatQty(amt(summed, k) + fcRefine)
+              })}</span
+            >
+          {/if}
+        </span>
       </div>
     {/each}
   </div>
@@ -177,10 +188,21 @@
     color: var(--text-mid);
     flex: 1;
   }
+  .res-val-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
   .res-val {
     font-family: var(--font-display);
     font-weight: 700;
     font-size: 22px;
     letter-spacing: -0.01em;
+  }
+  .res-sub {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
   }
 </style>
