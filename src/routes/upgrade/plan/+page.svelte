@@ -1,6 +1,6 @@
 <script lang="ts">
   import { base } from '$app/paths';
-  import { i18n, fmt } from '$lib/i18n/index.svelte';
+  import { i18n } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import Icon from '$lib/components/Icon.svelte';
   import Boosters from '$lib/tools/upgrade/Boosters.svelte';
@@ -17,6 +17,8 @@
   import { boosters, type BoosterCategory } from '$lib/tools/upgrade/boosters-store.svelte';
   import { planLines, cutBase, PLAN_STORAGE_KEYS, type PlanLine } from '$lib/tools/upgrade/plan';
   import { estimate, planById, PRESETS } from '$lib/tools/upgrade/refinement';
+  import { refinementStore } from '$lib/tools/upgrade/refinement-store.svelte';
+  import RefinementPanel from '$lib/tools/upgrade/RefinementPanel.svelte';
   import Segmented from '$lib/components/Segmented.svelte';
 
   // Snapshot of saved selections (read once on load).
@@ -92,25 +94,19 @@
   const grand = $derived(activeLines.reduce<ResourceBag>((acc, l) => addBags(acc, l.totals), {}));
   const grandRows = $derived(presentResources(grand));
 
-  // Refinement: how many FC to refine the plan's Refined Fire Crystals, at a
-  // chosen intensity. Approximate (RNG) — shown low-key, mode included.
+  // Refinement summary for the copy/paste plan. The detailed view (overview,
+  // stockpile, band, tips) lives in <RefinementPanel> below; both read the same
+  // shared store, so what's left to refine and the FC bill stay in sync.
   const refineRfc = $derived(grand.refinedFireCrystal ?? 0);
-  let refineMode = $state('economic');
-  const refinePlan = $derived(planById(PRESETS.find((p) => p.key === refineMode)?.plan ?? 'L3'));
-  const refineEst = $derived(estimate(refineRfc, refinePlan));
-  const refineFc = $derived(refineEst.fcTotal);
-  const refineModeName = $derived(
-    (i18n.m.upgrade.refinement as Record<string, string>)[refineMode]
+  const refinePlan = $derived(
+    planById(PRESETS.find((p) => p.key === refinementStore.intensity)?.plan ?? 'L3')
   );
-  // Refining runs on its own weekly clock — shown as its own meta, NOT summed
-  // into build/research/training time.
-  const refineWeeks = $derived(
-    refineEst.weeks >= 8
-      ? fmt(i18n.m.upgrade.refinement.weeksMonths, {
-          n: refineEst.weeks,
-          m: Math.round(refineEst.weeks / 4.345)
-        })
-      : fmt(i18n.m.upgrade.refinement.weeks, { n: refineEst.weeks })
+  const refineNet = $derived(Math.max(0, refineRfc - refinementStore.stockRfc));
+  const refineFc = $derived(
+    Math.max(0, estimate(refineNet, refinePlan).fcTotal - refinementStore.stockFc)
+  );
+  const refineModeName = $derived(
+    (i18n.m.upgrade.refinement as Record<string, string>)[refinementStore.intensity]
   );
 
   // Time runs in parallel queues, so report per category — never one summed total.
@@ -178,40 +174,16 @@
           <span class="res-name">{resName(key)}</span>
           <span class="res-val">{formatQty(grand[key] ?? 0)}</span>
         </div>
-        {#if key === 'refinedFireCrystal' && refineRfc > 0}
-          <div class="res refine">
-            <div class="refine-top">
-              <span class="res-icon" style="--c: #fb923c" aria-hidden="true">🔥</span>
-              <span class="res-name">
-                {i18n.m.upgrade.plan.toRefine}
-                <span class="approx">{i18n.m.upgrade.plan.approx}</span>
-              </span>
-              <span class="res-val">~{formatQty(refineFc)}</span>
-            </div>
-            <div class="refine-bottom">
-              <span class="refine-total"
-                >{fmt(i18n.m.upgrade.refinement.totalLabel, {
-                  n: formatQty((grand.fireCrystal ?? 0) + refineFc)
-                })}</span
-              >
-              <Segmented
-                value={refineMode}
-                ariaLabel={i18n.m.upgrade.refinement.intensity}
-                options={PRESETS.map((p) => ({
-                  value: p.key,
-                  label: (i18n.m.upgrade.refinement as Record<string, string>)[p.key]
-                }))}
-                onChange={(v) => (refineMode = v)}
-              />
-            </div>
-          </div>
-        {/if}
       {/each}
     </div>
 
     <DeficitPanel needed={grand} />
 
-    {#if timeRows.length > 0 || learningTime > 0 || refineRfc > 0}
+    {#if refineRfc > 0}
+      <RefinementPanel rfc={refineRfc} directFc={grand.fireCrystal ?? 0} />
+    {/if}
+
+    {#if timeRows.length > 0 || learningTime > 0}
       <div class="meta-row">
         {#each timeRows as t (t.cat)}
           <div class="meta">
@@ -227,13 +199,6 @@
           <div class="meta">
             <span class="meta-label">{i18n.m.upgrade.experts.learningTime}</span>
             <span class="meta-val">{formatDuration(learningTime)}</span>
-          </div>
-        {/if}
-        {#if refineRfc > 0}
-          <div class="meta">
-            <span class="meta-label">✨ {i18n.m.upgrade.refinement.refineTime}</span>
-            <span class="meta-val">{refineWeeks}</span>
-            <span class="meta-base">{refineModeName}</span>
           </div>
         {/if}
       </div>
@@ -415,40 +380,6 @@
     font-weight: 700;
     font-size: 22px;
     letter-spacing: -0.01em;
-  }
-  /* Compact 2-line card: line 1 mirrors a normal resource row (icon · name ·
-     value); line 2 holds the all-in total + the intensity control. */
-  .res.refine {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-    border-style: dashed;
-  }
-  .refine-top {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-  .refine-top .res-name {
-    flex: 1;
-  }
-  .refine-bottom {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .approx {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-dim);
-    margin-inline-start: 6px;
-  }
-  .refine-total {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-dim);
   }
   .meta-row {
     display: flex;
