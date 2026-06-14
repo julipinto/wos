@@ -7,6 +7,7 @@
    * target up to match (and vice-versa).
    */
   import Select from '$lib/components/Select.svelte';
+  import { i18n } from '$lib/i18n/index.svelte';
 
   interface Props {
     labels: string[];
@@ -32,9 +33,21 @@
 </script>
 
 <div class="range">
-  <Select value={from} options={fromOptions} onChange={setFrom} ariaLabel={ariaFrom} />
+  <Select
+    value={from}
+    options={fromOptions}
+    onChange={setFrom}
+    ariaLabel={ariaFrom}
+    searchPlaceholder={i18n.m.upgrade.filter}
+  />
   <span class="arrow" aria-hidden="true">→</span>
-  <Select value={to} options={toOptions} onChange={setTo} ariaLabel={ariaTo} />
+  <Select
+    value={to}
+    options={toOptions}
+    onChange={setTo}
+    ariaLabel={ariaTo}
+    searchPlaceholder={i18n.m.upgrade.filter}
+  />
 </div>
 
 <style>
