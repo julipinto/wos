@@ -7,6 +7,8 @@
   import StepList from '$lib/tools/upgrade/StepList.svelte';
   import Totals from '$lib/tools/upgrade/Totals.svelte';
   import RefinementPanel from '$lib/tools/upgrade/RefinementPanel.svelte';
+  import { estimate, planById, PRESETS } from '$lib/tools/upgrade/refinement';
+  import { refinementStore } from '$lib/tools/upgrade/refinement-store.svelte';
   import { buildingsCalc } from '$lib/tools/upgrade/store.svelte';
   import {
     sumRange,
@@ -27,6 +29,15 @@
     combine(rows.map((r) => sumRange(buildingsCalc.tableOf(r.buildingId), r.from, r.to)))
   );
   const resRows = $derived(presentResources(result.totals));
+  // Refinement FC for the selected intensity — shown as a "+ refinement" total
+  // under the Fire Crystal value (and inside the Refinement panel below).
+  const refineRfc = $derived(result.totals.refinedFireCrystal ?? 0);
+  const refinePlan = $derived(
+    planById(PRESETS.find((p) => p.key === refinementStore.intensity)?.plan ?? 'L3')
+  );
+  const refineFc = $derived(
+    estimate(Math.max(0, refineRfc - refinementStore.stockRfc), refinePlan).fcTotal
+  );
   const buildingItems = $derived(
     rows.map((r) => {
       const t = buildingsCalc.tableOf(r.buildingId);
@@ -190,7 +201,12 @@
 
   <Boosters categories={['construction']} />
 
-  <Totals items={buildingItems} adjust={effRes} emptyHint={i18n.m.upgrade.addHint} />
+  <Totals
+    items={buildingItems}
+    adjust={effRes}
+    fcRefine={refineRfc > 0 ? refineFc : 0}
+    emptyHint={i18n.m.upgrade.addHint}
+  />
 
   {#if resRows.length > 0}
     {#if zimanPct > 0}
@@ -244,11 +260,8 @@
 
     <StepList {steps} />
 
-    {#if (result.totals.refinedFireCrystal ?? 0) > 0}
-      <RefinementPanel
-        rfc={result.totals.refinedFireCrystal ?? 0}
-        directFc={result.totals.fireCrystal ?? 0}
-      />
+    {#if refineRfc > 0}
+      <RefinementPanel rfc={refineRfc} />
     {/if}
   {/if}
 </div>
