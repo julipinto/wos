@@ -24,10 +24,10 @@ describe('refinement plans', () => {
 describe('estimate', () => {
   it('Furnace FC5→FC8 (270 RFC) on the economic plan (L3)', () => {
     const e = estimate(270, planById('L3'));
-    // 540/41.9 ≈ 12.89 FC/RFC → ~3480 FC, ceil(270/41.9) = 7 weeks
+    // 6 full economic weeks (540 FC each) + a cheap T1-only final week → ~3460 FC.
     expect(e.weeks).toBe(7);
-    expect(e.fcTotal).toBe(3480);
-    expect(e.fcPerRfc).toBeCloseTo(12.89, 1);
+    expect(e.fcTotal).toBe(3460);
+    expect(e.fcPerRfc).toBeCloseTo(12.8, 1);
   });
   it('the same 270 RFC rushes (L10) much faster but costs more FC', () => {
     const eco = estimate(270, planById('L3'));
@@ -43,6 +43,51 @@ describe('estimate', () => {
       fcHigh: 0,
       weeks: 0
     });
+  });
+  it('a tiny target never leaves tier 1, so intensity barely changes the cost', () => {
+    const eco = estimate(7, planById('L3'));
+    const rush = estimate(7, planById('L10'));
+    // ~5 tier-1 refines either way — nowhere near rush's blended 31.3 FC/RFC.
+    expect(eco.fcPerRfc).toBeLessThan(15);
+    expect(rush.fcPerRfc).toBeLessThan(15);
+    expect(Math.abs(rush.fcTotal - eco.fcTotal)).toBeLessThan(60);
+  });
+});
+
+describe('tier-by-tier cost (rush fills one week cheap-first)', () => {
+  // In a single rush week (100 refines) the cumulative RFC reaches each tier in
+  // turn: ~29 (T1), ~72 (+T2), ~136 (+T3), ~204 (+T4), ~278 (+T5). Picking a
+  // target inside each band lets us check the marginal tier shows up in the cost.
+  const rush = planById('L10');
+  const perRfc = (n: number) => estimate(n, rush).fcPerRfc;
+
+  it('cost per RFC climbs monotonically as the target reaches deeper tiers', () => {
+    const t1 = perRfc(25); // tier 1 only
+    const t2 = perRfc(70); // into tier 2
+    const t3 = perRfc(130); // into tier 3
+    const t4 = perRfc(200); // into tier 4
+    const t5 = perRfc(270); // into tier 5
+    expect(t1).toBeLessThan(t2);
+    expect(t2).toBeLessThan(t3);
+    expect(t3).toBeLessThan(t4);
+    expect(t4).toBeLessThan(t5);
+  });
+
+  it('a tier-1 target is far cheaper per RFC than a deep-tier one', () => {
+    expect(perRfc(25)).toBeLessThan(15); // ~T1 base 13.8, minus discount
+    expect(perRfc(270)).toBeGreaterThan(25); // dragged up by T4/T5
+  });
+
+  it('staying within one tier keeps cost per RFC roughly flat', () => {
+    // Two targets both inside tier 1 (≤ ~29 RFC) should cost about the same rate.
+    expect(Math.abs(perRfc(12) - perRfc(26))).toBeLessThan(3);
+  });
+
+  it('economic keeps a large target cheap by redoing tier 1 every week', () => {
+    // 260 RFC: rush burns T1–T5 in one week; economic redoes 20×T1 weekly → cheaper.
+    expect(estimate(260, planById('L3')).fcPerRfc).toBeLessThan(
+      estimate(260, planById('L10')).fcPerRfc
+    );
   });
 });
 
