@@ -424,15 +424,17 @@
       "manualLabel": "RFC you need",
       "typical": "between {low} and {high}",
       "tipEconomic": "20 refines in tier 1 on Monday, then 1/day to catch the daily 50% off.",
-      "tipBalanced": "Clear the cheap tiers, then push the mid tiers — balance cost and time.",
-      "tipFast": "Run more tiers each week — faster, but pricier per RFC.",
-      "tipRush": "Burn all 100 refines/week — fastest, worst FC per RFC.",
+      "tipBalanced": "Clears tiers 1–2 and dips into tier 3 — balanced cost and time.",
+      "tipFast": "Pushes through tier 4 each week — faster, higher FC per RFC.",
+      "tipRush": "Burns all 100 refines/week up to tier 5 — fastest, worst FC per RFC.",
       "methodTitle": "How we calculate",
       "methodSources": "Tier drop rates are community-sourced (Century Games doesn't publish them) — treat them as estimates, not guarantees.",
       "methodEstimate": "FC = RFC × the FC-per-RFC of your intensity, which already bakes in the daily 50%-off first refine.",
       "methodBand": "Refining is RNG, so we show a typical band (~85% of outcomes), not a single exact number.",
       "days": "~{n} days",
-      "daysWeeks": "~{n} days (~{m} wk)"
+      "daysWeeks": "~{n} days (~{m} wk)",
+      "weekly": "≈{n} refines/week · up to tier {tier}",
+      "play": "{bulk} in one day + 6 spread 1/day to catch the daily −50%."
     },
     "materials": {
       "sub": "Where to get each upgrade material.",
