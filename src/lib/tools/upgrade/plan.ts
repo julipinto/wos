@@ -224,10 +224,17 @@ function expertsLine(): PlanLine | null {
 }
 
 function heliosLine(): PlanLine | null {
-  const s = readJson<{ count: number; nodes: Record<string, Pair> }>('upgrade-helios-v1');
+  const s = readJson<{ count: number; nodes: Record<string, Pair>; included?: string[] }>(
+    'upgrade-helios-v1'
+  );
   if (!s?.nodes) return null;
+  // Only the evolutions kept on the Helios page (the `included` set); older saves
+  // without it keep every node. If nothing's included, Helios drops from the plan.
+  const inIds = Array.isArray(s.included) ? s.included : HELIOS_NODES.map((n) => n.id);
+  const kept = HELIOS_NODES.filter((n) => inIds.includes(n.id));
+  if (kept.length === 0) return null;
   const r = combine(
-    HELIOS_NODES.map((n) => {
+    kept.map((n) => {
       const p = s.nodes[n.id];
       return p ? sumLadder(n.ladder, p.from, p.to) : emptyResult();
     })
