@@ -187,6 +187,8 @@
             </tbody>
           </table>
         </div>
+        <p>{t.methodMean}</p>
+        <p class="method-note">{t.methodTableNote}</p>
         <p>{t.methodEstimate}</p>
         <p>{t.methodFormula}</p>
         <p>{t.methodBand}</p>
@@ -449,6 +451,12 @@
     line-height: 1.6;
     color: var(--text-dim);
     opacity: 0.85;
+  }
+  /* The table caption sits tight under the table, a touch dimmer + italic. */
+  .method p.method-note {
+    margin-top: 4px;
+    opacity: 0.7;
+    font-style: italic;
   }
   .tier-scroll {
     overflow-x: auto;

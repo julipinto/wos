@@ -441,11 +441,13 @@
       "stillOf": "faltam {n} RFC de {total}",
       "savedShort": "guardados",
       "rhythmHint": "ritmo · toque pra escolher",
-      "methodFormula": "Cada refino tem média μ e variância σ², tiradas da distribuição do tier (μ = Σ p·x; σ² = Σ p·x² − μ²), onde x = RFC que o refino dá e p = a chance daquele x (as colunas “RFC → chance” da tabela acima). Para N RFC (o que falta), o custo tem desvio-padrão SD = c̄·√(N·σ̄²/μ̄³): c̄ = FC médio por refino; μ̄ e σ̄² = média e variância ponderadas pela mistura de tiers do ritmo (barra ‾ = média do ritmo). Ex.: 200 RFC no econômico (μ̄≈1,61 · σ̄²≈0,46 · c̄≈20,8) → ~2.580 FC, faixa ~2.440–2.720.",
+      "methodFormula": "Para N RFC (o que falta), o custo em FC tem desvio-padrão SD = c̄·√(N·σ̄²/μ̄³): c̄ = FC médio por refino; μ̄ e σ̄² = média e variância ponderadas pela mistura de tiers do ritmo (barra ‾ = média do ritmo). Ex.: 200 RFC no econômico (μ̄≈1,61 · σ̄²≈0,46 · c̄≈20,8) → ~2.580 FC, faixa ~2.440–2.720.",
       "thCost": "Custo",
-      "thDist": "RFC → chance",
-      "thMean": "média",
-      "superEconomic": "Super eco"
+      "thDist": "RFC (x) → chance (p)",
+      "thMean": "média (μ)",
+      "superEconomic": "Super eco",
+      "methodTableNote": "FC/RFC = custo ÷ avg (ex.: T1 = 20 ÷ 1,45 = 13,8) — o preço cru do tier, antes do desconto diário (que entra no resultado lá em cima).",
+      "methodMean": "A coluna avg (μ) é a média de RFC por refino: μ = Σ p·x. Ex.: T1 = 1×0,65 + 2×0,25 + 3×0,10 = 1,45. A variância é σ² = Σ p·x² − μ²; pro T1: (1×0,65 + 4×0,25 + 9×0,10) − 1,45² = 2,55 − 2,10 = 0,45."
     },
     "materials": {
       "sub": "Onde conseguir cada material de upgrade.",
