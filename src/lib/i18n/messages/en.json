@@ -205,7 +205,8 @@
       "experts": "experts",
       "plan": "my plan",
       "expertSkills": "Expert Skills",
-      "materials": "Materials"
+      "materials": "Materials",
+      "compare": "Compare"
     },
     "res": {
       "meat": "meat",
@@ -469,7 +470,16 @@
       },
       "confNote": "Confidence = how sure we are about the sources (high → cross-checked · low → uncertain)."
     },
-    "filter": "Filter… (e.g. FC5)"
+    "filter": "Filter… (e.g. FC5)",
+    "compare": {
+      "sub": "Put building ranges side by side — refining (RFC/FC/days) and cost.",
+      "building": "Building",
+      "add": "scenario",
+      "total": "Σ total",
+      "refineFc": "FC to refine",
+      "refineDays": "refine days",
+      "note": "Σ sums the scenarios (useful for a path like FC6→FC7→FC8). For an either/or, ignore Σ — the lowest cell per row is highlighted. Times are base (before boosters)."
+    }
   },
   "territory": {
     "sub": "Place buildings on the grid; banners cover 7×7 and must connect to the HQ to hold territory.",

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { base } from '$app/paths';
+  import { goto } from '$app/navigation';
   import { i18n, fmt } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import Segmented from '$lib/components/Segmented.svelte';
@@ -25,6 +27,13 @@
 
   // Additive: one combined result across every building row.
   const rows = $derived(buildingsCalc.rows);
+  // "Compare" hands the current rows to the comparator (seeds its scenarios).
+  const compareHref = $derived(
+    rows.length > 0
+      ? `${base}/upgrade/compare?s=` +
+          encodeURIComponent(rows.map((r) => `${r.buildingId}:${r.from}:${r.to}`).join(','))
+      : `${base}/upgrade/compare`
+  );
   const result = $derived(
     combine(rows.map((r) => sumRange(buildingsCalc.tableOf(r.buildingId), r.from, r.to)))
   );
@@ -197,6 +206,12 @@
         {/each}
       </div>
     </div>
+  {/if}
+
+  {#if rows.length > 0}
+    <button class="compare-link" type="button" onclick={() => goto(compareHref)}
+      >⚖️ {i18n.m.upgrade.cat.compare}</button
+    >
   {/if}
 
   <Boosters categories={['construction']} />
@@ -409,6 +424,27 @@
     color: var(--accent);
     border-color: var(--border-accent);
     background: var(--surface-hover);
+  }
+  .compare-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 4px 0 18px;
+    padding: 9px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border-accent);
+    border-radius: var(--r-pill);
+    color: var(--text);
+    text-decoration: none;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    transition:
+      border-color 0.2s ease,
+      background 0.2s ease;
+  }
+  .compare-link:hover {
+    background: var(--surface-strong);
   }
 
   .ziman-note {
