@@ -1,7 +1,7 @@
 <script lang="ts">
   import { i18n, fmt, groupNumber } from '$lib/i18n/index.svelte';
   import Icon from '$lib/components/Icon.svelte';
-  import { PRESETS, planById, estimate } from './refinement';
+  import { PRESETS, planById, estimate, TIER_TABLE } from './refinement';
   import { refinementStore } from './refinement-store.svelte';
 
   // Refinement view, shared by the Buildings tool and My Plan. What matters near
@@ -54,6 +54,13 @@
     const v = Number((e.currentTarget as HTMLInputElement).value);
     return Number.isFinite(v) && v > 0 ? v : 0;
   };
+
+  // Tier table (methodology): format a probability and a mean compactly.
+  const pct = (p: number) => {
+    const v = p * 100;
+    return (Number.isInteger(v) ? v : Number(v.toFixed(1))) + '%';
+  };
+  const fmtMean = (m: number) => Number(m.toFixed(2)).toString();
 </script>
 
 <section class="refine" class:open>
@@ -156,6 +163,30 @@
       <details class="method">
         <summary>ⓘ {t.methodTitle}</summary>
         <p>{t.methodSources}</p>
+        <div class="tier-scroll">
+          <table class="tiers">
+            <thead>
+              <tr>
+                <th>Tier</th>
+                <th>{t.thCost}</th>
+                <th>{t.thDist}</th>
+                <th>{t.thMean}</th>
+                <th>FC/RFC</th>
+              </tr>
+            </thead>
+            <tbody>
+              {#each TIER_TABLE as tr, i (i)}
+                <tr>
+                  <td>T{i + 1}</td>
+                  <td>{tr.cost}</td>
+                  <td>{tr.dist.map(([x, p]) => `${x}→${pct(p)}`).join(' · ')}</td>
+                  <td>{fmtMean(tr.mean)}</td>
+                  <td>{tr.fcPerRfc.toFixed(1)}</td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
         <p>{t.methodEstimate}</p>
         <p>{t.methodFormula}</p>
         <p>{t.methodBand}</p>
@@ -418,5 +449,26 @@
     line-height: 1.6;
     color: var(--text-dim);
     opacity: 0.85;
+  }
+  .tier-scroll {
+    overflow-x: auto;
+    margin: 8px 0 2px;
+  }
+  .tiers {
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+  .tiers th,
+  .tiers td {
+    text-align: start;
+    padding: 3px 14px 3px 0;
+  }
+  .tiers th {
+    color: var(--text-mid);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
   }
 </style>

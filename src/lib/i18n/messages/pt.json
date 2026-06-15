@@ -428,7 +428,7 @@
       "tipFast": "Vai até o tier 4 toda semana — mais rápido, FC/RFC mais alto.",
       "tipRush": "Queima os 100 refinos/semana até o tier 5 — o mais rápido, pior FC/RFC.",
       "methodTitle": "Como calculamos",
-      "methodSources": "As taxas de cada tier (RFC por refino) vêm direto do jogo (Crystal Lab). São 5 tiers de 20 refinos/semana: do T1 barato (20 FC, ~1,45 RFC) ao T5 (160 FC, ~3,71 RFC), mais caro por RFC conforme sobe.",
+      "methodSources": "As taxas vêm direto do jogo (Crystal Lab) — 5 tiers de 20 refinos/semana, mais caro por RFC conforme sobe:",
       "methodEstimate": "Simulamos o super refino semana a semana, enchendo o tier mais barato primeiro (20/tier, resetando por semana) e parando no seu alvo — por isso o FC reflete os tiers que você de fato alcança. O 1º refino de cada dia entra com −50%, aplicado aos refinos mais caros da semana; o tempo é a vazão, em dias.",
       "methodBand": "Por que a faixa é válida: pelo Teorema Central do Limite, somar muitos refinos independentes deixa o total ~normal — é o que permite usar “média ± desvio”. Mostramos os 85% centrais (±1,44σ) como a faixa “entre”. O TCL é a lei comprovada; 85% é só a régua que escolhemos (típico, não garantia).",
       "days": "~{n} dias",
@@ -441,7 +441,10 @@
       "stillOf": "faltam {n} RFC de {total}",
       "savedShort": "guardados",
       "rhythmHint": "ritmo · toque pra escolher",
-      "methodFormula": "Cada refino tem média μ e variância σ² conhecidas (μ = Σ p·x; σ² = Σ p·x² − μ²). Pra atingir N RFC, o custo em FC tem desvio-padrão SD = c̄·√(N·σ̄²/μ̄³), onde c̄ é o custo médio por refino e μ̄/σ̄² a mistura de tiers do ritmo."
+      "methodFormula": "Cada refino tem média μ e variância σ² conhecidas (μ = Σ p·x; σ² = Σ p·x² − μ²). Pra atingir N RFC, o custo em FC tem desvio-padrão SD = c̄·√(N·σ̄²/μ̄³), onde c̄ é o custo médio por refino e μ̄/σ̄² a mistura de tiers do ritmo.",
+      "thCost": "Custo",
+      "thDist": "RFC → chance",
+      "thMean": "média"
     },
     "materials": {
       "sub": "Onde conseguir cada material de upgrade.",

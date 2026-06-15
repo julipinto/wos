@@ -428,7 +428,7 @@
       "tipFast": "Pushes through tier 4 each week — faster, higher FC per RFC.",
       "tipRush": "Burns all 100 refines/week up to tier 5 — fastest, worst FC per RFC.",
       "methodTitle": "How we calculate",
-      "methodSources": "Per-tier drop rates (RFC per refine) come straight from the game (Crystal Lab). Five tiers of 20 refines/week: from the cheap T1 (20 FC, ~1.45 RFC) to T5 (160 FC, ~3.71 RFC), costlier per RFC as you climb.",
+      "methodSources": "Drop rates come straight from the game (Crystal Lab) — 5 tiers of 20 refines/week, costlier per RFC as you climb:",
       "methodEstimate": "We simulate the super-refine week by week, filling the cheapest tier first (20/tier, reset weekly) and stopping at your target — so the FC reflects the tiers you actually reach. Each day’s first refine is −50%, applied to that week’s priciest refines; time is the throughput, in days.",
       "methodBand": "Why the range is valid: by the Central Limit Theorem, summing many independent refines makes the total ~normal — which is what lets us use “mean ± deviation”. We show the central 85% (±1.44σ) as the “between” range. The CLT is the proven law; 85% is just the width we picked (typical, not a guarantee).",
       "days": "~{n} days",
@@ -441,7 +441,10 @@
       "stillOf": "{n} RFC left of {total}",
       "savedShort": "saved",
       "rhythmHint": "rhythm · tap to choose",
-      "methodFormula": "Each refine has a known mean μ and variance σ² (μ = Σ p·x; σ² = Σ p·x² − μ²). To hit N RFC the FC cost has standard deviation SD = c̄·√(N·σ̄²/μ̄³), where c̄ is the mean FC per refine and μ̄/σ̄² the intensity’s tier mix."
+      "methodFormula": "Each refine has a known mean μ and variance σ² (μ = Σ p·x; σ² = Σ p·x² − μ²). To hit N RFC the FC cost has standard deviation SD = c̄·√(N·σ̄²/μ̄³), where c̄ is the mean FC per refine and μ̄/σ̄² the intensity’s tier mix.",
+      "thCost": "Cost",
+      "thDist": "RFC → chance",
+      "thMean": "avg"
     },
     "materials": {
       "sub": "Where to get each upgrade material.",
