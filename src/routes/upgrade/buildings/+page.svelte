@@ -1,6 +1,5 @@
 <script lang="ts">
   import { base } from '$app/paths';
-  import { goto } from '$app/navigation';
   import { i18n, fmt } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import Segmented from '$lib/components/Segmented.svelte';
@@ -209,9 +208,7 @@
   {/if}
 
   {#if rows.length > 0}
-    <button class="compare-link" type="button" onclick={() => goto(compareHref)}
-      >⚖️ {i18n.m.upgrade.cat.compare}</button
-    >
+    <a class="compare-link" href={compareHref}>⚖️ {i18n.m.upgrade.cat.compare}</a>
   {/if}
 
   <Boosters categories={['construction']} />

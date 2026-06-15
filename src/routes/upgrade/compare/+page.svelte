@@ -82,7 +82,6 @@
       );
       persist();
     }
-    if (typeof history !== 'undefined') history.replaceState(null, '', $page.url.pathname);
   });
 
   const buildingOptions = BUILDINGS.map((b) => ({ value: b.id, label: b.name }));
