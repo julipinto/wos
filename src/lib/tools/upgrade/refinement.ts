@@ -66,18 +66,86 @@ export const PRESETS: { key: string; plan: string }[] = [
 ];
 
 /**
- * Per-tier super-refine output: mean RFC and variance per refine, from the
- * locked community probability tables. Optimal play fills cheap tiers first
- * (20 refines each, T1→T5), which is exactly what reproduces the PLANS above.
+ * Per-tier super-refine output (single source of truth): the FC cost to start a
+ * refine and the RFC-output distribution [amount, probability]. Mean and variance
+ * are derived from it, so the comparison table and the estimator can't drift.
+ * Optimal play fills cheap tiers first (20 refines each, T1→T5).
  */
-const TIERS = [
-  { mu: 1.45, variance: 0.4475 }, // T1: 1@65% 2@25% 3@10%
-  { mu: 2.15, variance: 0.1275 }, // T2: 2@85% 3@15%
-  { mu: 3.18, variance: 0.2176 }, // T3: 3@85% 4@12.5% 5@2% 6@0.5%
-  { mu: 3.435, variance: 0.896 }, // T4: 3@75% 4@15% 5@5% 6@3% 7@1% 8@0.5% 9@0.5%
-  { mu: 3.71, variance: 2.156 } // T5: 3@70% 4@12% 5@9% 6@4% 7@1.5% 8@1% 9@1% 10@.5% 11@.5% 12@.5%
+const TIER_DATA: { cost: number; dist: [number, number][] }[] = [
+  {
+    cost: 20,
+    dist: [
+      [1, 0.65],
+      [2, 0.25],
+      [3, 0.1]
+    ]
+  },
+  {
+    cost: 50,
+    dist: [
+      [2, 0.85],
+      [3, 0.15]
+    ]
+  },
+  {
+    cost: 100,
+    dist: [
+      [3, 0.85],
+      [4, 0.125],
+      [5, 0.02],
+      [6, 0.005]
+    ]
+  },
+  {
+    cost: 130,
+    dist: [
+      [3, 0.75],
+      [4, 0.15],
+      [5, 0.05],
+      [6, 0.03],
+      [7, 0.01],
+      [8, 0.005],
+      [9, 0.005]
+    ]
+  },
+  {
+    cost: 160,
+    dist: [
+      [3, 0.7],
+      [4, 0.12],
+      [5, 0.09],
+      [6, 0.04],
+      [7, 0.015],
+      [8, 0.01],
+      [9, 0.01],
+      [10, 0.005],
+      [11, 0.005],
+      [12, 0.005]
+    ]
+  }
 ];
-const TIER_COST = [20, 50, 100, 130, 160]; // FC to start a refine, per tier
+const distMean = (d: [number, number][]) => d.reduce((s, [x, p]) => s + x * p, 0);
+const distVar = (d: [number, number][]) => {
+  const m = distMean(d);
+  return d.reduce((s, [x, p]) => s + x * x * p, 0) - m * m;
+};
+const TIERS = TIER_DATA.map((t) => ({ mu: distMean(t.dist), variance: distVar(t.dist) }));
+const TIER_COST = TIER_DATA.map((t) => t.cost);
+
+/** Per-tier reference for the "how we calculate" table (derived from TIER_DATA). */
+export interface TierInfo {
+  cost: number;
+  dist: [number, number][];
+  mean: number;
+  fcPerRfc: number;
+}
+export const TIER_TABLE: TierInfo[] = TIER_DATA.map((t) => ({
+  cost: t.cost,
+  dist: t.dist,
+  mean: distMean(t.dist),
+  fcPerRfc: t.cost / distMean(t.dist)
+}));
+
 const TIER_CAP = 20; // refines available per tier per week
 const DAYS_PER_WEEK = 7; // also the max daily 50%-off discounts per week
 
