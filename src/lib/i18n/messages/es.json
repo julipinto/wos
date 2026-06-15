@@ -444,7 +444,8 @@
       "methodFormula": "Cada refinado tiene media μ y varianza σ² de la distribución del nivel (μ = Σ p·x; σ² = Σ p·x² − μ²), donde x = el RFC que da un refinado y p = su probabilidad (las columnas “RFC → prob.” de la tabla de arriba). Para N RFC (lo que falta), el coste tiene desviación estándar SD = c̄·√(N·σ̄²/μ̄³): c̄ = FC medio por refinado; μ̄ y σ̄² = media y varianza ponderadas por la mezcla de niveles de la intensidad (barra ‾ = media de la intensidad). Ej.: 200 RFC en económico (μ̄≈1,61 · σ̄²≈0,46 · c̄≈20,8) → ~2.580 FC, rango ~2.440–2.720.",
       "thCost": "Coste",
       "thDist": "RFC → prob.",
-      "thMean": "media"
+      "thMean": "media",
+      "superEconomic": "Súper eco"
     },
     "materials": {
       "sub": "Dónde conseguir cada material de mejora.",
