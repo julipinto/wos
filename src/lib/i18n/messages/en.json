@@ -434,7 +434,13 @@
       "days": "~{n} days",
       "daysWeeks": "~{n} days (~{m} wk)",
       "weekly": "≈{n} refines/week · up to tier {tier}",
-      "play": "{bulk} in one day + 6 spread 1/day to catch the daily −50%."
+      "play": "{bulk} in one day + 6 spread 1/day for the daily −50%.",
+      "fcLabel": "Fire Crystals",
+      "daysLabel": "days",
+      "band": "between {low}–{high} FC · {perRfc}/RFC",
+      "stillOf": "{n} RFC left of {total}",
+      "savedShort": "saved",
+      "rhythmHint": "rhythm · tap to choose"
     },
     "materials": {
       "sub": "Where to get each upgrade material.",

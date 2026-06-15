@@ -1,13 +1,13 @@
 <script lang="ts">
   import { i18n, fmt, groupNumber } from '$lib/i18n/index.svelte';
-  import Segmented from '$lib/components/Segmented.svelte';
   import Icon from '$lib/components/Icon.svelte';
   import { PRESETS, planById, estimate } from './refinement';
   import { refinementStore } from './refinement-store.svelte';
 
-  // The detailed refinement view, shared by the Buildings tool and My Plan.
-  // What matters near SvS isn't what you've spent — it's what's LEFT to refine,
-  // so we work from (needed − already saved) and estimate FC + a typical band.
+  // Refinement view, shared by the Buildings tool and My Plan. What matters near
+  // SvS isn't what you've spent — it's what's LEFT to refine. So we work from
+  // (needed − already saved) and surface the answer (FC + days) as a KPI hero,
+  // with the four intensities as a comparison you pick by outcome.
   interface Props {
     /** Refined Fire Crystals the plan/upgrade needs in total. */
     rfc: number;
@@ -20,17 +20,11 @@
   // Collapsed by default (like the deficit / speedups panels); the header shows a
   // summary so the key number is visible without expanding.
   let open = $state(false);
-
-  // "From plan" vs "Type" (what-if). In manual mode the number you type IS the
-  // amount left to refine — a pure what-if, no stockpile subtracted.
+  // "From plan" vs "Type" (what-if): in manual mode the typed number IS what's
+  // left to refine — no stockpile subtracted.
   let manual = $state(false);
   let manualRfc = $state(0);
 
-  const plan = $derived(
-    planById(PRESETS.find((p) => p.key === refinementStore.intensity)?.plan ?? 'L3')
-  );
-
-  // RFC still to refine: typed target, or (needed − saved RFC), clamped at 0.
   const netRfc = $derived(
     manual ? Math.max(0, manualRfc) : Math.max(0, rfc - refinementStore.stockRfc)
   );
@@ -38,23 +32,23 @@
     rfc > 0 ? Math.min(100, Math.round((refinementStore.stockRfc / rfc) * 100)) : 0
   );
 
-  const est = $derived(estimate(netRfc, plan));
-  const fcTotal = $derived(est.fcTotal);
-  const fcLow = $derived(est.fcLow);
-  const fcHigh = $derived(est.fcHigh);
-  const hasBand = $derived(fcHigh > fcLow);
-
-  // Time in days (more granular than weeks, better for SvS); weeks hint when long.
-  const timeLabel = $derived(
-    est.days >= 21
-      ? fmt(t.daysWeeks, { n: est.days, m: Math.round(est.days / 7) })
-      : fmt(t.days, { n: est.days })
+  // One estimate per intensity — drives the comparison cards; the selected one
+  // is the hero. Each tier holds 20 refines (cheap-first), so the top tier is
+  // ceil(refines/20) and the discount-optimal play does (refines−6) in one day.
+  const rows = $derived(
+    PRESETS.map((p) => {
+      const plan = planById(p.plan);
+      return {
+        key: p.key,
+        name: tx[p.key],
+        est: estimate(netRfc, plan),
+        refines: plan.refines,
+        tier: Math.min(5, Math.ceil(plan.refines / 20)),
+        bulk: Math.max(0, plan.refines - 6)
+      };
+    })
   );
-  // What the chosen intensity concretely means: refines/week and the top tier it
-  // reaches (each tier holds 20 refines, filled cheap-first).
-  const topTier = $derived(Math.min(5, Math.ceil(plan.refines / 20)));
-  // Concrete weekly play: bulk in one day + 6 spread 1/day to catch the daily 50%-off.
-  const bulk = $derived(Math.max(0, plan.refines - 6));
+  const cur = $derived(rows.find((r) => r.key === refinementStore.intensity) ?? rows[0]);
 
   const num = (e: Event) => {
     const v = Number((e.currentTarget as HTMLInputElement).value);
@@ -66,7 +60,7 @@
   <button class="head" type="button" aria-expanded={open} onclick={() => (open = !open)}>
     <span class="eyebrow">✨ {t.title}</span>
     {#if !open}
-      <span class="summary">🔥 {groupNumber(fcTotal)} · {timeLabel}</span>
+      <span class="summary">🔥 {groupNumber(cur.est.fcTotal)} · ~{cur.est.days} {t.daysLabel}</span>
     {/if}
     <Icon name="chevron-down" size={14} class="caret {open ? 'up' : ''}" />
   </button>
@@ -82,6 +76,30 @@
         </button>
       </div>
 
+      <!-- hero: the answer for the selected intensity -->
+      <div class="kpi">
+        <div class="kpi-cell">
+          <span class="kpi-lbl">🔥 {t.fcLabel}</span>
+          <span class="kpi-num">~{groupNumber(cur.est.fcTotal)}</span>
+          {#if cur.est.fcHigh > cur.est.fcLow}
+            <span class="kpi-band"
+              >{fmt(t.band, {
+                low: groupNumber(cur.est.fcLow),
+                high: groupNumber(cur.est.fcHigh),
+                perRfc: cur.est.fcPerRfc.toFixed(1)
+              })}</span
+            >
+          {/if}
+        </div>
+        <div class="kpi-div"></div>
+        <div class="kpi-cell">
+          <span class="kpi-lbl">⏱ {t.daysLabel}</span>
+          <span class="kpi-num">~{cur.est.days}</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
       {#if manual}
         <label class="field">
           <span class="field-label">{t.manualLabel}</span>
@@ -95,69 +113,45 @@
           />
         </label>
       {:else}
-        <!-- Overview: total → minus what you've saved → what's left. -->
-        <div class="overview">
-          <div class="ov-row">
-            <span class="ov-label">{t.totalNeeded}</span>
-            <span class="ov-val">{groupNumber(rfc)} RFC</span>
-          </div>
-          <label class="ov-row input">
-            <span class="ov-label">{t.haveSaved}</span>
-            <span class="ov-input">
-              −
-              <input
-                type="number"
-                min="0"
-                inputmode="numeric"
-                value={refinementStore.stockRfc || ''}
-                oninput={(e) => (refinementStore.stockRfc = num(e))}
-                placeholder="0"
-              />
-              RFC
-            </span>
-          </label>
-          <div class="ov-row total">
-            <span class="ov-label">{t.stillToRefine}</span>
-            <span class="ov-val big">{groupNumber(netRfc)} RFC</span>
-          </div>
-          <div class="bar" role="presentation">
-            <div class="bar-fill" style="width: {pctDone}%"></div>
-          </div>
-          <span class="pct">{fmt(t.ready, { n: pctDone })}</span>
-        </div>
+        <span class="setup">
+          {fmt(t.stillOf, { n: groupNumber(netRfc), total: groupNumber(rfc) })} · −
+          <input
+            class="saved-in"
+            type="number"
+            min="0"
+            inputmode="numeric"
+            value={refinementStore.stockRfc || ''}
+            oninput={(e) => (refinementStore.stockRfc = num(e))}
+            placeholder="0"
+          />
+          {t.savedShort} · {fmt(t.ready, { n: pctDone })}
+        </span>
+        <div class="bar" role="presentation"><div class="fill" style="width:{pctDone}%"></div></div>
       {/if}
 
-      <div class="intensity">
-        <span class="field-label">{t.intensity}</span>
-        <Segmented
-          value={refinementStore.intensity}
-          ariaLabel={t.intensity}
-          options={PRESETS.map((p) => ({ value: p.key, label: tx[p.key] }))}
-          onChange={(v) => (refinementStore.intensity = v)}
-        />
-        <p class="rhythm">{fmt(t.weekly, { n: plan.refines, tier: topTier })}</p>
+      <span class="rhythm-lbl">{t.rhythmHint}</span>
+      <div class="cards">
+        {#each rows as r (r.key)}
+          <button
+            class="rcard"
+            class:on={r.key === refinementStore.intensity}
+            type="button"
+            onclick={() => (refinementStore.intensity = r.key)}
+          >
+            <div class="rcard-top">
+              <span class="r-name">{r.name}</span>
+              <span class="r-fc">🔥 ~{groupNumber(r.est.fcTotal)}</span>
+              <span class="r-days">⏱ ~{r.est.days} {t.daysLabel}</span>
+            </div>
+            {#if r.key === refinementStore.intensity}
+              <div class="rcard-detail">
+                <span>{fmt(t.weekly, { n: r.refines, tier: r.tier })}</span>
+                <span class="rec">💡 {fmt(t.play, { bulk: r.bulk })}</span>
+              </div>
+            {/if}
+          </button>
+        {/each}
       </div>
-
-      <div class="meta-row">
-        <div class="meta">
-          <span class="meta-label">{t.fcNeeded}</span>
-          <span class="meta-val">🔥 {groupNumber(fcTotal)}</span>
-          {#if hasBand}
-            <span class="meta-base"
-              >{fmt(t.typical, { low: groupNumber(fcLow), high: groupNumber(fcHigh) })}</span
-            >
-          {/if}
-          <span class="meta-base">{fmt(t.perRfc, { n: est.fcPerRfc.toFixed(1) })}</span>
-        </div>
-        <div class="meta">
-          <span class="meta-label">{t.time}</span>
-          <span class="meta-val">{timeLabel}</span>
-        </div>
-      </div>
-
-      {#if plan.refines > 6}
-        <p class="tip">💡 {fmt(t.play, { bulk })}</p>
-      {/if}
 
       <details class="method">
         <summary>ⓘ {t.methodTitle}</summary>
@@ -216,13 +210,17 @@
   }
   .body {
     padding: 0 16px 16px;
+    display: flex;
+    flex-direction: column;
   }
+
   .src {
     display: inline-flex;
+    align-self: flex-start;
     border: 1px solid var(--border);
     border-radius: 999px;
     overflow: hidden;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
   }
   .src-btn {
     appearance: none;
@@ -241,56 +239,69 @@
     color: var(--text);
   }
 
-  .overview {
-    margin-bottom: 14px;
-  }
-  .ov-row {
+  /* hero */
+  .kpi {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 4px 0;
+    align-items: flex-start;
+    padding: 2px 0 4px;
   }
-  .ov-row.total {
-    border-top: 1px solid var(--border);
-    margin-top: 4px;
-    padding-top: 8px;
+  .kpi-cell {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
   }
-  .ov-label {
+  .kpi-lbl {
     font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-mid);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-dim);
   }
-  .ov-val {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--text);
-  }
-  .ov-val.big {
+  .kpi-num {
     font-family: var(--font-display);
     font-style: italic;
     font-weight: 700;
-    font-size: 20px;
+    font-size: 38px;
+    line-height: 1;
+    color: var(--text);
   }
-  .ov-input {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
+  .kpi-band {
     font-family: var(--font-mono);
     font-size: 11px;
     color: var(--text-dim);
+    margin-top: 2px;
   }
-  .ov-input input,
-  .field input {
-    width: 84px;
-    background: var(--bg-soft, rgba(0, 0, 0, 0.2));
+  .kpi-div {
+    width: 1px;
+    align-self: stretch;
+    background: var(--border);
+    margin: 4px 18px;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 14px 0;
+  }
+
+  .setup {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+  .saved-in {
+    width: 64px;
+    text-align: right;
+    background: var(--bg-soft);
     border: 1px solid var(--border);
     border-radius: 6px;
-    padding: 4px 8px;
+    color: var(--text);
     font-family: var(--font-mono);
     font-size: 12px;
-    color: var(--text);
-    text-align: right;
+    padding: 2px 6px;
   }
   .bar {
     margin-top: 8px;
@@ -299,85 +310,94 @@
     background: var(--bg-soft, rgba(0, 0, 0, 0.25));
     overflow: hidden;
   }
-  .bar-fill {
+  .fill {
     height: 100%;
     border-radius: 999px;
     background: linear-gradient(90deg, #fb923c, #c084fc);
     transition: width 0.25s ease;
-  }
-  .pct {
-    display: block;
-    margin-top: 4px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-dim);
   }
 
   .field {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    margin-bottom: 12px;
   }
-  .intensity {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-bottom: 12px;
-  }
-  .rhythm {
-    margin: 2px 0 0;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-dim);
-  }
-  .field-label {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--text-dim);
-  }
-  .meta-row {
-    display: flex;
-    gap: 24px;
-    flex-wrap: wrap;
-  }
-  .meta {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-  }
-  .meta-label {
+  .field-label,
+  .rhythm-lbl {
     font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 1px;
     text-transform: uppercase;
     color: var(--text-dim);
   }
-  .meta-val {
-    font-family: var(--font-display);
-    font-style: italic;
-    font-weight: 700;
-    font-size: 24px;
+  .field input {
+    width: 120px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text);
+    text-align: right;
+  }
+
+  .rhythm-lbl {
+    margin: 16px 0 8px;
+  }
+  .cards {
+    display: grid;
+    gap: 6px;
+  }
+  .rcard {
+    display: block;
+    width: 100%;
+    text-align: start;
+    padding: 12px 14px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: var(--font-mono);
+  }
+  .rcard.on {
+    border-color: var(--accent);
+    background: var(--accent-glow, rgba(192, 132, 252, 0.12));
+  }
+  .rcard-top {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 12px;
+    align-items: baseline;
+  }
+  .r-name {
+    font-size: 13px;
     color: var(--text);
   }
-  .meta-base {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-dim);
+  .r-fc {
+    font-size: 13px;
+    color: #fb923c;
   }
-  .tip {
-    margin: 12px 0 0;
-    padding: 10px 12px;
-    background: rgba(251, 146, 60, 0.08);
-    border: 1px solid rgba(251, 146, 60, 0.25);
-    border-radius: 8px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    line-height: 1.5;
+  .r-days {
+    font-size: 13px;
     color: var(--text-mid);
   }
+  .rcard-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .rec {
+    color: var(--text-mid);
+    border-inline-start: 2px solid rgba(251, 146, 60, 0.5);
+    padding-inline-start: 8px;
+  }
+
   .method {
     margin-top: 14px;
   }
