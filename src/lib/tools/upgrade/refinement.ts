@@ -54,11 +54,13 @@ export const PLANS: RefinePlan[] = [
 export const planById = (id: string): RefinePlan => PLANS.find((p) => p.id === id) ?? PLANS[0];
 
 /**
- * Named intensity presets surfaced in the UI (a Segmented control). Anchored on
- * the key plans: L3 = the "20 Monday + 1/day" alliance optimum (cheapest per
- * RFC), L10 = rush (most RFC/week, worst FC/RFC).
+ * Named intensity presets surfaced in the UI. Anchored on the key plans:
+ * superEconomic = L2 (only the 20 cheap T1 refines/week, all discounted →
+ * lowest FC/RFC, slowest), L3 = the "20 Monday + 1/day" alliance optimum,
+ * L10 = rush (most RFC/week, worst FC/RFC).
  */
 export const PRESETS: { key: string; plan: string }[] = [
+  { key: 'superEconomic', plan: 'L2' },
   { key: 'economic', plan: 'L3' },
   { key: 'balanced', plan: 'L5' },
   { key: 'fast', plan: 'L8' },
