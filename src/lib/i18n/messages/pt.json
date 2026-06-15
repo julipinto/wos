@@ -430,7 +430,7 @@
       "methodTitle": "Como calculamos",
       "methodSources": "As taxas vêm direto do jogo (Crystal Lab) — 5 tiers de 20 refinos/semana, mais caro por RFC conforme sobe:",
       "methodEstimate": "Simulamos o super refino semana a semana, enchendo o tier mais barato primeiro (20/tier, resetando por semana) e parando no seu alvo — por isso o FC reflete os tiers que você de fato alcança. O 1º refino de cada dia entra com −50%, aplicado aos refinos mais caros da semana; o tempo é a vazão, em dias.",
-      "methodBand": "Por que a faixa é válida: pelo Teorema Central do Limite, somar muitos refinos independentes deixa o total ~normal — é o que permite usar “média ± desvio”. Mostramos os 85% centrais (±1,44σ) como a faixa “entre”. O TCL é a lei comprovada; 85% é só a régua que escolhemos (típico, não garantia).",
+      "methodBand": "Por que a faixa? A média não é exata — cada refino é sorteado, então o total varia. Pelo Teorema Central do Limite, somar muitos refinos independentes deixa esse total ~normal, o que permite “média ± desvio”. Mostramos os 85% centrais (±1,44σ) como a faixa “entre” — 85% é a régua que escolhemos, não garantia.",
       "days": "~{n} dias",
       "daysWeeks": "~{n} dias (~{m} sem)",
       "weekly": "≈{n} refinos/semana · até o tier {tier}",

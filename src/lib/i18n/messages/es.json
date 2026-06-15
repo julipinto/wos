@@ -430,7 +430,7 @@
       "methodTitle": "Cómo calculamos",
       "methodSources": "Las tasas vienen directo del juego (Crystal Lab) — 5 niveles de 20 refinados/semana, más caro por RFC al subir:",
       "methodEstimate": "Simulamos el super refinado semana a semana, llenando primero el nivel más barato (20/nivel, se reinicia cada semana) y parando en tu objetivo — así el FC refleja los niveles que realmente alcanzas. El primer refinado de cada día es −50%, en los más caros de la semana; el tiempo es el rendimiento, en días.",
-      "methodBand": "Por qué el rango es válido: por el Teorema Central del Límite, sumar muchos refinados independientes hace el total ~normal — eso permite usar “media ± desviación”. Mostramos el 85% central (±1,44σ) como el rango “entre”. El TCL es la ley probada; 85% es solo la regla que elegimos (típico, no garantía).",
+      "methodBand": "¿Por qué un rango? La media no es exacta — cada refinado es aleatorio, así que el total varía. Por el Teorema Central del Límite, sumar muchos refinados independientes hace ese total ~normal, lo que permite “media ± desviación”. Mostramos el 85% central (±1,44σ) como el rango “entre” — 85% es la regla que elegimos, no una garantía.",
       "days": "~{n} días",
       "daysWeeks": "~{n} días (~{m} sem)",
       "weekly": "≈{n} refinados/semana · hasta el tier {tier}",
