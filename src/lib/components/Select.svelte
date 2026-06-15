@@ -25,9 +25,18 @@
     ariaLabel?: string;
     /** Placeholder for the filter box on long lists (already localised). */
     searchPlaceholder?: string;
+    /** Which edge the popup anchors to — 'end' keeps a right-side trigger on screen. */
+    align?: 'start' | 'end';
   }
 
-  let { value, options, onChange, ariaLabel, searchPlaceholder = '' }: Props = $props();
+  let {
+    value,
+    options,
+    onChange,
+    ariaLabel,
+    searchPlaceholder = '',
+    align = 'start'
+  }: Props = $props();
 
   let open = $state(false);
   let activeIndex = $state(-1);
@@ -143,6 +152,8 @@
     <div
       bind:this={menuEl}
       class="menu"
+      class:wide={searchable}
+      class:end={align === 'end'}
       role="listbox"
       tabindex="-1"
       aria-label={ariaLabel}
@@ -235,7 +246,11 @@
   .menu {
     position: absolute;
     top: calc(100% + 6px);
-    inset-inline: 0;
+    /* Anchor to the trigger's start edge; at least its width, capped to viewport. */
+    inset-inline-start: 0;
+    inset-inline-end: auto;
+    min-width: 100%;
+    max-width: calc(100vw - 1.5rem);
     max-height: 280px;
     overflow-y: auto;
     overflow-x: hidden;
@@ -247,6 +262,15 @@
     box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
     display: grid;
     gap: 2px;
+  }
+  /* Long (filterable) lists need a comfortable width even from a narrow trigger. */
+  .menu.wide {
+    min-width: min(15rem, calc(100vw - 1.5rem));
+  }
+  /* Anchor to the trigger's end edge so a right-side control stays on screen. */
+  .menu.end {
+    inset-inline-start: auto;
+    inset-inline-end: 0;
   }
   .search {
     position: sticky;

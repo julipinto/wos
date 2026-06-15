@@ -47,6 +47,7 @@
     onChange={setTo}
     ariaLabel={ariaTo}
     searchPlaceholder={i18n.m.upgrade.filter}
+    align="end"
   />
 </div>
 
