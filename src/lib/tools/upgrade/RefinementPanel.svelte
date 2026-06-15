@@ -157,6 +157,7 @@
         <summary>ⓘ {t.methodTitle}</summary>
         <p>{t.methodSources}</p>
         <p>{t.methodEstimate}</p>
+        <p>{t.methodFormula}</p>
         <p>{t.methodBand}</p>
       </details>
     </div>

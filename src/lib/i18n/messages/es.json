@@ -428,9 +428,9 @@
       "tipFast": "Llega al tier 4 cada semana — más rápido, más FC por RFC.",
       "tipRush": "Quema los 100 refinados/semana hasta el tier 5 — el más rápido, peor FC por RFC.",
       "methodTitle": "Cómo calculamos",
-      "methodSources": "Las tasas por nivel (cuánto RFC rinde cada refinado) son de la comunidad — Century Games no las publica — así que trátalos como estimación.",
-      "methodEstimate": "Simulamos el super refinado semana a semana, llenando primero el nivel más barato (20 refinados/nivel, se reinicia cada semana) y parando en tu objetivo, así el FC refleja los niveles que realmente usas. El −50% diario cae en los refinados más caros de cada semana; el tiempo es el rendimiento resultante, en días.",
-      "methodBand": "El RFC de cada refinado es una variable aleatoria con media y varianza conocidas. Como son independientes, por el Teorema Central del Límite el total es ~normal — propagamos la varianza a una desviación estándar y mostramos el ~85% central de los resultados (≈±1,44σ) como el rango “entre”.",
+      "methodSources": "Las tasas de cada nivel (RFC por refinado) vienen directo del juego (Crystal Lab). Cinco niveles de 20 refinados/semana: del T1 barato (20 FC, ~1,45 RFC) al T5 (160 FC, ~3,71 RFC), más caro por RFC al subir.",
+      "methodEstimate": "Simulamos el super refinado semana a semana, llenando primero el nivel más barato (20/nivel, se reinicia cada semana) y parando en tu objetivo — así el FC refleja los niveles que realmente alcanzas. El primer refinado de cada día es −50%, en los más caros de la semana; el tiempo es el rendimiento, en días.",
+      "methodBand": "Por qué el rango es válido: por el Teorema Central del Límite, sumar muchos refinados independientes hace el total ~normal — eso permite usar “media ± desviación”. Mostramos el 85% central (±1,44σ) como el rango “entre”. El TCL es la ley probada; 85% es solo la regla que elegimos (típico, no garantía).",
       "days": "~{n} días",
       "daysWeeks": "~{n} días (~{m} sem)",
       "weekly": "≈{n} refinados/semana · hasta el tier {tier}",
@@ -440,7 +440,8 @@
       "band": "entre {low}–{high} FC · {perRfc}/RFC",
       "stillOf": "faltan {n} RFC de {total}",
       "savedShort": "guardados",
-      "rhythmHint": "ritmo · toca para elegir"
+      "rhythmHint": "ritmo · toca para elegir",
+      "methodFormula": "Cada refinado tiene media μ y varianza σ² conocidas (μ = Σ p·x; σ² = Σ p·x² − μ²). Para llegar a N RFC, el coste en FC tiene desviación estándar SD = c̄·√(N·σ̄²/μ̄³), donde c̄ es el coste medio por refinado y μ̄/σ̄² la mezcla de niveles de la intensidad."
     },
     "materials": {
       "sub": "Dónde conseguir cada material de mejora.",

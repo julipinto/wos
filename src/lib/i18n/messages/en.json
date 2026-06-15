@@ -428,9 +428,9 @@
       "tipFast": "Pushes through tier 4 each week — faster, higher FC per RFC.",
       "tipRush": "Burns all 100 refines/week up to tier 5 — fastest, worst FC per RFC.",
       "methodTitle": "How we calculate",
-      "methodSources": "Per-tier drop rates (how much RFC each refine yields) are community-sourced — Century Games doesn't publish them — so treat the numbers as estimates.",
-      "methodEstimate": "We simulate the super-refine week by week, filling the cheapest tier first (20 refines/tier, reset weekly) and stopping at your target, so the FC reflects the tiers you actually reach. The daily 50%-off lands on each week's priciest refines; time is the resulting throughput, in days.",
-      "methodBand": "Each refine's RFC is a random variable with a known mean and variance. Refines are independent, so by the Central Limit Theorem the total is ~normal — we propagate the variance into a standard deviation and show the central ~85% of outcomes (≈±1.44σ) as the “between” range.",
+      "methodSources": "Per-tier drop rates (RFC per refine) come straight from the game (Crystal Lab). Five tiers of 20 refines/week: from the cheap T1 (20 FC, ~1.45 RFC) to T5 (160 FC, ~3.71 RFC), costlier per RFC as you climb.",
+      "methodEstimate": "We simulate the super-refine week by week, filling the cheapest tier first (20/tier, reset weekly) and stopping at your target — so the FC reflects the tiers you actually reach. Each day’s first refine is −50%, applied to that week’s priciest refines; time is the throughput, in days.",
+      "methodBand": "Why the range is valid: by the Central Limit Theorem, summing many independent refines makes the total ~normal — which is what lets us use “mean ± deviation”. We show the central 85% (±1.44σ) as the “between” range. The CLT is the proven law; 85% is just the width we picked (typical, not a guarantee).",
       "days": "~{n} days",
       "daysWeeks": "~{n} days (~{m} wk)",
       "weekly": "≈{n} refines/week · up to tier {tier}",
@@ -440,7 +440,8 @@
       "band": "between {low}–{high} FC · {perRfc}/RFC",
       "stillOf": "{n} RFC left of {total}",
       "savedShort": "saved",
-      "rhythmHint": "rhythm · tap to choose"
+      "rhythmHint": "rhythm · tap to choose",
+      "methodFormula": "Each refine has a known mean μ and variance σ² (μ = Σ p·x; σ² = Σ p·x² − μ²). To hit N RFC the FC cost has standard deviation SD = c̄·√(N·σ̄²/μ̄³), where c̄ is the mean FC per refine and μ̄/σ̄² the intensity’s tier mix."
     },
     "materials": {
       "sub": "Where to get each upgrade material.",
