@@ -472,13 +472,18 @@
     },
     "filter": "Filtrar… (ex.: FC5)",
     "compare": {
-      "sub": "Coloque trechos de prédios lado a lado — refino (RFC/FC/dias) e custo.",
+      "sub": "Compare conjuntos de prédios lado a lado — refino (RFC/FC/dias) e custo.",
+      "set": "Conjunto",
       "building": "Prédio",
-      "add": "cenário",
-      "total": "Σ soma",
+      "addBuilding": "adicionar prédio",
+      "addSet": "conjunto",
       "refineFc": "FC p/ refinar",
       "refineDays": "dias de refino",
-      "note": "Σ soma os cenários (útil pra um caminho tipo FC6→FC7→FC8). Pra um ou-outro, ignore o Σ — a menor célula de cada linha fica destacada. Tempos são base (sem boosters)."
+      "note": "Cada coluna é um conjunto de upgrades, somado. A menor célula de cada linha fica destacada. Tempos são base (sem boosters).",
+      "use": "Trocar meu plano",
+      "useConfirm": "Substituir seu plano de construção pelo Conjunto {name}?",
+      "applied": "Conjunto {name} aplicado ao seu plano.",
+      "viewPlan": "Ver plano →"
     }
   },
   "territory": {

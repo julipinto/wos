@@ -472,13 +472,18 @@
     },
     "filter": "Filter… (e.g. FC5)",
     "compare": {
-      "sub": "Put building ranges side by side — refining (RFC/FC/days) and cost.",
+      "sub": "Compare sets of buildings side by side — refining (RFC/FC/days) and cost.",
+      "set": "Set",
       "building": "Building",
-      "add": "scenario",
-      "total": "Σ total",
+      "addBuilding": "add building",
+      "addSet": "set",
       "refineFc": "FC to refine",
       "refineDays": "refine days",
-      "note": "Σ sums the scenarios (useful for a path like FC6→FC7→FC8). For an either/or, ignore Σ — the lowest cell per row is highlighted. Times are base (before boosters)."
+      "note": "Each column is a set of upgrades, summed. The lowest cell per row is highlighted. Times are base (before boosters).",
+      "use": "Switch my plan",
+      "useConfirm": "Replace your building plan with Set {name}?",
+      "applied": "Set {name} applied to your plan.",
+      "viewPlan": "View plan →"
     }
   },
   "territory": {

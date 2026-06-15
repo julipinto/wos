@@ -76,6 +76,30 @@ export const buildingsCalc = {
     state.rows.splice(i, 1);
     persist();
   },
+  /**
+   * Replace the whole plan (used by the comparator's "use this set" action).
+   * Buildings are unique here, so duplicate rows for the same building are
+   * merged into the widest span (lowest "from", highest "to").
+   */
+  replace(rows: BuildingRow[]): void {
+    const merged = new Map<string, BuildingRow>();
+    for (const r of rows) {
+      const c = clampRow(r);
+      if (!c) continue;
+      const table = buildingById(c.buildingId)!;
+      const labels = table.levels.map((l) => l.label);
+      const prev = merged.get(c.buildingId);
+      if (!prev) {
+        merged.set(c.buildingId, { ...c });
+      } else {
+        const from = labels.indexOf(c.from) < labels.indexOf(prev.from) ? c.from : prev.from;
+        const to = labels.indexOf(c.to) > labels.indexOf(prev.to) ? c.to : prev.to;
+        merged.set(c.buildingId, { buildingId: c.buildingId, from, to });
+      }
+    }
+    state.rows = [...merged.values()];
+    persist();
+  },
   setFrom(i: number, label: string): void {
     if (state.rows[i]) state.rows[i].from = label;
     persist();
