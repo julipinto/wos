@@ -61,7 +61,7 @@
 
   // Seed from "?s=building:from:to,…" when arriving via the Buildings "Compare"
   // button. Runs on client navigation AND a full reload; a single scenario is
-  // duplicated so there are two columns to compare, then the URL is cleaned.
+  // duplicated so there are two columns to compare.
   let seeded = false;
   $effect(() => {
     const s = $page.url.searchParams.get('s');
@@ -219,30 +219,29 @@
       <thead>
         <tr>
           <th></th>
-          {#each cols as c (c.label)}<th>{c.label}</th>{/each}
+          {#each cols as c, i (i)}<th>{c.label}</th>{/each}
           {#if cols.length > 1}<th class="sum">{i18n.m.upgrade.compare.total}</th>{/if}
         </tr>
       </thead>
       <tbody>
         <tr>
           <th>✨ RFC</th>
-          {#each cols as c, i (c.label)}<td class:win={rfcLow[i]}>{formatQty(c.rfc)}</td>{/each}
+          {#each cols as c, i (i)}<td class:win={rfcLow[i]}>{formatQty(c.rfc)}</td>{/each}
           {#if cols.length > 1}<td class="sum">{formatQty(sumRfc)}</td>{/if}
         </tr>
         <tr>
           <th>🔥 {i18n.m.upgrade.compare.refineFc}</th>
-          {#each cols as c, i (c.label)}<td class:win={fcLow[i]}>~{formatQty(c.fc)}</td>{/each}
+          {#each cols as c, i (i)}<td class:win={fcLow[i]}>~{formatQty(c.fc)}</td>{/each}
           {#if cols.length > 1}<td class="sum">~{formatQty(sumEst.fcTotal)}</td>{/if}
         </tr>
         <tr>
           <th>⏱ {i18n.m.upgrade.compare.refineDays}</th>
-          {#each cols as c, i (c.label)}<td class:win={daysLow[i]}>~{c.days}</td>{/each}
+          {#each cols as c, i (i)}<td class:win={daysLow[i]}>~{c.days}</td>{/each}
           {#if cols.length > 1}<td class="sum">~{sumEst.days}</td>{/if}
         </tr>
         <tr class="div">
           <th>🔨 {i18n.m.upgrade.buildTime}</th>
-          {#each cols as c, i (c.label)}<td class:win={timeLow[i]}>{formatDuration(c.time)}</td
-            >{/each}
+          {#each cols as c, i (i)}<td class:win={timeLow[i]}>{formatDuration(c.time)}</td>{/each}
           {#if cols.length > 1}<td class="sum">{formatDuration(sumResult.time)}</td>{/if}
         </tr>
         {#each resKeys as k (k)}
@@ -252,7 +251,7 @@
               ><span class="ic" style="--c: {resDef(k).color}">{resDef(k).icon}</span>
               {resName(k)}</th
             >
-            {#each cols as c, i (c.label)}
+            {#each cols as c, i (i)}
               <td class:win={low[i]}>{formatQty(c.totals[k as keyof ResourceBag] ?? 0)}</td>
             {/each}
             {#if cols.length > 1}<td class="sum"
