@@ -430,7 +430,7 @@
       "methodTitle": "How we calculate",
       "methodSources": "Drop rates come straight from the game (Crystal Lab) — 5 tiers of 20 refines/week, costlier per RFC as you climb:",
       "methodEstimate": "We simulate the super-refine week by week, filling the cheapest tier first (20/tier, reset weekly) and stopping at your target — so the FC reflects the tiers you actually reach. Each day’s first refine is −50%, applied to that week’s priciest refines; time is the throughput, in days.",
-      "methodBand": "Why the range is valid: by the Central Limit Theorem, summing many independent refines makes the total ~normal — which is what lets us use “mean ± deviation”. We show the central 85% (±1.44σ) as the “between” range. The CLT is the proven law; 85% is just the width we picked (typical, not a guarantee).",
+      "methodBand": "Why a range? The average isn’t exact — each refine is a dice roll, so the total varies. By the Central Limit Theorem, summing many independent refines makes that total ~normal, which lets us use “mean ± deviation”. We show the central 85% (±1.44σ) as the “between” range — 85% is the width we chose, not a guarantee.",
       "days": "~{n} days",
       "daysWeeks": "~{n} days (~{m} wk)",
       "weekly": "≈{n} refines/week · up to tier {tier}",
