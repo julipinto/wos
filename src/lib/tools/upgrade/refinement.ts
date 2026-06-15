@@ -20,6 +20,10 @@
  * Sources (researched 2026-06-08): whiteoutsurvival.wiki/refinement-in-crystal-
  * laboratory, wos.h5joy-games.com/guides/cf-refinement. Probability tables are
  * community-sourced (Century Games doesn't publish them) → treat as ~estimates.
+ *
+ * TIERS / TIER_COST below verified 2026-06-15 against
+ * https://www.whiteoutsurvival.wiki/refinement-in-crystal-laboratory/ and
+ * cross-checked in-game by the user — costs + every distribution matched exactly.
  */
 
 /** A weekly refinement plan: how many refines, and the FC spent / RFC produced. */
