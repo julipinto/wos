@@ -441,11 +441,13 @@
       "stillOf": "{n} RFC left of {total}",
       "savedShort": "saved",
       "rhythmHint": "rhythm · tap to choose",
-      "methodFormula": "Each refine has a mean μ and variance σ² from the tier’s distribution (μ = Σ p·x; σ² = Σ p·x² − μ²), where x = the RFC a refine yields and p = its chance (the “RFC → chance” columns of the table above). For N RFC (what’s left), the FC cost has standard deviation SD = c̄·√(N·σ̄²/μ̄³): c̄ = mean FC per refine; μ̄ and σ̄² = the mean and variance weighted by the intensity’s tier mix (bar ‾ = the intensity’s average). E.g. 200 RFC on economic (μ̄≈1.61 · σ̄²≈0.46 · c̄≈20.8) → ~2,580 FC, range ~2,440–2,720.",
+      "methodFormula": "To hit N RFC (what's left), the FC cost has standard deviation SD = c̄·√(N·σ̄²/μ̄³): c̄ = mean FC per refine; μ̄ and σ̄² = the mean and variance weighted by the intensity's tier mix (bar ‾ = the intensity's average). E.g. 200 RFC on economic (μ̄≈1.61 · σ̄²≈0.46 · c̄≈20.8) → ~2,580 FC, range ~2,440–2,720.",
       "thCost": "Cost",
-      "thDist": "RFC → chance",
-      "thMean": "avg",
-      "superEconomic": "Super eco"
+      "thDist": "RFC (x) → chance (p)",
+      "thMean": "avg (μ)",
+      "superEconomic": "Super eco",
+      "methodTableNote": "FC/RFC = cost ÷ avg (e.g. T1 = 20 ÷ 1.45 = 13.8) — the tier's raw price, before the daily discount (which is applied in the result above).",
+      "methodMean": "The avg (μ) column is the mean RFC per refine: μ = Σ p·x. E.g. T1 = 1×0.65 + 2×0.25 + 3×0.10 = 1.45. The variance is σ² = Σ p·x² − μ²; for T1: (1×0.65 + 4×0.25 + 9×0.10) − 1.45² = 2.55 − 2.10 = 0.45."
     },
     "materials": {
       "sub": "Where to get each upgrade material.",

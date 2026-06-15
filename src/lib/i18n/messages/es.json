@@ -441,11 +441,13 @@
       "stillOf": "faltan {n} RFC de {total}",
       "savedShort": "guardados",
       "rhythmHint": "ritmo · toca para elegir",
-      "methodFormula": "Cada refinado tiene media μ y varianza σ² de la distribución del nivel (μ = Σ p·x; σ² = Σ p·x² − μ²), donde x = el RFC que da un refinado y p = su probabilidad (las columnas “RFC → prob.” de la tabla de arriba). Para N RFC (lo que falta), el coste tiene desviación estándar SD = c̄·√(N·σ̄²/μ̄³): c̄ = FC medio por refinado; μ̄ y σ̄² = media y varianza ponderadas por la mezcla de niveles de la intensidad (barra ‾ = media de la intensidad). Ej.: 200 RFC en económico (μ̄≈1,61 · σ̄²≈0,46 · c̄≈20,8) → ~2.580 FC, rango ~2.440–2.720.",
+      "methodFormula": "Para N RFC (lo que falta), el coste en FC tiene desviación estándar SD = c̄·√(N·σ̄²/μ̄³): c̄ = FC medio por refinado; μ̄ y σ̄² = media y varianza ponderadas por la mezcla de niveles de la intensidad (barra ‾ = media de la intensidad). Ej.: 200 RFC en económico (μ̄≈1,61 · σ̄²≈0,46 · c̄≈20,8) → ~2.580 FC, rango ~2.440–2.720.",
       "thCost": "Coste",
-      "thDist": "RFC → prob.",
-      "thMean": "media",
-      "superEconomic": "Súper eco"
+      "thDist": "RFC (x) → prob. (p)",
+      "thMean": "media (μ)",
+      "superEconomic": "Súper eco",
+      "methodTableNote": "FC/RFC = coste ÷ media (ej.: T1 = 20 ÷ 1,45 = 13,8) — el precio crudo del nivel, antes del descuento diario (aplicado en el resultado de arriba).",
+      "methodMean": "La columna media (μ) es la media de RFC por refinado: μ = Σ p·x. Ej.: T1 = 1×0,65 + 2×0,25 + 3×0,10 = 1,45. La varianza es σ² = Σ p·x² − μ²; para T1: (1×0,65 + 4×0,25 + 9×0,10) − 1,45² = 2,55 − 2,10 = 0,45."
     },
     "materials": {
       "sub": "Dónde conseguir cada material de mejora.",
