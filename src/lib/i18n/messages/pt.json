@@ -205,7 +205,8 @@
       "experts": "experts",
       "plan": "meu plano",
       "expertSkills": "Skills de Experts",
-      "materials": "Materiais"
+      "materials": "Materiais",
+      "compare": "Comparar"
     },
     "res": {
       "meat": "carne",
@@ -469,7 +470,16 @@
       },
       "confNote": "Confiança = o quanto temos certeza das fontes (alta → cross-checada · baixa → incerta)."
     },
-    "filter": "Filtrar… (ex.: FC5)"
+    "filter": "Filtrar… (ex.: FC5)",
+    "compare": {
+      "sub": "Coloque trechos de prédios lado a lado — refino (RFC/FC/dias) e custo.",
+      "building": "Prédio",
+      "add": "cenário",
+      "total": "Σ soma",
+      "refineFc": "FC p/ refinar",
+      "refineDays": "dias de refino",
+      "note": "Σ soma os cenários (útil pra um caminho tipo FC6→FC7→FC8). Pra um ou-outro, ignore o Σ — a menor célula de cada linha fica destacada. Tempos são base (sem boosters)."
+    }
   },
   "territory": {
     "sub": "Posicione no grid; banners cobrem 7×7 e precisam conectar ao HQ pra segurar território.",

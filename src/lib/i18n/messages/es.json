@@ -205,7 +205,8 @@
       "experts": "experts",
       "plan": "mi plan",
       "expertSkills": "Habilidades de Expertos",
-      "materials": "Materiales"
+      "materials": "Materiales",
+      "compare": "Comparar"
     },
     "res": {
       "meat": "carne",
@@ -469,7 +470,16 @@
       },
       "confNote": "Confianza = qué tan seguros estamos de las fuentes (alta → contrastada · baja → incierta)."
     },
-    "filter": "Filtrar… (ej.: FC5)"
+    "filter": "Filtrar… (ej.: FC5)",
+    "compare": {
+      "sub": "Pon rangos de edificios lado a lado — refinado (RFC/FC/días) y coste.",
+      "building": "Edificio",
+      "add": "escenario",
+      "total": "Σ suma",
+      "refineFc": "FC a refinar",
+      "refineDays": "días de refinado",
+      "note": "Σ suma los escenarios (útil para un camino como FC6→FC7→FC8). Para un o-u-otro, ignora Σ — se resalta la celda más baja de cada fila. Los tiempos son base (sin boosters)."
+    }
   },
   "territory": {
     "sub": "Coloca en la cuadrícula; las banderas cubren 7×7 y deben conectarse al HQ para mantener territorio.",
