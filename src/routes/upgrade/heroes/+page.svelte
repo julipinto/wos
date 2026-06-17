@@ -12,6 +12,7 @@
   import NumberInput from '$lib/components/NumberInput.svelte';
   import RangeSelect from '$lib/tools/upgrade/RangeSelect.svelte';
   import DeficitPanel from '$lib/tools/upgrade/DeficitPanel.svelte';
+  import RemoveButton from '$lib/components/RemoveButton.svelte';
   import {
     sumLadder,
     combine,
@@ -344,13 +345,7 @@
               ariaLabel={tx.pickHero}
             />
           </div>
-          <button
-            class="hero-remove"
-            type="button"
-            onclick={() => removeHero(i)}
-            aria-label={i18n.m.upgrade.troops.remove}
-            title={i18n.m.upgrade.troops.remove}>🗑</button
-          >
+          <RemoveButton onclick={() => removeHero(i)} />
         </div>
 
         <div class="field">
@@ -491,13 +486,7 @@
               ariaLabel={tx.rarity}
             />
           </div>
-          <button
-            class="hero-remove"
-            type="button"
-            onclick={() => removePiece(i)}
-            aria-label={i18n.m.upgrade.troops.remove}
-            title={i18n.m.upgrade.troops.remove}>🗑</button
-          >
+          <RemoveButton onclick={() => removePiece(i)} />
         </div>
         <div class="track">
           <span class="side-tag">{tx.enhance}</span>
@@ -668,19 +657,6 @@
   .rarity-rare {
     background: #60a5fa;
     box-shadow: 0 0 7px #60a5fa77;
-  }
-  .hero-remove {
-    flex-shrink: 0;
-    background: transparent;
-    border: none;
-    padding: 4px 6px;
-    font-size: 16px;
-    line-height: 1;
-    opacity: 0.55;
-    cursor: pointer;
-  }
-  .hero-remove:hover {
-    opacity: 1;
   }
   .field {
     display: grid;
@@ -930,6 +906,22 @@
       padding: 24px 18px 72px;
     }
     .star-grid {
+      grid-template-columns: 1fr;
+    }
+    /* Stack the piece's three dropdowns — 3-across is unusable on a phone. */
+    .piece-selects {
+      grid-template-columns: 1fr;
+    }
+    /* Put each gear track's label above its range so the dropdowns get full width. */
+    .track {
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+    /* Let the exclusive-gear row wrap instead of overflowing. */
+    .ex-grid {
+      flex-wrap: wrap;
+    }
+    .saved {
       grid-template-columns: 1fr;
     }
   }

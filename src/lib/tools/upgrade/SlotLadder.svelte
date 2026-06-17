@@ -7,6 +7,7 @@
    */
   import RangeSelect from './RangeSelect.svelte';
   import Totals from './Totals.svelte';
+  import RemoveButton from '$lib/components/RemoveButton.svelte';
   import { i18n } from '$lib/i18n/index.svelte';
   import { sumLadder } from './engine';
   import { type LevelCost } from './types';
@@ -102,12 +103,7 @@
             ariaFrom="{slotName(a.sid)} {i18n.m.upgrade.from}"
             ariaTo="{slotName(a.sid)} {i18n.m.upgrade.to}"
           />
-          <button
-            class="remove"
-            type="button"
-            onclick={() => removeSlot(i)}
-            aria-label={i18n.m.upgrade.troops.remove}>×</button
-          >
+          <RemoveButton onclick={() => removeSlot(i)} />
         </div>
       </div>
     {/each}
@@ -181,25 +177,6 @@
     align-items: center;
     gap: 8px;
   }
-  .remove {
-    flex-shrink: 0;
-    width: 36px;
-    height: 44px;
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text-dim);
-    font-size: 20px;
-    cursor: pointer;
-    transition:
-      color 0.2s ease,
-      border-color 0.2s ease;
-  }
-  .remove:hover {
-    color: #fb7185;
-    border-color: rgba(251, 113, 133, 0.4);
-  }
-
   .setall {
     display: flex;
     flex-direction: column;
