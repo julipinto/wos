@@ -252,7 +252,14 @@
     "setAll": "set all",
     "apply": "apply",
     "gear": {
-      "sub": "Materials to upgrade your 6 chief gear pieces. Set each piece's current and target tier."
+      "sub": "Materials to upgrade your 6 chief gear pieces. Set each piece's current and target tier.",
+      "powerGain": "Power gain",
+      "atkDef": "ATK/DEF",
+      "power": "Power",
+      "infantry": "Infantry",
+      "lancer": "Lancer",
+      "marksman": "Marksman",
+      "powerNote": "⚠ Stat values are community-sourced (cross-checked across 3 calculators) — verify in-game. Set-bonus (all-troop) stats not included."
     },
     "charms": {
       "sub": "Materials for all 18 chief charm slots (3 per gear piece). Set each charm's current and target level."
