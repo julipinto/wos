@@ -69,6 +69,90 @@ export const HERO_ENHANCE: LevelCost[] = [
   { label: '100', cost: { mythicHeroGear: 2 }, time: 0 } // imbue gate to Ascended
 ];
 
+/**
+ * Hero Gear Empowerment — the post-100 "Ascended/Legendary" track. After a
+ * piece hits Enhancement 100 + Mastery 10 it ascends, then empowers in 5
+ * milestones (gear level 20→100) keyed on Mithril + Mythic Hero Gear. Per piece:
+ * 150 Mithril + 33 Mythic Hero Gear to milestone 100. SINGLE-SOURCED (wiki +
+ * helpshift) — flag for in-game verification before treating as final.
+ */
+export const HERO_EMPOWER: LevelCost[] = [
+  { label: '0', cost: {}, time: 0 },
+  { label: '20', cost: { mithril: 10, mythicHeroGear: 3 }, time: 0 },
+  { label: '40', cost: { mithril: 20, mythicHeroGear: 5 }, time: 0 },
+  { label: '60', cost: { mithril: 30, mythicHeroGear: 5 }, time: 0 },
+  { label: '80', cost: { mithril: 40, mythicHeroGear: 10 }, time: 0 },
+  { label: '100', cost: { mithril: 50, mythicHeroGear: 10 }, time: 0 }
+];
+
+/**
+ * Mythic→Legendary ascension (gold→red). A discrete promotion node, gated by
+ * Enhancement 100 + Mastery 10, that sacrifices 2 more Mythic Hero Gear of the
+ * same type. Confirmed across sources 2026-06-17. Empowerment (HERO_EMPOWER) is
+ * only available after this ascension.
+ */
+export const GEAR_ASCENSION_COST: ResourceBag = { mythicHeroGear: 2 };
+
+/** The four normal hero-gear pieces — shared cost ladder, swappable within a troop. */
+export const HERO_GEAR_PIECES = [
+  { id: 'goggles', name: 'Goggles' },
+  { id: 'gloves', name: 'Gloves' },
+  { id: 'belt', name: 'Belt' },
+  { id: 'boots', name: 'Boots' }
+] as const;
+
+/**
+ * GRANULAR star progression. Each of the 5 stars is split into 6 segments, and
+ * the 6th segment of each star jumps. Values below are the shards to COMPLETE
+ * each segment (S1..S6). 30 segments total = 1065 shards to 5★ (the 10 recruit
+ * shards to first unlock the hero are separate). Verified in-game 2026-06-17.
+ *
+ * Shards come in three non-interchangeable types (Mythic / Epic / Rare) chosen
+ * by the hero's rarity — but these COUNTS are identical across types, so the
+ * maths is rarity-agnostic; the planner just tags which bucket to spend from.
+ */
+export const STAR_SEGMENT_SHARDS: number[][] = [
+  [1, 1, 2, 2, 2, 2], // 1★ = 10
+  [5, 5, 5, 5, 5, 15], // 2★ = 40
+  [15, 15, 15, 15, 15, 40], // 3★ = 115
+  [40, 40, 40, 40, 40, 100], // 4★ = 300
+  [100, 100, 100, 100, 100, 100] // 5★ = 600
+];
+
+/** Flat per-segment cost: FLAT_STAR_SHARDS[i] = shards to go from index i → i+1. */
+const FLAT_STAR_SHARDS = STAR_SEGMENT_SHARDS.flat();
+/** Linear segment index runs 0 (0★) → 30 (5★). */
+export const STAR_MAX_INDEX = FLAT_STAR_SHARDS.length; // 30
+export const STAR_SEGMENTS_PER_STAR = 6;
+
+/** Linear index of a granular position: `star` full stars + `seg` segments into the next. */
+export function starIndex(star: number, seg: number): number {
+  return Math.max(0, Math.min(STAR_MAX_INDEX, star * STAR_SEGMENTS_PER_STAR + seg));
+}
+
+/** Human label for a linear index, e.g. 18 → "3★", 21 → "3★ +3/6", 30 → "5★". */
+export function starLabel(index: number): string {
+  const i = Math.max(0, Math.min(STAR_MAX_INDEX, index));
+  if (i >= STAR_MAX_INDEX) return '5★';
+  const star = Math.floor(i / STAR_SEGMENTS_PER_STAR);
+  const seg = i % STAR_SEGMENTS_PER_STAR;
+  return seg === 0 ? `${star}★` : `${star}★ +${seg}/6`;
+}
+
+/**
+ * Shards still needed to go from one granular position to another.
+ * `savedToward` = shards already banked toward completing the current (from)
+ * segment; subtracted from the total (never below 0).
+ */
+export function starShardsBetween(fromIndex: number, toIndex: number, savedToward = 0): number {
+  const a = Math.max(0, Math.min(STAR_MAX_INDEX, fromIndex));
+  const b = Math.max(0, Math.min(STAR_MAX_INDEX, toIndex));
+  if (b <= a) return 0;
+  let sum = 0;
+  for (let i = a; i < b; i++) sum += FLAT_STAR_SHARDS[i];
+  return Math.max(0, sum - Math.max(0, savedToward));
+}
+
 export interface HeroTrack {
   id: string;
   /** i18n suffix under upgrade.heroes.tracks.* */
