@@ -3,6 +3,7 @@
   import { i18n, fmt } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import Icon from '$lib/components/Icon.svelte';
+  import ResourceIcon from '$lib/components/ResourceIcon.svelte';
   import Boosters from '$lib/tools/upgrade/Boosters.svelte';
   import DeficitPanel from '$lib/tools/upgrade/DeficitPanel.svelte';
   import { speedups } from '$lib/tools/upgrade/speedups.svelte';
@@ -166,9 +167,8 @@
     <h2 class="section-label">{i18n.m.upgrade.totalEyebrow}</h2>
     <div class="totals">
       {#each grandRows as key (key)}
-        {@const def = resDef(key)}
         <div class="res">
-          <span class="res-icon" style="--c: {def.color}" aria-hidden="true">{def.icon}</span>
+          <span class="res-icon"><ResourceIcon resource={key} /></span>
           <span class="res-name">{resName(key)}</span>
           <span class="res-val-wrap">
             <span class="res-val">{formatQty(grand[key] ?? 0)}</span>
@@ -372,9 +372,8 @@
     border-radius: var(--r-card);
   }
   .res-icon {
-    font-size: 20px;
+    display: inline-flex;
     line-height: 1;
-    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--c) 40%, transparent));
   }
   .res-name {
     font-family: var(--font-mono);

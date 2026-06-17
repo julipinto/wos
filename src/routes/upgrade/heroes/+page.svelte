@@ -13,6 +13,7 @@
   import RangeSelect from '$lib/tools/upgrade/RangeSelect.svelte';
   import DeficitPanel from '$lib/tools/upgrade/DeficitPanel.svelte';
   import RemoveButton from '$lib/components/RemoveButton.svelte';
+  import ResourceIcon from '$lib/components/ResourceIcon.svelte';
   import {
     sumLadder,
     combine,
@@ -20,7 +21,7 @@
     formatQty,
     presentResources
   } from '$lib/tools/upgrade/engine';
-  import { RESOURCES, type ResourceKey, type ResourceBag } from '$lib/tools/upgrade/types';
+  import { type ResourceKey, type ResourceBag } from '$lib/tools/upgrade/types';
   import {
     HERO_EXCLUSIVE,
     HERO_ENHANCE,
@@ -308,9 +309,7 @@
   // resources). Widgets are hero-specific currencies, so they're left out.
   const heroNeeded = $derived(addBags(shardTotals, gearTotals));
 
-  const resDef = (k: string) => RESOURCES.find((r) => r.key === k)!;
   const resName = (k: string) => (i18n.m.upgrade.res as Record<string, string>)[k];
-  const widgetDef = resDef('widget');
 </script>
 
 <svelte:head>
@@ -397,9 +396,7 @@
             <p class="star-out">
               {starLabel(h.starFrom)} → {starLabel(h.starTo)} ·
               <strong>{formatQty(shardsOf(h))}</strong>
-              <span class="ic" style="--c: {resDef(SHARD_KEY[cat.rarity]).color}"
-                >{resDef(SHARD_KEY[cat.rarity]).icon}</span
-              >
+              <span class="ic"><ResourceIcon resource={SHARD_KEY[cat.rarity]} size={14} /></span>
               {resName(SHARD_KEY[cat.rarity])}
             </p>
           {/if}
@@ -431,7 +428,7 @@
               {#if widgetsOf(h) > 0}
                 <span class="ex-out"
                   ><strong>{formatQty(widgetsOf(h))}</strong>
-                  <span class="ic" style="--c: {widgetDef.color}">{widgetDef.icon}</span></span
+                  <span class="ic"><ResourceIcon resource="widget" size={14} /></span></span
                 >
               {/if}
             </div>
@@ -576,14 +573,14 @@
       <h2 class="section-label">🛒 {tx.shopping}</h2>
       {#each shardRows as row (row.k)}
         <div class="res">
-          <span class="res-icon" style="--c: {resDef(row.k).color}">{resDef(row.k).icon}</span>
+          <span class="res-icon"><ResourceIcon resource={row.k} /></span>
           <span class="res-name">{resName(row.k)}</span>
           <span class="res-val">{formatQty(row.n)}</span>
         </div>
       {/each}
       {#if widgetRows.length > 0}
         <div class="res res-group">
-          <span class="res-icon" style="--c: {widgetDef.color}">{widgetDef.icon}</span>
+          <span class="res-icon"><ResourceIcon resource="widget" /></span>
           <span class="res-name">{resName('widget')} <em>({tx.perHero})</em></span>
         </div>
         {#each widgetRows as row (row.name)}
@@ -595,7 +592,7 @@
       {/if}
       {#each poolRows as row (row.k)}
         <div class="res">
-          <span class="res-icon" style="--c: {resDef(row.k).color}">{resDef(row.k).icon}</span>
+          <span class="res-icon"><ResourceIcon resource={row.k} /></span>
           <span class="res-name">{resName(row.k)}</span>
           <span class="res-val">{formatQty(row.n)}</span>
         </div>
@@ -720,7 +717,9 @@
     white-space: nowrap;
   }
   .ic {
-    filter: drop-shadow(0 0 5px color-mix(in srgb, var(--c) 40%, transparent));
+    display: inline-flex;
+    vertical-align: middle;
+    line-height: 1;
   }
   .add {
     justify-self: start;
@@ -865,9 +864,8 @@
     border-radius: var(--r-card);
   }
   .res-icon {
-    font-size: 20px;
+    display: inline-flex;
     line-height: 1;
-    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--c) 40%, transparent));
   }
   .res-name {
     font-family: var(--font-mono);

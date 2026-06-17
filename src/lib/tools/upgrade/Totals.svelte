@@ -8,7 +8,8 @@
    */
   import { i18n, fmt } from '$lib/i18n/index.svelte';
   import { addBags, presentResources, formatQty } from './engine';
-  import { RESOURCES, type ResourceBag } from './types';
+  import { type ResourceBag } from './types';
+  import ResourceIcon from '$lib/components/ResourceIcon.svelte';
   import { totalsMode } from './totals-mode.svelte';
 
   interface Item {
@@ -25,7 +26,6 @@
   let { items, adjust = (_k, a) => a, emptyHint, fcRefine = 0 }: Props = $props();
 
   const resName = (k: string) => (i18n.m.upgrade.res as Record<string, string>)[k];
-  const resDef = (k: string) => RESOURCES.find((r) => r.key === k)!;
   const amt = (b: ResourceBag, k: string) => adjust(k, b[k as keyof ResourceBag] ?? 0);
 
   const summed = $derived(items.reduce<ResourceBag>((acc, it) => addBags(acc, it.totals), {}));
@@ -62,9 +62,8 @@
         <span class="g-name">{it.label}</span>
         <div class="totals">
           {#each presentResources(it.totals) as k (k)}
-            {@const def = resDef(k)}
             <div class="res">
-              <span class="res-icon" style="--c: {def.color}" aria-hidden="true">{def.icon}</span>
+              <span class="res-icon"><ResourceIcon resource={k} /></span>
               <span class="res-name">{resName(k)}</span>
               <span class="res-val">{formatQty(amt(it.totals, k))}</span>
             </div>
@@ -76,9 +75,8 @@
 {:else}
   <div class="totals">
     {#each summedRows as k (k)}
-      {@const def = resDef(k)}
       <div class="res">
-        <span class="res-icon" style="--c: {def.color}" aria-hidden="true">{def.icon}</span>
+        <span class="res-icon"><ResourceIcon resource={k} /></span>
         <span class="res-name">{resName(k)}</span>
         <span class="res-val-wrap">
           <span class="res-val">{formatQty(amt(summed, k))}</span>
@@ -178,9 +176,8 @@
     border-radius: var(--r-card);
   }
   .res-icon {
-    font-size: 20px;
+    display: inline-flex;
     line-height: 1;
-    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--c) 40%, transparent));
   }
   .res-name {
     font-family: var(--font-mono);

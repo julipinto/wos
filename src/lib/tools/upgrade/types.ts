@@ -58,8 +58,10 @@ export type ResourceBag = Partial<Record<ResourceKey, number>>;
 /** Display metadata for a resource — icon + i18n key + accent colour. */
 export interface ResourceDef {
   key: ResourceKey;
-  /** Emoji placeholder; swap for sprites later without touching callers. */
+  /** Emoji fallback (last resort if no Noto/PNG icon is wired). */
   icon: string;
+  /** Iconify "noto" (colour emoji SVG) name — consistent across devices. */
+  noto: string;
   color: string;
 }
 
@@ -68,37 +70,37 @@ export interface ResourceDef {
  * first four, but later tools (FC buildings, gear) lean on the rest.
  */
 export const RESOURCES: ResourceDef[] = [
-  { key: 'meat', icon: '🥩', color: '#f87171' },
-  { key: 'wood', icon: '🪵', color: '#a3e635' },
-  { key: 'coal', icon: '⛏️', color: '#94a3b8' },
-  { key: 'iron', icon: '⚙️', color: '#60a5fa' },
-  { key: 'crystal', icon: '💎', color: '#22d3ee' },
-  { key: 'steel', icon: '🪙', color: '#cbd5e1' },
-  { key: 'fireCrystal', icon: '🔥', color: '#fb923c' },
-  { key: 'refinedFireCrystal', icon: '✨', color: '#c084fc' },
-  { key: 'fcShard', icon: '🔸', color: '#fb7185' },
-  { key: 'hardenedAlloy', icon: '🔩', color: '#94a3b8' },
-  { key: 'polishingSolution', icon: '🧪', color: '#34d399' },
-  { key: 'designPlans', icon: '📜', color: '#fbbf24' },
-  { key: 'lunarAmber', icon: '🟡', color: '#f59e0b' },
-  { key: 'charmDesign', icon: '📃', color: '#fcd34d' },
-  { key: 'charmGuide', icon: '📕', color: '#d97706' },
-  { key: 'charmSecret', icon: '📓', color: '#ef4444' },
-  { key: 'petFood', icon: '🍗', color: '#f59e0b' },
-  { key: 'tamingManual', icon: '📖', color: '#a3e635' },
-  { key: 'energizingPotion', icon: '⚗️', color: '#22d3ee' },
-  { key: 'strengtheningSerum', icon: '💉', color: '#f472b6' },
-  { key: 'essenceStones', icon: '🔆', color: '#fcd34d' },
-  { key: 'mythicHeroGear', icon: '🎖️', color: '#f87171' },
-  { key: 'widget', icon: '🔧', color: '#94a3b8' },
-  { key: 'heroShard', icon: '🔱', color: '#c084fc' },
-  { key: 'mythicShard', icon: '💠', color: '#fb7185' },
-  { key: 'epicShard', icon: '💠', color: '#c084fc' },
-  { key: 'rareShard', icon: '💠', color: '#60a5fa' },
-  { key: 'mithril', icon: '🔘', color: '#cbd5e1' },
-  { key: 'gearXp', icon: '⭐', color: '#fcd34d' },
-  { key: 'expertSigil', icon: '🔷', color: '#38bdf8' },
-  { key: 'bookOfKnowledge', icon: '📚', color: '#a78bfa' }
+  { key: 'meat', icon: '🥩', noto: 'cut-of-meat', color: '#f87171' },
+  { key: 'wood', icon: '🪵', noto: 'wood', color: '#a3e635' },
+  { key: 'coal', icon: '⛏️', noto: 'pick', color: '#94a3b8' },
+  { key: 'iron', icon: '⚙️', noto: 'gear', color: '#60a5fa' },
+  { key: 'crystal', icon: '💎', noto: 'gem-stone', color: '#22d3ee' },
+  { key: 'steel', icon: '🪙', noto: 'coin', color: '#cbd5e1' },
+  { key: 'fireCrystal', icon: '🔥', noto: 'fire', color: '#fb923c' },
+  { key: 'refinedFireCrystal', icon: '✨', noto: 'sparkles', color: '#c084fc' },
+  { key: 'fcShard', icon: '🔸', noto: 'small-orange-diamond', color: '#fb7185' },
+  { key: 'hardenedAlloy', icon: '🔩', noto: 'nut-and-bolt', color: '#94a3b8' },
+  { key: 'polishingSolution', icon: '🧪', noto: 'test-tube', color: '#34d399' },
+  { key: 'designPlans', icon: '📜', noto: 'scroll', color: '#fbbf24' },
+  { key: 'lunarAmber', icon: '🟡', noto: 'yellow-circle', color: '#f59e0b' },
+  { key: 'charmDesign', icon: '📃', noto: 'page-with-curl', color: '#fcd34d' },
+  { key: 'charmGuide', icon: '📕', noto: 'closed-book', color: '#d97706' },
+  { key: 'charmSecret', icon: '📓', noto: 'notebook-with-decorative-cover', color: '#ef4444' },
+  { key: 'petFood', icon: '🍗', noto: 'poultry-leg', color: '#f59e0b' },
+  { key: 'tamingManual', icon: '📖', noto: 'open-book', color: '#a3e635' },
+  { key: 'energizingPotion', icon: '⚗️', noto: 'alembic', color: '#22d3ee' },
+  { key: 'strengtheningSerum', icon: '💉', noto: 'syringe', color: '#f472b6' },
+  { key: 'essenceStones', icon: '🔆', noto: 'bright-button', color: '#fcd34d' },
+  { key: 'mythicHeroGear', icon: '🎖️', noto: 'military-medal', color: '#f87171' },
+  { key: 'widget', icon: '🔧', noto: 'wrench', color: '#94a3b8' },
+  { key: 'heroShard', icon: '🔱', noto: 'trident-emblem', color: '#c084fc' },
+  { key: 'mythicShard', icon: '💠', noto: 'diamond-with-a-dot', color: '#fb7185' },
+  { key: 'epicShard', icon: '💠', noto: 'diamond-with-a-dot', color: '#c084fc' },
+  { key: 'rareShard', icon: '💠', noto: 'diamond-with-a-dot', color: '#60a5fa' },
+  { key: 'mithril', icon: '🔘', noto: 'radio-button', color: '#cbd5e1' },
+  { key: 'gearXp', icon: '⭐', noto: 'star', color: '#fcd34d' },
+  { key: 'expertSigil', icon: '🔷', noto: 'large-blue-diamond', color: '#38bdf8' },
+  { key: 'bookOfKnowledge', icon: '📚', noto: 'books', color: '#a78bfa' }
 ];
 
 /** Cost + time to upgrade INTO one level from the previous one. */
