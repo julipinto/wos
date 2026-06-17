@@ -1,6 +1,7 @@
 <script lang="ts">
   import { i18n } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
+  import ResourceIcon from '$lib/components/ResourceIcon.svelte';
   import Boosters from '$lib/tools/upgrade/Boosters.svelte';
   import {
     addBags,
@@ -10,7 +11,7 @@
     presentResources
   } from '$lib/tools/upgrade/engine';
   import { boosters } from '$lib/tools/upgrade/boosters-store.svelte';
-  import { RESOURCES, type ResourceBag } from '$lib/tools/upgrade/types';
+  import { type ResourceBag } from '$lib/tools/upgrade/types';
   import { RESEARCH_TREES } from '$lib/tools/upgrade/data/research';
   import { readJson, writeJson } from '$lib/utils/storage';
 
@@ -40,7 +41,6 @@
   const rows = $derived(presentResources(result.totals));
   const effTime = $derived(applySpeed(result.time, boosters.total('research')));
   const resName = (k: string) => (i18n.m.upgrade.res as Record<string, string>)[k];
-  const resDef = (k: string) => RESOURCES.find((r) => r.key === k)!;
   const treeName = (k: string) => (i18n.m.upgrade.research as Record<string, string>)[k];
 </script>
 
@@ -80,9 +80,8 @@
   {:else}
     <div class="totals">
       {#each rows as key (key)}
-        {@const def = resDef(key)}
         <div class="res">
-          <span class="res-icon" style="--c: {def.color}" aria-hidden="true">{def.icon}</span>
+          <span class="res-icon"><ResourceIcon resource={key} /></span>
           <span class="res-name">{resName(key)}</span>
           <span class="res-val">{formatQty(result.totals[key] ?? 0)}</span>
         </div>
@@ -191,9 +190,8 @@
     border-radius: var(--r-card);
   }
   .res-icon {
-    font-size: 20px;
+    display: inline-flex;
     line-height: 1;
-    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--c) 40%, transparent));
   }
   .res-name {
     font-family: var(--font-mono);

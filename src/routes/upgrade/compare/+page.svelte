@@ -15,6 +15,7 @@
   import Segmented from '$lib/components/Segmented.svelte';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import RemoveButton from '$lib/components/RemoveButton.svelte';
+  import ResourceIcon from '$lib/components/ResourceIcon.svelte';
   import RangeSelect from '$lib/tools/upgrade/RangeSelect.svelte';
   import { buildingsCalc } from '$lib/tools/upgrade/store.svelte';
   import { BUILDINGS, buildingById } from '$lib/tools/upgrade/data/buildings';
@@ -25,7 +26,7 @@
     formatDuration,
     presentResources
   } from '$lib/tools/upgrade/engine';
-  import { RESOURCES, type ResourceBag } from '$lib/tools/upgrade/types';
+  import { type ResourceBag } from '$lib/tools/upgrade/types';
   import { estimate, planById, PRESETS } from '$lib/tools/upgrade/refinement';
   import { refinementStore } from '$lib/tools/upgrade/refinement-store.svelte';
   import { readJson, writeJson } from '$lib/utils/storage';
@@ -174,7 +175,6 @@
   // Resources present across every set, RFC handled as its own row.
   const allRes = $derived(combine(sets.map(resultOf)).totals);
   const resKeys = $derived(presentResources(allRes).filter((k) => k !== 'refinedFireCrystal'));
-  const resDef = (k: string) => RESOURCES.find((r) => r.key === k)!;
   const resName = (k: string) => (i18n.m.upgrade.res as Record<string, string>)[k];
   const tx = $derived(i18n.m.upgrade.refinement as unknown as Record<string, string>);
 
@@ -302,7 +302,7 @@
           {@const low = resLow(k)}
           <tr>
             <th
-              ><span class="ic" style="--c: {resDef(k).color}">{resDef(k).icon}</span>
+              ><span class="ic"><ResourceIcon resource={k} size={16} /></span>
               {resName(k)}</th
             >
             {#each cols as c, i (i)}
@@ -497,7 +497,8 @@
     border-bottom: 1px solid var(--border-strong);
   }
   .ic {
-    filter: drop-shadow(0 0 5px color-mix(in srgb, var(--c) 40%, transparent));
+    display: inline-flex;
+    line-height: 1;
   }
   .note {
     margin: 14px 0 0;

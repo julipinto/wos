@@ -6,9 +6,10 @@
    * never dominates the page.
    */
   import Icon from '$lib/components/Icon.svelte';
+  import ResourceIcon from '$lib/components/ResourceIcon.svelte';
   import { i18n } from '$lib/i18n/index.svelte';
   import { formatQty, formatDuration, presentResources } from './engine';
-  import { RESOURCES, type LevelCost } from './types';
+  import { type LevelCost } from './types';
 
   interface Props {
     /** The levels to list (already sliced to the from→to range), tagged by building. */
@@ -17,7 +18,6 @@
   let { steps }: Props = $props();
 
   let open = $state(false);
-  const resDef = (k: string) => RESOURCES.find((r) => r.key === k)!;
 </script>
 
 {#if steps.length > 0}
@@ -40,7 +40,7 @@
               <span class="step-res">
                 {#each presentResources(s.cost) as k (k)}
                   <span class="chip"
-                    ><span class="ic" style="--c: {resDef(k).color}">{resDef(k).icon}</span>
+                    ><span class="ic"><ResourceIcon resource={k} size={14} /></span>
                     {formatQty(s.cost[k] ?? 0)}</span
                   >
                 {/each}
@@ -149,7 +149,8 @@
     white-space: nowrap;
   }
   .ic {
-    filter: drop-shadow(0 0 5px color-mix(in srgb, var(--c) 40%, transparent));
+    display: inline-flex;
+    line-height: 1;
   }
   .step-time {
     font-family: var(--font-mono);

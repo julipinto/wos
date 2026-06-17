@@ -5,10 +5,11 @@
    * the stock persists so it survives navigation.
    */
   import Icon from '$lib/components/Icon.svelte';
+  import ResourceIcon from '$lib/components/ResourceIcon.svelte';
   import NumberInput from '$lib/components/NumberInput.svelte';
   import { i18n } from '$lib/i18n/index.svelte';
   import { formatQty, presentResources } from './engine';
-  import { RESOURCES, type ResourceBag } from './types';
+  import { type ResourceBag } from './types';
   import { readJson, writeJson } from '$lib/utils/storage';
 
   interface Props {
@@ -26,7 +27,6 @@
   }
 
   let open = $state(false);
-  const resDef = (k: string) => RESOURCES.find((r) => r.key === k)!;
   const resName = (k: string) => (i18n.m.upgrade.res as Record<string, string>)[k];
   // Refined Fire Crystals aren't gathered, they're refined — the Refinement
   // section owns "how many you have" (needed → saved → still to refine), so we
@@ -53,9 +53,7 @@
           {#each keys as k (k)}
             {@const d = deficit(k)}
             <div class="row" class:covered={d === 0}>
-              <span class="ic" style="--c: {resDef(k).color}" aria-hidden="true"
-                >{resDef(k).icon}</span
-              >
+              <span class="ic"><ResourceIcon resource={k} size={16} /></span>
               <span class="name"
                 >{resName(k)}<span class="need">/ {formatQty(needed[k] ?? 0)}</span></span
               >
@@ -146,10 +144,9 @@
     gap: 10px;
   }
   .ic {
-    font-size: 16px;
+    display: inline-flex;
     line-height: 1;
     flex-shrink: 0;
-    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--c) 40%, transparent));
   }
   .name {
     font-family: var(--font-mono);

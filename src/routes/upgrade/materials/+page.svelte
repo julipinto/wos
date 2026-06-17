@@ -1,10 +1,9 @@
 <script lang="ts">
   import { i18n } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
-  import { RESOURCES } from '$lib/tools/upgrade/types';
+  import ResourceIcon from '$lib/components/ResourceIcon.svelte';
   import { MATERIALS, MATERIAL_SYSTEMS, type MaterialSystem } from '$lib/tools/upgrade/materials';
 
-  const resDef = (k: string) => RESOURCES.find((r) => r.key === k);
   const resName = (k: string) => (i18n.m.upgrade.res as Record<string, string>)[k] ?? k;
   const sysLabel = (s: MaterialSystem) =>
     (i18n.m.upgrade.materials.systems as Record<string, string>)[s];
@@ -32,12 +31,9 @@
     <h2 class="section-label">{sysLabel(sys)}</h2>
     <div class="mats">
       {#each bySystem(sys) as m (m.key)}
-        {@const def = resDef(m.key)}
         <div class="mat">
           <div class="mat-head">
-            <span class="mat-icon" style="--c: {def?.color ?? '#888'}" aria-hidden="true"
-              >{def?.icon ?? '•'}</span
-            >
+            <span class="mat-icon"><ResourceIcon resource={m.key} size={18} /></span>
             <span class="mat-name">{resName(m.key)}</span>
             <span class="conf conf--{m.confidence}">{confLabel(m.confidence)}</span>
           </div>
@@ -111,9 +107,8 @@
     margin-bottom: 8px;
   }
   .mat-icon {
-    font-size: 18px;
+    display: inline-flex;
     line-height: 1;
-    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--c) 40%, transparent));
   }
   .mat-name {
     flex: 1;
