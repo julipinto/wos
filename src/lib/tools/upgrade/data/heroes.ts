@@ -46,10 +46,11 @@ export const HERO_STARS: LevelCost[] = [
 /**
  * Hero Gear Enhancement (the gear LEVEL track), 0→100, fed by Enhancement XP
  * (XP Components / sacrificed gear: Grey 10 · Green 30 · Blue 60 · Purple 150).
- * Per-level XP extracted verbatim from the wostools hero-gear-calculator data
- * (total 0→100 = 71,320 XP), then level 100 is the imbue gate = 2 Mythic Hero
- * Gear (unlocks the post-100 Ascended track, not modelled). Cost is per hero
- * gear piece (Goggles / Gloves / Belt / Boots).
+ * Per-level XP is a clean step-ladder (+5 → +10 → +20 → +30 → +40 → +50 bands);
+ * total 0→100 = 73,320 XP. Verified 2026-06-17 across whiteoutdata, h5joy and a
+ * machine-readable data file (all identical). Cost is per gear piece (Goggles /
+ * Gloves / Belt / Boots). The Mythic→Legendary ascension (2 Mythic Hero Gear) is
+ * NOT here — it's a separate node, GEAR_ASCENSION_COST.
  */
 function enhanceXp(n: number): number {
   if (n <= 29) return 10 + (n - 1) * 5;
@@ -57,24 +58,22 @@ function enhanceXp(n: number): number {
   if (n <= 59) return 270 + (n - 40) * 20;
   if (n <= 69) return 680 + (n - 60) * 30;
   if (n <= 79) return 990 + (n - 70) * 40;
-  if (n <= 91) return 1400 + (n - 80) * 50;
-  return 2050 + (n - 92) * 50; // levels 92–99
+  return 1400 + (n - 80) * 50; // levels 80–100 (Lv100 = 2400)
 }
 export const HERO_ENHANCE: LevelCost[] = [
   { label: '0', cost: {}, time: 0 },
   ...Array.from(
-    { length: 99 },
+    { length: 100 },
     (_, i): LevelCost => ({ label: String(i + 1), cost: { gearXp: enhanceXp(i + 1) }, time: 0 })
-  ),
-  { label: '100', cost: { mythicHeroGear: 2 }, time: 0 } // imbue gate to Ascended
+  )
 ];
 
 /**
  * Hero Gear Empowerment — the post-100 "Ascended/Legendary" track. After a
  * piece hits Enhancement 100 + Mastery 10 it ascends, then empowers in 5
  * milestones (gear level 20→100) keyed on Mithril + Mythic Hero Gear. Per piece:
- * 150 Mithril + 33 Mythic Hero Gear to milestone 100. SINGLE-SOURCED (wiki +
- * helpshift) — flag for in-game verification before treating as final.
+ * 150 Mithril + 33 Mythic Hero Gear to milestone 100. Verified 2026-06-17
+ * (BlueStacks + whiteoutsurvival.wiki agree).
  */
 export const HERO_EMPOWER: LevelCost[] = [
   { label: '0', cost: {}, time: 0 },

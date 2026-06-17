@@ -4,8 +4,12 @@ import {
   STAR_MAX_INDEX,
   starIndex,
   starLabel,
-  starShardsBetween
+  starShardsBetween,
+  HERO_ENHANCE,
+  HERO_MASTERY,
+  HERO_EMPOWER
 } from '../../src/lib/tools/upgrade/data/heroes';
+import { sumLadder } from '../../src/lib/tools/upgrade/engine';
 
 describe('hero star segments', () => {
   it('has 5 stars × 6 segments, with the verified per-star totals', () => {
@@ -51,5 +55,26 @@ describe('hero star segments', () => {
     expect(starShardsBetween(30, 0)).toBe(0);
     expect(starShardsBetween(10, 10)).toBe(0);
     expect(starShardsBetween(0, 1, 999)).toBe(0);
+  });
+});
+
+describe('hero gear cost tables (verified 2026-06-17)', () => {
+  it('enhancement 0→100 totals 73,320 XP and has no ascension gear baked in', () => {
+    const r = sumLadder(HERO_ENHANCE, '0', '100');
+    expect(r.totals.gearXp).toBe(73320);
+    expect(r.totals.mythicHeroGear ?? 0).toBe(0); // ascension is a separate node
+    expect(HERO_ENHANCE).toHaveLength(101); // labels 0..100
+  });
+
+  it('mastery 0→20 totals 2,100 essence + 55 mythic gear', () => {
+    const r = sumLadder(HERO_MASTERY, '0', '20');
+    expect(r.totals.essenceStones).toBe(2100);
+    expect(r.totals.mythicHeroGear).toBe(55);
+  });
+
+  it('empowerment 0→100 totals 150 mithril + 33 mythic gear', () => {
+    const r = sumLadder(HERO_EMPOWER, '0', '100');
+    expect(r.totals.mithril).toBe(150);
+    expect(r.totals.mythicHeroGear).toBe(33);
   });
 });
