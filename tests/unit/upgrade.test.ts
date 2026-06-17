@@ -113,10 +113,10 @@ describe('formatQty', () => {
 });
 
 describe('hero gear enhancement', () => {
-  it('totals 71,320 XP across 0→100 plus a 2-Mythic imbue gate', () => {
+  it('totals 73,320 XP across 0→100 with no ascension gear baked in', () => {
     const r = sumLadder(HERO_ENHANCE, '0', '100');
-    expect(r.totals.gearXp).toBe(71320);
-    expect(r.totals.mythicHeroGear).toBe(2);
+    expect(r.totals.gearXp).toBe(73320);
+    expect(r.totals.mythicHeroGear ?? 0).toBe(0); // ascension is a separate node
     expect(HERO_ENHANCE.length).toBe(101); // base 0 + levels 1..100
   });
 });

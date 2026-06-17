@@ -373,7 +373,10 @@
       "ascend": "ascensão",
       "tierMythic": "Mythic",
       "tierLegendary": "Legendary",
-      "gearUnverified": "⚠ Os custos de XP do enhancement e de empowerment (mithril) vêm da comunidade e ainda não foram verificados no jogo — trate como estimativa."
+      "gearUnverified": "⚠ Os custos de XP do enhancement e de empowerment (mithril) vêm da comunidade e ainda não foram verificados no jogo — trate como estimativa.",
+      "tierGreen": "Verde",
+      "tierBlue": "Azul",
+      "tierPurple": "Roxo"
     },
     "helios": {
       "sub": "Pesquisa das tropas T11 Helios (War Academy). Custa Steel + Fragmentos de Cristal de Fogo. Defina atual → alvo de cada nó; escolha quantos tipos de tropa vai maximizar.",
