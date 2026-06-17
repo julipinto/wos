@@ -11,6 +11,7 @@
   import Select from '$lib/components/Select.svelte';
   import NumberInput from '$lib/components/NumberInput.svelte';
   import RangeSelect from '$lib/tools/upgrade/RangeSelect.svelte';
+  import DeficitPanel from '$lib/tools/upgrade/DeficitPanel.svelte';
   import {
     sumLadder,
     combine,
@@ -289,6 +290,9 @@
     roster.map((h) => ({ name: heroName(h), n: widgetsOf(h) })).filter((r) => r.n > 0)
   );
   const hasOutput = $derived(shardRows.length > 0 || widgetRows.length > 0 || poolRows.length > 0);
+  // Poolable materials for the deficit panel (shards by rarity + gear pool
+  // resources). Widgets are hero-specific currencies, so they're left out.
+  const heroNeeded = $derived(addBags(shardTotals, gearTotals));
 
   const resDef = (k: string) => RESOURCES.find((r) => r.key === k)!;
   const resName = (k: string) => (i18n.m.upgrade.res as Record<string, string>)[k];
@@ -594,6 +598,8 @@
       {/each}
     </section>
   {/if}
+
+  <DeficitPanel needed={heroNeeded} />
 </div>
 
 <style>
