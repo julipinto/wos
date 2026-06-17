@@ -252,7 +252,14 @@
     "setAll": "definir todos",
     "apply": "aplicar",
     "gear": {
-      "sub": "Materiales para subir las 6 piezas de equipo del jefe. Define el tier actual y objetivo de cada pieza."
+      "sub": "Materiales para subir las 6 piezas de equipo del jefe. Define el tier actual y objetivo de cada pieza.",
+      "powerGain": "Ganancia de poder",
+      "atkDef": "ATK/DEF",
+      "power": "Poder",
+      "infantry": "Infantería",
+      "lancer": "Lancero",
+      "marksman": "Tirador",
+      "powerNote": "⚠ Los valores de stats provienen de la comunidad (contrastados en 3 calculadoras) — verifica en el juego. Stats de bonus de conjunto (todas las tropas) no incluidos."
     },
     "charms": {
       "sub": "Materiales para los 18 slots de amuletos (3 por pieza). Define el nivel actual y objetivo de cada uno."

@@ -12,27 +12,31 @@
   import { type LevelCost } from './types';
   import { readJson, writeJson } from '$lib/utils/storage';
 
+  import type { Snippet } from 'svelte';
   interface Slot {
     id: string;
     name: string;
+  }
+  interface Active {
+    sid: string;
+    from: string;
+    to: string;
   }
   interface Props {
     ladder: LevelCost[];
     slots: Slot[];
     storageKey: string;
+    /** Optional extra section rendered after the totals, given the active slots
+     * (e.g. the gear calculator's power-gain panel). Charms leave it unset. */
+    footer?: Snippet<[Active[]]>;
   }
-  let { ladder, slots, storageKey }: Props = $props();
+  let { ladder, slots, storageKey, footer }: Props = $props();
 
   const labels = $derived(ladder.map((l) => l.label));
   const firstLabel = () => ladder[0]?.label ?? '';
   const lastLabel = () => ladder[ladder.length - 1]?.label ?? '';
   const slotName = (sid: string) => slots.find((s) => s.id === sid)?.name ?? sid;
 
-  interface Active {
-    sid: string;
-    from: string;
-    to: string;
-  }
   function load(): Active[] {
     const raw = readJson<Active[]>(storageKey);
     if (!Array.isArray(raw)) return [];
@@ -142,6 +146,8 @@
 {/if}
 
 <Totals {items} emptyHint={i18n.m.upgrade.addHint} />
+
+{#if footer && active.length > 0}{@render footer(active)}{/if}
 
 <style>
   .field-label {
