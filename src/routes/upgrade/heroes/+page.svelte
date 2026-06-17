@@ -382,7 +382,6 @@
   <section class="gear">
     <h2 class="section-label">🛡 {tx.gearPool}</h2>
     <p class="note">{tx.gearNote}</p>
-    <p class="note warn">{tx.gearUnverified}</p>
     {#each gearPool as p, i (i)}
       <div class="piece">
         <div class="piece-head">
@@ -663,9 +662,6 @@
     line-height: 1.5;
     color: var(--text-dim);
     margin: 0;
-  }
-  .note.warn {
-    color: #fbbf24;
   }
   .piece {
     display: grid;
