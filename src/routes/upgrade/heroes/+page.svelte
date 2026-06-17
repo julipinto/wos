@@ -241,36 +241,49 @@
       hasMastery(p.rarity) ? Number(p.masFrom) || 0 : 0,
       hasMastery(p.rarity) ? Number(p.masTo) || 0 : 0
     );
+  const troopName = (t: string) => tx['troop' + t[0].toUpperCase() + t.slice(1)];
+  const fmtPct = (n: number) => `${Math.round(n * 100) / 100}%`;
+  // The command stat (Lethality / Troop Health) is TROOP-SPECIFIC — it buffs only
+  // the equipped hero's troop — so aggregate it per troop and label it as such
+  // ("Lethality (Lancer)"). Hero ATK/DEF/HP buff the hero unit, kept merged.
   const powerTotals = $derived.by(() => {
-    const t = { heroAtk: 0, heroDef: 0, heroHp: 0, lethality: 0, troopHealth: 0 };
+    const command = new Map<string, number>(); // key `${troop}|${kind}`
+    let heroAtk = 0,
+      heroDef = 0,
+      heroHp = 0;
     for (const p of gearPool) {
       const g = pieceGain(p);
-      t.heroAtk += g.heroAtk ?? 0;
-      t.heroDef += g.heroDef ?? 0;
-      t.heroHp += g.heroHp;
-      if (g.commandKind === 'lethality') t.lethality += g.commandPct;
-      else t.troopHealth += g.commandPct;
+      heroAtk += g.heroAtk ?? 0;
+      heroDef += g.heroDef ?? 0;
+      heroHp += g.heroHp;
+      if (g.commandPct > 0) {
+        const k = `${p.troop}|${g.commandKind}`;
+        command.set(k, (command.get(k) ?? 0) + g.commandPct);
+      }
     }
-    return t;
+    return { command, heroAtk, heroDef, heroHp };
   });
-  const fmtPct = (n: number) => `${Math.round(n * 100) / 100}%`;
-  const powerRows = $derived(
-    (
-      [
-        ['lethality', powerTotals.lethality, true],
-        ['troopHealth', powerTotals.troopHealth, true],
-        ['heroAtk', powerTotals.heroAtk, false],
-        ['heroDef', powerTotals.heroDef, false],
-        ['heroHp', powerTotals.heroHp, false]
-      ] as [string, number, boolean][]
-    )
-      .filter(([, n]) => n > 0)
-      .map(([k, n, pct]) => ({
-        k,
-        label: tx['stat' + k[0].toUpperCase() + k.slice(1)],
-        v: pct ? fmtPct(n) : `+${formatQty(n)}`
-      }))
-  );
+  const powerRows = $derived.by(() => {
+    const rows: { k: string; label: string; v: string }[] = [];
+    for (const [k, n] of powerTotals.command) {
+      const [troop, kind] = k.split('|');
+      const stat = kind === 'lethality' ? tx.statLethality : tx.statTroopHealth;
+      rows.push({ k, label: `${stat} (${troopName(troop)})`, v: fmtPct(n) });
+    }
+    const flats: [string, number][] = [
+      ['heroAtk', powerTotals.heroAtk],
+      ['heroDef', powerTotals.heroDef],
+      ['heroHp', powerTotals.heroHp]
+    ];
+    for (const [k, n] of flats)
+      if (n > 0)
+        rows.push({
+          k,
+          label: tx['stat' + k[0].toUpperCase() + k.slice(1)],
+          v: `+${formatQty(n)}`
+        });
+    return rows;
+  });
 
   // Combined shopping list: shards bucketed by rarity, widgets per hero.
   const shardTotals = $derived.by(() => {
@@ -540,7 +553,9 @@
             📈
             {#if g.commandPct > 0}<span class="g-pct"
                 >+{fmtPct(g.commandPct)}
-                {g.commandKind === 'lethality' ? tx.statLethality : tx.statTroopHealth}</span
+                {g.commandKind === 'lethality' ? tx.statLethality : tx.statTroopHealth} ({troopName(
+                  p.troop
+                )})</span
               >{/if}
             {#if (g.heroAtk ?? 0) > 0}<span>+{formatQty(g.heroAtk ?? 0)} {tx.statHeroAtk}</span
               >{/if}
