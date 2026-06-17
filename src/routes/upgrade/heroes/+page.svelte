@@ -39,6 +39,12 @@
     type HeroRarity,
     type TroopType
   } from '$lib/tools/upgrade/data/hero-catalog';
+  import {
+    gearStatGain,
+    pieceGroup,
+    type GearTroop,
+    type GearStats
+  } from '$lib/tools/upgrade/hero-gear-stats';
   import { readJson, writeJson } from '$lib/utils/storage';
 
   const SHARD_KEY: Record<HeroRarity, ResourceKey> = {
@@ -222,6 +228,49 @@
     presentResources(gearTotals).map((k) => ({ k, n: gearTotals[k] ?? 0 }))
   );
 
+  // ── Power gain ──────────────────────────────────────────────────────────
+  // Stat bonuses each gear upgrade grants (community-modelled curves; mastery is
+  // a ×(1+0.1·level) multiplier, applied only when the rarity unlocks it).
+  const pieceGain = (p: Piece): GearStats =>
+    gearStatGain(
+      pieceGroup(p.pieceId),
+      p.troop as GearTroop,
+      Number(p.enhFrom) || 0,
+      Number(p.enhTo) || 0,
+      hasMastery(p.rarity) ? Number(p.masFrom) || 0 : 0,
+      hasMastery(p.rarity) ? Number(p.masTo) || 0 : 0
+    );
+  const powerTotals = $derived.by(() => {
+    const t = { heroAtk: 0, heroDef: 0, heroHp: 0, lethality: 0, troopHealth: 0 };
+    for (const p of gearPool) {
+      const g = pieceGain(p);
+      t.heroAtk += g.heroAtk ?? 0;
+      t.heroDef += g.heroDef ?? 0;
+      t.heroHp += g.heroHp;
+      if (g.commandKind === 'lethality') t.lethality += g.commandPct;
+      else t.troopHealth += g.commandPct;
+    }
+    return t;
+  });
+  const fmtPct = (n: number) => `${Math.round(n * 100) / 100}%`;
+  const powerRows = $derived(
+    (
+      [
+        ['lethality', powerTotals.lethality, true],
+        ['troopHealth', powerTotals.troopHealth, true],
+        ['heroAtk', powerTotals.heroAtk, false],
+        ['heroDef', powerTotals.heroDef, false],
+        ['heroHp', powerTotals.heroHp, false]
+      ] as [string, number, boolean][]
+    )
+      .filter(([, n]) => n > 0)
+      .map(([k, n, pct]) => ({
+        k,
+        label: tx['stat' + k[0].toUpperCase() + k.slice(1)],
+        v: pct ? fmtPct(n) : `+${formatQty(n)}`
+      }))
+  );
+
   // Combined shopping list: shards bucketed by rarity, widgets per hero.
   const shardTotals = $derived.by(() => {
     const t: ResourceBag = {};
@@ -390,6 +439,7 @@
     <h2 class="section-label">🛡 {tx.gearPool}</h2>
     <p class="note">{tx.gearNote}</p>
     {#each gearPool as p, i (i)}
+      {@const g = pieceGain(p)}
       <div class="piece">
         <div class="piece-head">
           <span class="tier tier-{p.rarity}"
@@ -481,10 +531,37 @@
             />
           </div>
         {/if}
+        {#if g.commandPct > 0 || (g.heroAtk ?? 0) > 0 || (g.heroDef ?? 0) > 0 || g.heroHp > 0}
+          <p class="gain">
+            📈
+            {#if g.commandPct > 0}<span class="g-pct"
+                >+{fmtPct(g.commandPct)}
+                {g.commandKind === 'lethality' ? tx.statLethality : tx.statTroopHealth}</span
+              >{/if}
+            {#if (g.heroAtk ?? 0) > 0}<span>+{formatQty(g.heroAtk ?? 0)} {tx.statHeroAtk}</span
+              >{/if}
+            {#if (g.heroDef ?? 0) > 0}<span>+{formatQty(g.heroDef ?? 0)} {tx.statHeroDef}</span
+              >{/if}
+            {#if g.heroHp > 0}<span>+{formatQty(g.heroHp)} {tx.statHeroHp}</span>{/if}
+          </p>
+        {/if}
       </div>
     {/each}
     <button class="add" type="button" onclick={addPiece}>+ {tx.addPiece}</button>
   </section>
+
+  {#if powerRows.length > 0}
+    <section class="shopping">
+      <h2 class="section-label">📈 {tx.powerGain}</h2>
+      {#each powerRows as row (row.k)}
+        <div class="res">
+          <span class="res-name">{row.label}</span>
+          <span class="res-val sm">{row.v}</span>
+        </div>
+      {/each}
+      <p class="note">{tx.powerNote}</p>
+    </section>
+  {/if}
 
   {#if hasOutput}
     <section class="shopping">
@@ -743,6 +820,20 @@
     grid-template-columns: 70px 1fr;
     align-items: center;
     gap: 8px;
+  }
+  .gain {
+    margin: 2px 0 0;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--text-mid);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+  }
+  .gain .g-pct {
+    color: #4ade80;
+    font-weight: 700;
   }
   .shopping {
     margin-top: 28px;

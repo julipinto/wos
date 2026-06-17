@@ -376,7 +376,14 @@
       "gearUnverified": "⚠ Enhancement XP and empowerment (mithril) costs are community-sourced and not yet verified in-game — treat as estimates.",
       "tierGreen": "Uncommon",
       "tierBlue": "Rare",
-      "tierPurple": "Epic"
+      "tierPurple": "Epic",
+      "powerGain": "Power gain",
+      "statLethality": "Lethality",
+      "statTroopHealth": "Troop Health",
+      "statHeroAtk": "Hero ATK",
+      "statHeroDef": "Hero DEF",
+      "statHeroHp": "Hero HP",
+      "powerNote": "⚠ Stat gains are community-modelled (wostools + WhyBanditWhy, cross-checked) — verify in-game. Empowerment bonuses not included yet."
     },
     "helios": {
       "sub": "T11 Helios troop research (War Academy). Costs Steel + Fire Crystal Shards. Set each node current → target; pick how many troop types you are maxing.",
