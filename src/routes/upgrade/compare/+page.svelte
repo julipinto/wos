@@ -14,6 +14,7 @@
   import Select from '$lib/components/Select.svelte';
   import Segmented from '$lib/components/Segmented.svelte';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
+  import RemoveButton from '$lib/components/RemoveButton.svelte';
   import RangeSelect from '$lib/tools/upgrade/RangeSelect.svelte';
   import { buildingsCalc } from '$lib/tools/upgrade/store.svelte';
   import { BUILDINGS, buildingById } from '$lib/tools/upgrade/data/buildings';
@@ -220,13 +221,7 @@
             aria-label={i18n.m.upgrade.compare.set}
           />
           {#if sets.length > 1}
-            <button
-              class="set-remove"
-              type="button"
-              onclick={() => removeSet(si)}
-              aria-label={i18n.m.upgrade.troops.remove}
-              title={i18n.m.upgrade.troops.remove}>🗑</button
-            >
+            <RemoveButton onclick={() => removeSet(si)} />
           {/if}
         </div>
         {#each set.rows as r, ri (ri)}
@@ -248,12 +243,7 @@
                 ariaTo="{t.name} {i18n.m.upgrade.to}"
               />
               {#if set.rows.length > 1}
-                <button
-                  class="remove"
-                  type="button"
-                  onclick={() => removeRow(si, ri)}
-                  aria-label={i18n.m.upgrade.troops.remove}>×</button
-                >
+                <RemoveButton onclick={() => removeRow(si, ri)} />
               {/if}
             </div>
           </div>
@@ -418,35 +408,6 @@
     display: flex;
     align-items: center;
     gap: 8px;
-  }
-  .remove {
-    flex-shrink: 0;
-    width: 36px;
-    height: 44px;
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text-dim);
-    font-size: 20px;
-    cursor: pointer;
-  }
-  .remove:hover {
-    color: #fb7185;
-    border-color: rgba(251, 113, 133, 0.4);
-  }
-  /* Distinct from the row × pills: a borderless trash glyph. */
-  .set-remove {
-    flex-shrink: 0;
-    background: transparent;
-    border: none;
-    padding: 4px 6px;
-    font-size: 16px;
-    line-height: 1;
-    opacity: 0.55;
-    cursor: pointer;
-  }
-  .set-remove:hover {
-    opacity: 1;
   }
   .set-foot {
     display: flex;

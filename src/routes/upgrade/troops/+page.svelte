@@ -3,6 +3,7 @@
   import PageHeader from '$lib/components/PageHeader.svelte';
   import Select from '$lib/components/Select.svelte';
   import NumberInput from '$lib/components/NumberInput.svelte';
+  import RemoveButton from '$lib/components/RemoveButton.svelte';
   import Boosters from '$lib/tools/upgrade/Boosters.svelte';
   import Totals from '$lib/tools/upgrade/Totals.svelte';
   import { addBags, scaleBag, formatDuration, applySpeed } from '$lib/tools/upgrade/engine';
@@ -125,12 +126,7 @@
             ariaLabel={i18n.m.upgrade.troops.quantity}
           />
         </div>
-        <button
-          class="remove"
-          type="button"
-          onclick={() => removeRow(i)}
-          aria-label={i18n.m.upgrade.troops.remove}>×</button
-        >
+        <RemoveButton onclick={() => removeRow(i)} />
       </div>
     {/each}
   </div>
@@ -191,25 +187,6 @@
   }
   .row-field.qty {
     flex: 1;
-  }
-  .remove {
-    flex-shrink: 0;
-    width: 38px;
-    height: 44px;
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text-dim);
-    font-size: 20px;
-    cursor: pointer;
-  }
-  .remove:hover:not(:disabled) {
-    color: #fb7185;
-    border-color: rgba(251, 113, 133, 0.4);
-  }
-  .remove:disabled {
-    opacity: 0.3;
-    cursor: default;
   }
   .add {
     margin-top: 12px;

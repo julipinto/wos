@@ -3,6 +3,7 @@
   import { i18n, fmt } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import Segmented from '$lib/components/Segmented.svelte';
+  import RemoveButton from '$lib/components/RemoveButton.svelte';
   import RangeSelect from '$lib/tools/upgrade/RangeSelect.svelte';
   import Boosters from '$lib/tools/upgrade/Boosters.svelte';
   import StepList from '$lib/tools/upgrade/StepList.svelte';
@@ -179,12 +180,7 @@
               ariaFrom="{table.name} {i18n.m.upgrade.from}"
               ariaTo="{table.name} {i18n.m.upgrade.to}"
             />
-            <button
-              class="remove"
-              type="button"
-              onclick={() => buildingsCalc.remove(i)}
-              aria-label={i18n.m.upgrade.troops.remove}>×</button
-            >
+            <RemoveButton onclick={() => buildingsCalc.remove(i)} />
           </div>
           {#each warningsFor(row) as w (w)}
             <p class="row-warn">⚠ {w}</p>
@@ -373,24 +369,6 @@
     display: flex;
     align-items: center;
     gap: 8px;
-  }
-  .remove {
-    flex-shrink: 0;
-    width: 36px;
-    height: 44px;
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text-dim);
-    font-size: 20px;
-    cursor: pointer;
-    transition:
-      color 0.2s ease,
-      border-color 0.2s ease;
-  }
-  .remove:hover {
-    color: #fb7185;
-    border-color: rgba(251, 113, 133, 0.4);
   }
   .add {
     display: flex;
