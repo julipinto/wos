@@ -141,9 +141,11 @@
   // between heroes, so it's a pool, separate from the per-hero roster. Each
   // piece carries three stacked tracks: enhancement (XP), mastery (essence +
   // mythic gear) and empowerment (mithril + mythic gear).
+  type GearRarity = 'green' | 'blue' | 'purple' | 'mythic' | 'legendary';
   interface Piece {
     pieceId: string;
     troop: TroopType;
+    rarity: GearRarity;
     enhFrom: string;
     enhTo: string;
     masFrom: string;
@@ -152,6 +154,10 @@
     empTo: string;
   }
   const GEAR_TROOPS: TroopType[] = ['infantry', 'lancer', 'marksman'];
+  const GEAR_RARITIES: GearRarity[] = ['green', 'blue', 'purple', 'mythic', 'legendary'];
+  // Which tracks a rarity unlocks: mastery is Gold/Mythic+, empowerment is Legendary only.
+  const hasMastery = (r: GearRarity) => r === 'mythic' || r === 'legendary';
+  const hasEmpower = (r: GearRarity) => r === 'legendary';
   const GEAR_STORAGE = 'upgrade-heroes-gear-v1';
   const enhLabels = HERO_ENHANCE.map((l) => l.label);
   const masLabels = HERO_MASTERY.map((l) => l.label);
@@ -164,6 +170,7 @@
         ? p.pieceId!
         : HERO_GEAR_PIECES[0].id,
       troop: GEAR_TROOPS.includes(p.troop as TroopType) ? (p.troop as TroopType) : 'infantry',
+      rarity: GEAR_RARITIES.includes(p.rarity as GearRarity) ? (p.rarity as GearRarity) : 'mythic',
       enhFrom: inOr(enhLabels, p.enhFrom, enhLabels[0]),
       enhTo: inOr(enhLabels, p.enhTo, enhLabels[0]),
       masFrom: inOr(masLabels, p.masFrom, masLabels[0]),
@@ -195,20 +202,20 @@
       label: `${TROOP_EMOJI[t]} ${tx['troop' + t[0].toUpperCase() + t.slice(1)]}`
     }))
   );
-  // A piece becomes Legendary (red) once empowerment starts; otherwise it's a
-  // Mythic (gold) piece. Crossing into Legendary within the plan also pays the
-  // one-off ascension (2 Mythic Hero Gear), gated by Enhancement 100 + Mastery 10.
-  const ascends = (p: Piece) => p.empFrom === empLabels[0] && p.empTo !== empLabels[0];
-  const tierOf = (p: Piece) => (p.empTo !== empLabels[0] ? 'legendary' : 'mythic');
+  const rarityGearOptions = $derived(
+    GEAR_RARITIES.map((r) => ({ value: r, label: tx['tier' + r[0].toUpperCase() + r.slice(1)] }))
+  );
+  // Sum only the tracks a piece's rarity actually unlocks. A Legendary piece
+  // also pays the one-off ascension (2 Mythic Hero Gear) on top of empowerment.
   const gearTotals = $derived.by(() => {
-    let total = combine(
-      gearPool.flatMap((p) => [
-        sumLadder(HERO_ENHANCE, p.enhFrom, p.enhTo),
-        sumLadder(HERO_MASTERY, p.masFrom, p.masTo),
-        sumLadder(HERO_EMPOWER, p.empFrom, p.empTo)
-      ])
-    ).totals;
-    for (const p of gearPool) if (ascends(p)) total = addBags(total, GEAR_ASCENSION_COST);
+    const parts = gearPool.flatMap((p) => {
+      const ladders = [sumLadder(HERO_ENHANCE, p.enhFrom, p.enhTo)];
+      if (hasMastery(p.rarity)) ladders.push(sumLadder(HERO_MASTERY, p.masFrom, p.masTo));
+      if (hasEmpower(p.rarity)) ladders.push(sumLadder(HERO_EMPOWER, p.empFrom, p.empTo));
+      return ladders;
+    });
+    let total = combine(parts).totals;
+    for (const p of gearPool) if (hasEmpower(p.rarity)) total = addBags(total, GEAR_ASCENSION_COST);
     return total;
   });
   const poolRows = $derived(
@@ -385,8 +392,8 @@
     {#each gearPool as p, i (i)}
       <div class="piece">
         <div class="piece-head">
-          <span class="tier tier-{tierOf(p)}"
-            >{tx['tier' + (tierOf(p) === 'legendary' ? 'Legendary' : 'Mythic')]}</span
+          <span class="tier tier-{p.rarity}"
+            >{tx['tier' + p.rarity[0].toUpperCase() + p.rarity.slice(1)]}</span
           >
           <div class="piece-selects">
             <Select
@@ -406,6 +413,15 @@
                 persistGear();
               }}
               ariaLabel={tx.troop}
+            />
+            <Select
+              value={p.rarity}
+              options={rarityGearOptions}
+              onChange={(v) => {
+                p.rarity = v as GearRarity;
+                persistGear();
+              }}
+              ariaLabel={tx.rarity}
             />
           </div>
           <button
@@ -431,36 +447,40 @@
             ariaTo="{tx.enhance} {tx.to}"
           />
         </div>
-        <div class="track">
-          <span class="side-tag">{tx.mastery}</span>
-          <RangeSelect
-            labels={masLabels}
-            from={p.masFrom}
-            to={p.masTo}
-            onChange={(f, t) => {
-              p.masFrom = f;
-              p.masTo = t;
-              persistGear();
-            }}
-            ariaFrom="{tx.mastery} {tx.from}"
-            ariaTo="{tx.mastery} {tx.to}"
-          />
-        </div>
-        <div class="track">
-          <span class="side-tag">{tx.empower}</span>
-          <RangeSelect
-            labels={empLabels}
-            from={p.empFrom}
-            to={p.empTo}
-            onChange={(f, t) => {
-              p.empFrom = f;
-              p.empTo = t;
-              persistGear();
-            }}
-            ariaFrom="{tx.empower} {tx.from}"
-            ariaTo="{tx.empower} {tx.to}"
-          />
-        </div>
+        {#if hasMastery(p.rarity)}
+          <div class="track">
+            <span class="side-tag">{tx.mastery}</span>
+            <RangeSelect
+              labels={masLabels}
+              from={p.masFrom}
+              to={p.masTo}
+              onChange={(f, t) => {
+                p.masFrom = f;
+                p.masTo = t;
+                persistGear();
+              }}
+              ariaFrom="{tx.mastery} {tx.from}"
+              ariaTo="{tx.mastery} {tx.to}"
+            />
+          </div>
+        {/if}
+        {#if hasEmpower(p.rarity)}
+          <div class="track">
+            <span class="side-tag">{tx.empower}</span>
+            <RangeSelect
+              labels={empLabels}
+              from={p.empFrom}
+              to={p.empTo}
+              onChange={(f, t) => {
+                p.empFrom = f;
+                p.empTo = t;
+                persistGear();
+              }}
+              ariaFrom="{tx.empower} {tx.from}"
+              ariaTo="{tx.empower} {tx.to}"
+            />
+          </div>
+        {/if}
       </div>
     {/each}
     <button class="add" type="button" onclick={addPiece}>+ {tx.addPiece}</button>
@@ -680,7 +700,7 @@
     flex: 1;
     min-width: 0;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 8px;
   }
   .tier {
@@ -692,6 +712,21 @@
     text-transform: uppercase;
     padding: 3px 7px;
     border-radius: var(--r-pill);
+  }
+  .tier-green {
+    color: #4ade80;
+    background: #4ade8022;
+    border: 1px solid #4ade8055;
+  }
+  .tier-blue {
+    color: #60a5fa;
+    background: #60a5fa22;
+    border: 1px solid #60a5fa55;
+  }
+  .tier-purple {
+    color: #c084fc;
+    background: #c084fc22;
+    border: 1px solid #c084fc55;
   }
   .tier-mythic {
     color: #fbbf24;
