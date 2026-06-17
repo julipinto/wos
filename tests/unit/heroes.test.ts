@@ -10,6 +10,7 @@ import {
   HERO_EMPOWER
 } from '../../src/lib/tools/upgrade/data/heroes';
 import { sumLadder } from '../../src/lib/tools/upgrade/engine';
+import { gearStatsAt, gearStatGain, pieceGroup } from '../../src/lib/tools/upgrade/hero-gear-stats';
 
 describe('hero star segments', () => {
   it('has 5 stars × 6 segments, with the verified per-star totals', () => {
@@ -76,5 +77,54 @@ describe('hero gear cost tables (verified 2026-06-17)', () => {
     const r = sumLadder(HERO_EMPOWER, '0', '100');
     expect(r.totals.mithril).toBe(150);
     expect(r.totals.mythicHeroGear).toBe(33);
+  });
+});
+
+describe('hero gear stat curves (community-modelled, cross-validated)', () => {
+  it('maps pieces to the right group', () => {
+    expect(pieceGroup('goggles')).toBe('atk');
+    expect(pieceGroup('boots')).toBe('atk');
+    expect(pieceGroup('gloves')).toBe('def');
+    expect(pieceGroup('belt')).toBe('def');
+  });
+
+  it('hits the verified L100 anchors (infantry atk piece)', () => {
+    const s = gearStatsAt('atk', 'infantry', 100, 0);
+    expect(s.heroAtk).toBe(345);
+    expect(s.heroHp).toBe(3375);
+    expect(s.commandPct).toBeCloseTo(50, 5);
+    expect(s.commandKind).toBe('lethality');
+  });
+
+  it('matches the cross-validated lethality curve (3.33/8/12.66/50)', () => {
+    expect(gearStatsAt('atk', 'lancer', 0).commandPct).toBeCloseTo(3.33, 5);
+    expect(gearStatsAt('atk', 'lancer', 10).commandPct).toBeCloseTo(8, 5);
+    expect(gearStatsAt('atk', 'lancer', 20).commandPct).toBeCloseTo(12.66, 5);
+    // lancer L50: ATK 240, HP 1200
+    const l50 = gearStatsAt('atk', 'lancer', 50);
+    expect(l50.heroAtk).toBe(240);
+    expect(l50.heroHp).toBe(1200);
+  });
+
+  it('mastery is a ×(1+0.1·level) multiplier (×3 at M20)', () => {
+    const base = gearStatsAt('atk', 'infantry', 100, 0);
+    const maxed = gearStatsAt('atk', 'infantry', 100, 20);
+    expect(maxed.heroAtk).toBeCloseTo((base.heroAtk ?? 0) * 3, 5);
+    expect(maxed.commandPct).toBeCloseTo(150, 5); // 50% × 3
+  });
+
+  it('def pieces carry hero DEF + troop-health, no atk', () => {
+    const s = gearStatsAt('def', 'marksman', 100, 0);
+    expect(s.heroDef).toBe(450);
+    expect(s.heroAtk).toBeUndefined();
+    expect(s.commandKind).toBe('troopHealth');
+  });
+
+  it('gain is the delta between two states, clamped at 0', () => {
+    const g = gearStatGain('atk', 'infantry', 0, 100, 0, 0);
+    expect(g.heroAtk).toBe(322); // 345 − 23
+    expect(g.heroHp).toBe(3150); // 3375 − 225
+    expect(g.commandPct).toBeCloseTo(46.67, 2);
+    expect(gearStatGain('atk', 'infantry', 100, 0).heroHp).toBe(0); // backwards → 0
   });
 });

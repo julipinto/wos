@@ -376,7 +376,14 @@
       "gearUnverified": "⚠ Los costes de XP de mejora y de empoderamiento (mithril) provienen de la comunidad y aún no se verificaron en el juego — trátalos como estimaciones.",
       "tierGreen": "Poco común",
       "tierBlue": "Raro",
-      "tierPurple": "Épico"
+      "tierPurple": "Épico",
+      "powerGain": "Ganancia de poder",
+      "statLethality": "Letalidad",
+      "statTroopHealth": "Salud de tropa",
+      "statHeroAtk": "ATK del héroe",
+      "statHeroDef": "DEF del héroe",
+      "statHeroHp": "HP del héroe",
+      "powerNote": "⚠ Las ganancias de stats están modeladas por la comunidad (wostools + WhyBanditWhy, contrastadas) — verifica en el juego. Bonos de empoderamiento aún no incluidos."
     },
     "helios": {
       "sub": "Investigación de tropas T11 Helios (War Academy). Cuesta Steel + Fragmentos de Cristal de Fuego. Define actual → objetivo de cada nodo; elige cuántos tipos de tropa vas a maximizar.",
