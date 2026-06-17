@@ -206,7 +206,8 @@
       "plan": "my plan",
       "expertSkills": "Expert Skills",
       "materials": "Materials",
-      "compare": "Compare"
+      "compare": "Compare",
+      "chief": "chief"
     },
     "res": {
       "meat": "meat",
@@ -536,6 +537,21 @@
       "useConfirm": "Replace your building plan with Set {name}?",
       "applied": "Set {name} applied to your plan.",
       "viewPlan": "View plan →"
+    },
+    "chief": {
+      "sub": "Chief gear + charms in one place — materials and the power each upgrade gives.",
+      "gear": "Chief gear",
+      "charms": "Charms",
+      "addPiece": "piece",
+      "powerGain": "Power gain",
+      "atkDef": "ATK/DEF",
+      "lethality": "Lethality",
+      "health": "Health",
+      "power": "Power",
+      "infantry": "Infantry",
+      "lancer": "Lancer",
+      "marksman": "Marksman",
+      "powerNote": "⚠ Stat values are community-sourced (cross-checked across calculators) — verify in-game. All-troop set bonuses not included."
     }
   },
   "territory": {

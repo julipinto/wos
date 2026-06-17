@@ -206,7 +206,8 @@
       "plan": "mi plan",
       "expertSkills": "Habilidades de Expertos",
       "materials": "Materiales",
-      "compare": "Comparar"
+      "compare": "Comparar",
+      "chief": "chief"
     },
     "res": {
       "meat": "carne",
@@ -536,6 +537,21 @@
       "useConfirm": "¿Reemplazar tu plan de construcción por el Conjunto {name}?",
       "applied": "Conjunto {name} aplicado a tu plan.",
       "viewPlan": "Ver plan →"
+    },
+    "chief": {
+      "sub": "Equipo de jefe + amuletos en un solo lugar — materiales y el poder de cada mejora.",
+      "gear": "Equipo de jefe",
+      "charms": "Amuletos",
+      "addPiece": "pieza",
+      "powerGain": "Ganancia de poder",
+      "atkDef": "ATK/DEF",
+      "lethality": "Letalidad",
+      "health": "Salud",
+      "power": "Poder",
+      "infantry": "Infantería",
+      "lancer": "Lancero",
+      "marksman": "Tirador",
+      "powerNote": "⚠ Los valores provienen de la comunidad (contrastados entre calculadoras) — verifica en el juego. Bonus de conjunto (todas las tropas) no incluido."
     }
   },
   "territory": {
