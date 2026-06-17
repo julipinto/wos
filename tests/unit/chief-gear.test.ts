@@ -4,7 +4,9 @@ import {
   CHIEF_PIECE_TROOP,
   chiefStatPct,
   chiefPower,
-  chiefGearGain
+  chiefGearGain,
+  charmStatPct,
+  charmStatGain
 } from '../../src/lib/tools/upgrade/chief-gear-stats';
 
 describe('chief gear stat table (verified 2026-06-17, 3 sources agree)', () => {
@@ -44,5 +46,15 @@ describe('chief gear stat table (verified 2026-06-17, 3 sources agree)', () => {
     expect(g.statPct).toBe(9.35);
     expect(g.power).toBe(9.35 * 24000);
     expect(chiefGearGain('hat', 'Green', 'None').statPct).toBe(0); // backwards → 0
+  });
+
+  it('charm lethality=health per level (0→16 = 0→100)', () => {
+    expect(charmStatPct(0)).toBe(0);
+    expect(charmStatPct(5)).toBe(25);
+    expect(charmStatPct(10)).toBe(50);
+    expect(charmStatPct(16)).toBe(100);
+    expect(charmStatPct(99)).toBe(100); // clamped
+    expect(charmStatGain(10, 16)).toBe(50); // 100 − 50
+    expect(charmStatGain(16, 0)).toBe(0); // backwards → 0
   });
 });

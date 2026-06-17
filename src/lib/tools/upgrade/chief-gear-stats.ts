@@ -88,3 +88,18 @@ export function chiefGearGain(pieceId: string, from: string, to: string): ChiefG
     power: Math.max(0, chiefPower(to) - chiefPower(from))
   };
 }
+
+/**
+ * Chief gear CHARMS — each charm (3 slots per piece) buffs the SAME troop as its
+ * piece, granting equal Lethality% and Health% (cumulative per charm, index =
+ * charm level 0..16). Verified 2026-06-17 (woscalculator + wostools + wiki agree).
+ */
+export const CHARM_STAT_BY_LEVEL = [
+  0, 9, 12, 16, 19, 25, 30, 35, 40, 45, 50, 55, 64, 73, 82, 91, 100
+];
+export const charmStatPct = (level: number) =>
+  CHARM_STAT_BY_LEVEL[Math.max(0, Math.min(16, Math.round(level)))] ?? 0;
+
+/** Lethality%/Health% gain (equal) from leveling one charm between two levels. */
+export const charmStatGain = (from: number, to: number) =>
+  Math.max(0, charmStatPct(to) - charmStatPct(from));
