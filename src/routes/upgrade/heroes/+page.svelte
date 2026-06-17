@@ -158,7 +158,7 @@
   // Which tracks a rarity unlocks: mastery is Gold/Mythic+, empowerment is Legendary only.
   const hasMastery = (r: GearRarity) => r === 'mythic' || r === 'legendary';
   const hasEmpower = (r: GearRarity) => r === 'legendary';
-  const GEAR_STORAGE = 'upgrade-heroes-gear-v1';
+  const GEAR_STORAGE = 'upgrade-heroes-gear-v2'; // v2: sensible "to = max" defaults
   const enhLabels = HERO_ENHANCE.map((l) => l.label);
   const masLabels = HERO_MASTERY.map((l) => l.label);
   const empLabels = HERO_EMPOWER.map((l) => l.label);
@@ -172,11 +172,11 @@
       troop: GEAR_TROOPS.includes(p.troop as TroopType) ? (p.troop as TroopType) : 'infantry',
       rarity: GEAR_RARITIES.includes(p.rarity as GearRarity) ? (p.rarity as GearRarity) : 'mythic',
       enhFrom: inOr(enhLabels, p.enhFrom, enhLabels[0]),
-      enhTo: inOr(enhLabels, p.enhTo, enhLabels[0]),
+      enhTo: inOr(enhLabels, p.enhTo, enhLabels[enhLabels.length - 1]),
       masFrom: inOr(masLabels, p.masFrom, masLabels[0]),
-      masTo: inOr(masLabels, p.masTo, masLabels[0]),
+      masTo: inOr(masLabels, p.masTo, masLabels[masLabels.length - 1]),
       empFrom: inOr(empLabels, p.empFrom, empLabels[0]),
-      empTo: inOr(empLabels, p.empTo, empLabels[0])
+      empTo: inOr(empLabels, p.empTo, empLabels[empLabels.length - 1])
     };
   }
   const gearPool = $state<Piece[]>(
