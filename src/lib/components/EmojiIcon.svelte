@@ -112,6 +112,7 @@
 <style>
   .emoji {
     display: inline-flex;
+    vertical-align: middle;
     line-height: 1;
   }
   /* Two-layer bloom (tight core + soft halo) so the flat Noto glyph pops like
