@@ -117,7 +117,7 @@
   /* Two-layer bloom (tight core + soft halo) so the flat Noto glyph pops like
    * the glossy OS emoji did. Tinted by the resource colour. */
   .emoji.glow {
-    filter: drop-shadow(0 0 3px color-mix(in srgb, var(--c) 65%, transparent))
-      drop-shadow(0 0 9px color-mix(in srgb, var(--c) 35%, transparent));
+    filter: drop-shadow(0 0 2px color-mix(in srgb, var(--c) 55%, transparent))
+      drop-shadow(0 0 7px color-mix(in srgb, var(--c) 26%, transparent));
   }
 </style>
