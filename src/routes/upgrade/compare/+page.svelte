@@ -283,11 +283,13 @@
       </thead>
       <tbody>
         <tr>
-          <th>✨ RFC</th>
+          <th><ResourceIcon resource="refinedFireCrystal" size={14} /> RFC</th>
           {#each cols as c, i (i)}<td class:win={rfcLow[i]}>{formatQty(c.rfc)}</td>{/each}
         </tr>
         <tr>
-          <th>🔥 {i18n.m.upgrade.compare.refineFc}</th>
+          <th
+            ><ResourceIcon resource="fireCrystal" size={14} /> {i18n.m.upgrade.compare.refineFc}</th
+          >
           {#each cols as c, i (i)}<td class:win={fcLow[i]}>~{formatQty(c.fc)}</td>{/each}
         </tr>
         <tr>

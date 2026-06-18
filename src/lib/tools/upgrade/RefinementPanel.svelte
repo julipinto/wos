@@ -1,6 +1,7 @@
 <script lang="ts">
   import { i18n, fmt, groupNumber } from '$lib/i18n/index.svelte';
   import Icon from '$lib/components/Icon.svelte';
+  import ResourceIcon from '$lib/components/ResourceIcon.svelte';
   import { PRESETS, planById, estimate, TIER_TABLE } from './refinement';
   import { refinementStore } from './refinement-store.svelte';
 
@@ -65,9 +66,13 @@
 
 <section class="refine" class:open>
   <button class="head" type="button" aria-expanded={open} onclick={() => (open = !open)}>
-    <span class="eyebrow">✨ {t.title}</span>
+    <span class="eyebrow"><ResourceIcon resource="refinedFireCrystal" size={13} /> {t.title}</span>
     {#if !open}
-      <span class="summary">🔥 {groupNumber(cur.est.fcTotal)} · ~{cur.est.days} {t.daysLabel}</span>
+      <span class="summary"
+        ><ResourceIcon resource="fireCrystal" size={13} />
+        {groupNumber(cur.est.fcTotal)} · ~{cur.est.days}
+        {t.daysLabel}</span
+      >
     {/if}
     <Icon name="chevron-down" size={14} class="caret {open ? 'up' : ''}" />
   </button>
@@ -86,7 +91,7 @@
       <!-- hero: the answer for the selected intensity -->
       <div class="kpi">
         <div class="kpi-cell">
-          <span class="kpi-lbl">🔥 {t.fcLabel}</span>
+          <span class="kpi-lbl"><ResourceIcon resource="fireCrystal" size={13} /> {t.fcLabel}</span>
           <span class="kpi-num">~{groupNumber(cur.est.fcTotal)}</span>
           {#if cur.est.fcHigh > cur.est.fcLow}
             <span class="kpi-band"
@@ -147,7 +152,11 @@
           >
             <div class="rcard-top">
               <span class="r-name">{r.name}</span>
-              <span class="r-fc">🔥 ~{groupNumber(r.est.fcTotal)}</span>
+              <span class="r-fc"
+                ><ResourceIcon resource="fireCrystal" size={12} /> ~{groupNumber(
+                  r.est.fcTotal
+                )}</span
+              >
               <span class="r-days">⏱ ~{r.est.days} {t.daysLabel}</span>
             </div>
             {#if r.key === refinementStore.intensity}
