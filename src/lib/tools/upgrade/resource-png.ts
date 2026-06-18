@@ -7,6 +7,7 @@
  * assets, 2026-06-17.
  */
 const KEYS = [
+  'crystal',
   'meat',
   'wood',
   'coal',
