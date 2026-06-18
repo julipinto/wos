@@ -174,85 +174,89 @@
     {@const avail = gearAvailable.filter((p) => CHIEF_PIECE_TROOP[p.id] === troop)}
     {@const hasActive = gear.some((a) => CHIEF_PIECE_TROOP[a.sid] === troop)}
     {#if hasActive || avail.length > 0}
-      <h3 class="troop-sub">
-        <EmojiIcon name={TROOP_NOTO[troop]} size={13} />
-        {troopName(troop)}
-      </h3>
-      {#if hasActive}
-        <div class="rows">
-          {#each gear as a, i (a.sid)}
-            {#if CHIEF_PIECE_TROOP[a.sid] === troop}
-              <div class="row">
-                <span class="row-name">{pieceName(a.sid)}</span>
-                <div class="row-ctl">
-                  <RangeSelect
-                    labels={gLabels}
-                    from={a.from}
-                    to={a.to}
-                    onChange={(f, t) => setGear(i, f, t)}
-                    ariaFrom="{pieceName(a.sid)} {i18n.m.upgrade.from}"
-                    ariaTo="{pieceName(a.sid)} {i18n.m.upgrade.to}"
-                  />
-                  <RemoveButton onclick={() => removeGear(i)} />
+      <div class="troop-group">
+        <h3 class="troop-sub">
+          <EmojiIcon name={TROOP_NOTO[troop]} size={13} />
+          {troopName(troop)}
+        </h3>
+        {#if hasActive}
+          <div class="rows">
+            {#each gear as a, i (a.sid)}
+              {#if CHIEF_PIECE_TROOP[a.sid] === troop}
+                <div class="row">
+                  <span class="row-name">{pieceName(a.sid)}</span>
+                  <div class="row-ctl">
+                    <RangeSelect
+                      labels={gLabels}
+                      from={a.from}
+                      to={a.to}
+                      onChange={(f, t) => setGear(i, f, t)}
+                      ariaFrom="{pieceName(a.sid)} {i18n.m.upgrade.from}"
+                      ariaTo="{pieceName(a.sid)} {i18n.m.upgrade.to}"
+                    />
+                    <RemoveButton onclick={() => removeGear(i)} />
+                  </div>
                 </div>
-              </div>
-            {/if}
-          {/each}
-        </div>
-      {/if}
-      {#if avail.length > 0}
-        <div class="chips">
-          {#each avail as p (p.id)}
-            <button class="chip" type="button" onclick={() => addGear(p.id)}>+ {p.name}</button>
-          {/each}
-        </div>
-      {/if}
+              {/if}
+            {/each}
+          </div>
+        {/if}
+        {#if avail.length > 0}
+          <div class="chips">
+            {#each avail as p (p.id)}
+              <button class="chip" type="button" onclick={() => addGear(p.id)}>+ {p.name}</button>
+            {/each}
+          </div>
+        {/if}
+      </div>
     {/if}
   {/each}
 
   <!-- Charms -->
   <h2 class="section-label"><EmojiIcon name="prayer-beads" size={14} /> {tx.charms}</h2>
   {#each CHIEF_TROOPS as troop (troop)}
-    <h3 class="troop-sub">
-      <EmojiIcon name={TROOP_NOTO[troop]} size={13} />
-      {troopName(troop)}
-    </h3>
-    <div class="rows">
-      {#each piecesOfTroop(troop) as p (p.id)}
-        <div class="piece">
-          <div class="piece-head">
-            <span class="row-name">{p.name}</span>
-            <div class="slot-btns">
-              {#each SLOTS as n (n)}
-                <button
-                  class="slot-btn"
-                  class:on={!!charmOf(p.id, n)}
-                  type="button"
-                  aria-pressed={!!charmOf(p.id, n)}
-                  aria-label="{p.name} · {n}"
-                  onclick={() => toggleCharm(p.id, n)}>{n}</button
-                >
-              {/each}
-            </div>
-          </div>
-          {#each SLOTS as n (n)}
-            {@const a = charmOf(p.id, n)}
-            {#if a}
-              <div class="slot-range">
-                <span class="slot-lbl">{n}</span>
-                <RangeSelect
-                  labels={cLabels}
-                  from={a.from}
-                  to={a.to}
-                  onChange={(f, t) => setCharm(p.id, n, f, t)}
-                  ariaFrom="{p.name} · {n} {i18n.m.upgrade.from}"
-                  ariaTo="{p.name} · {n} {i18n.m.upgrade.to}"
-                />
+    <div class="troop-group">
+      <h3 class="troop-sub">
+        <EmojiIcon name={TROOP_NOTO[troop]} size={13} />
+        {troopName(troop)}
+      </h3>
+      <div class="rows">
+        {#each piecesOfTroop(troop) as p (p.id)}
+          <div class="piece">
+            <div class="piece-head">
+              <span class="row-name">{p.name}</span>
+              <div class="slot-btns">
+                {#each SLOTS as n (n)}
+                  <button
+                    class="slot-btn"
+                    class:on={!!charmOf(p.id, n)}
+                    type="button"
+                    aria-pressed={!!charmOf(p.id, n)}
+                    aria-label="{p.name} · {n}"
+                    onclick={() => toggleCharm(p.id, n)}>{n}</button
+                  >
+                {/each}
               </div>
-            {/if}
-          {/each}
-        </div>
-      {/each}
+            </div>
+            {#each SLOTS as n (n)}
+              {@const a = charmOf(p.id, n)}
+              {#if a}
+                <div class="slot-range">
+                  <span class="slot-lbl">{n}</span>
+                  <RangeSelect
+                    labels={cLabels}
+                    from={a.from}
+                    to={a.to}
+                    onChange={(f, t) => setCharm(p.id, n, f, t)}
+                    ariaFrom="{p.name} · {n} {i18n.m.upgrade.from}"
+                    ariaTo="{p.name} · {n} {i18n.m.upgrade.to}"
+                  />
+                </div>
+              {/if}
+            {/each}
+          </div>
+        {/each}
+      </div>
     </div>
   {/each}
 
@@ -309,14 +313,20 @@
     height: 1px;
     background: linear-gradient(90deg, var(--border), transparent);
   }
+  /* Each troop is a child of the section: indented with a left rail. */
+  .troop-group {
+    margin: 0 0 6px;
+    padding-left: 12px;
+    border-left: 2px solid var(--border);
+  }
   .troop-sub {
     display: flex;
     align-items: center;
     gap: 6px;
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-mid);
-    margin: 6px 0 8px;
+    margin: 8px 0;
   }
   .rows {
     display: grid;
