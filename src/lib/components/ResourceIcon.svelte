@@ -12,10 +12,10 @@
 
   interface Props {
     resource: string;
-    /** Pixel size — width and height equal. Default 20. */
+    /** Pixel size — width and height equal. Default 22. */
     size?: number;
   }
-  let { resource, size = 20 }: Props = $props();
+  let { resource, size = 22 }: Props = $props();
 
   const def = $derived(RESOURCES.find((r) => r.key === resource));
   const png = $derived(RESOURCE_PNG[resource]);
@@ -39,11 +39,14 @@
   .ri {
     display: inline-flex;
     line-height: 1;
-    filter: drop-shadow(0 0 3px color-mix(in srgb, var(--c) 65%, transparent))
-      drop-shadow(0 0 9px color-mix(in srgb, var(--c) 35%, transparent));
+    filter: drop-shadow(0 0 2px color-mix(in srgb, var(--c) 55%, transparent))
+      drop-shadow(0 0 7px color-mix(in srgb, var(--c) 26%, transparent));
   }
+  /* Game PNGs carry transparent padding — scale up so the art fills the box
+   * without changing the reserved layout size. */
   .ri img {
     display: block;
     object-fit: contain;
+    transform: scale(1.22);
   }
 </style>
