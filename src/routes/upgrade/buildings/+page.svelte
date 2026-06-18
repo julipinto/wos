@@ -9,6 +9,7 @@
   import StepList from '$lib/tools/upgrade/StepList.svelte';
   import Totals from '$lib/tools/upgrade/Totals.svelte';
   import RefinementPanel from '$lib/tools/upgrade/RefinementPanel.svelte';
+  import DeficitPanel from '$lib/tools/upgrade/DeficitPanel.svelte';
   import { estimate, planById, PRESETS } from '$lib/tools/upgrade/refinement';
   import { refinementStore } from '$lib/tools/upgrade/refinement-store.svelte';
   import { buildingsCalc } from '$lib/tools/upgrade/store.svelte';
@@ -272,6 +273,8 @@
       <RefinementPanel rfc={refineRfc} />
     {/if}
   {/if}
+
+  <DeficitPanel needed={result.totals} />
 </div>
 
 <style>

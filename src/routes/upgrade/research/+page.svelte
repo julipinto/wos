@@ -2,6 +2,8 @@
   import { i18n } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import ResourceIcon from '$lib/components/ResourceIcon.svelte';
+  import EmojiIcon from '$lib/components/EmojiIcon.svelte';
+  import DeficitPanel from '$lib/tools/upgrade/DeficitPanel.svelte';
   import Boosters from '$lib/tools/upgrade/Boosters.svelte';
   import {
     addBags,
@@ -39,6 +41,12 @@
     return { totals, time };
   });
   const rows = $derived(presentResources(result.totals));
+  const needed = $derived(
+    RESEARCH_TREES.filter((t) => selected[t.id]).reduce(
+      (acc, t) => addBags(acc, t.total),
+      {} as ResourceBag
+    )
+  );
   const effTime = $derived(applySpeed(result.time, boosters.total('research')));
   const resName = (k: string) => (i18n.m.upgrade.res as Record<string, string>)[k];
   const treeName = (k: string) => (i18n.m.upgrade.research as Record<string, string>)[k];
@@ -74,7 +82,10 @@
 
   <Boosters categories={['research']} />
 
-  <h2 class="section-label">{i18n.m.upgrade.totalEyebrow}</h2>
+  <h2 class="section-label">
+    <EmojiIcon name="shopping-cart" size={14} />
+    {i18n.m.upgrade.totalEyebrow}
+  </h2>
   {#if rows.length === 0}
     <p class="empty">{i18n.m.upgrade.addHint}</p>
   {:else}
@@ -95,6 +106,8 @@
       {/if}
     </div>
   {/if}
+
+  <DeficitPanel {needed} />
 </div>
 
 <style>

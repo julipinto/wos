@@ -4,7 +4,9 @@
   import RemoveButton from '$lib/components/RemoveButton.svelte';
   import RangeSelect from '$lib/tools/upgrade/RangeSelect.svelte';
   import Totals from '$lib/tools/upgrade/Totals.svelte';
-  import { sumLadder } from '$lib/tools/upgrade/engine';
+  import DeficitPanel from '$lib/tools/upgrade/DeficitPanel.svelte';
+  import { sumLadder, addBags } from '$lib/tools/upgrade/engine';
+  import { type ResourceBag } from '$lib/tools/upgrade/types';
   import { PETS, petLadder } from '$lib/tools/upgrade/data/pets';
   import { readJson, writeJson } from '$lib/utils/storage';
 
@@ -47,6 +49,8 @@
       totals: sumLadder(petLadder(petById(r.pet)?.max ?? 0), r.from, r.to).totals
     }))
   );
+
+  const needed = $derived(petItems.reduce((acc, it) => addBags(acc, it.totals), {} as ResourceBag));
 </script>
 
 <svelte:head>
@@ -94,6 +98,8 @@
   {/if}
 
   <Totals items={petItems} emptyHint={i18n.m.upgrade.addHint} />
+
+  <DeficitPanel {needed} />
 </div>
 
 <style>

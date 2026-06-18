@@ -10,6 +10,7 @@
   import { addBags, presentResources, formatQty } from './engine';
   import { type ResourceBag } from './types';
   import ResourceIcon from '$lib/components/ResourceIcon.svelte';
+  import EmojiIcon from '$lib/components/EmojiIcon.svelte';
   import { totalsMode } from './totals-mode.svelte';
 
   interface Item {
@@ -34,7 +35,10 @@
 </script>
 
 <div class="head">
-  <h2 class="section-label">{i18n.m.upgrade.totalEyebrow}</h2>
+  <h2 class="section-label">
+    <EmojiIcon name="shopping-cart" size={14} />
+    {i18n.m.upgrade.totalEyebrow}
+  </h2>
   {#if nonEmpty.length > 1}
     <div class="seg">
       <button

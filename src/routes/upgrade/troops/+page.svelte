@@ -6,6 +6,7 @@
   import RemoveButton from '$lib/components/RemoveButton.svelte';
   import Boosters from '$lib/tools/upgrade/Boosters.svelte';
   import Totals from '$lib/tools/upgrade/Totals.svelte';
+  import DeficitPanel from '$lib/tools/upgrade/DeficitPanel.svelte';
   import { addBags, scaleBag, formatDuration, applySpeed } from '$lib/tools/upgrade/engine';
   import { boosters } from '$lib/tools/upgrade/boosters-store.svelte';
   import { type ResourceBag } from '$lib/tools/upgrade/types';
@@ -74,6 +75,10 @@
         totals: entry && qty > 0 ? scaleBag(entry.cost, qty) : {}
       };
     })
+  );
+
+  const needed = $derived(
+    troopItems.reduce((acc, it) => addBags(acc, it.totals), {} as ResourceBag)
   );
 </script>
 
@@ -145,6 +150,8 @@
       {/if}
     </div>
   {/if}
+
+  <DeficitPanel {needed} />
 </div>
 
 <style>

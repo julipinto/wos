@@ -4,6 +4,7 @@
   import PageHeader from '$lib/components/PageHeader.svelte';
   import Icon from '$lib/components/Icon.svelte';
   import ResourceIcon from '$lib/components/ResourceIcon.svelte';
+  import EmojiIcon from '$lib/components/EmojiIcon.svelte';
   import Boosters from '$lib/tools/upgrade/Boosters.svelte';
   import DeficitPanel from '$lib/tools/upgrade/DeficitPanel.svelte';
   import { speedups } from '$lib/tools/upgrade/speedups.svelte';
@@ -164,7 +165,10 @@
       </button>
     </div>
 
-    <h2 class="section-label">{i18n.m.upgrade.totalEyebrow}</h2>
+    <h2 class="section-label">
+      <EmojiIcon name="shopping-cart" size={14} />
+      {i18n.m.upgrade.totalEyebrow}
+    </h2>
     <div class="totals">
       {#each grandRows as key (key)}
         <div class="res">

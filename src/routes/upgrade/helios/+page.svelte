@@ -5,7 +5,9 @@
   import RemoveButton from '$lib/components/RemoveButton.svelte';
   import RangeSelect from '$lib/tools/upgrade/RangeSelect.svelte';
   import Totals from '$lib/tools/upgrade/Totals.svelte';
-  import { sumLadder, scaleBag } from '$lib/tools/upgrade/engine';
+  import DeficitPanel from '$lib/tools/upgrade/DeficitPanel.svelte';
+  import { sumLadder, scaleBag, addBags } from '$lib/tools/upgrade/engine';
+  import { type ResourceBag } from '$lib/tools/upgrade/types';
   import { HELIOS_NODES } from '$lib/tools/upgrade/data/helios';
   import { readJson, writeJson } from '$lib/utils/storage';
 
@@ -65,6 +67,10 @@
         state.count
       )
     }))
+  );
+
+  const needed = $derived(
+    heliosItems.reduce((acc, it) => addBags(acc, it.totals), {} as ResourceBag)
   );
 </script>
 
@@ -131,6 +137,8 @@
   {/if}
 
   <Totals items={heliosItems} emptyHint={i18n.m.upgrade.addHint} />
+
+  <DeficitPanel {needed} />
 </div>
 
 <style>
