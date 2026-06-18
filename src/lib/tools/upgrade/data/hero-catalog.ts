@@ -21,6 +21,14 @@ export const TROOP_EMOJI: Record<TroopType, string> = {
   support: '🧰'
 };
 
+/** Same troops as Iconify "noto" names (consistent SVG; for markup, not text labels). */
+export const TROOP_NOTO: Record<TroopType, string> = {
+  infantry: 'shield',
+  lancer: 'trident-emblem',
+  marksman: 'bow-and-arrow',
+  support: 'toolbox'
+};
+
 export interface CatalogHero {
   id: string;
   name: string;

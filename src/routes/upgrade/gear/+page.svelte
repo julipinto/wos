@@ -2,6 +2,7 @@
   import { i18n } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import SlotLadder from '$lib/tools/upgrade/SlotLadder.svelte';
+  import EmojiIcon from '$lib/components/EmojiIcon.svelte';
   import { GEAR_PIECES, GEAR_LADDER } from '$lib/tools/upgrade/data/gear';
   import { chiefGearGain, type ChiefTroop } from '$lib/tools/upgrade/chief-gear-stats';
   import { formatQty } from '$lib/tools/upgrade/engine';
@@ -37,7 +38,10 @@
       {@const s = summarize(rows)}
       {#if s.byTroop.length > 0 || s.power > 0}
         <section class="power">
-          <h2 class="section-label">📈 {tx.powerGain}</h2>
+          <h2 class="section-label">
+            <EmojiIcon name="chart-increasing" size={14} />
+            {tx.powerGain}
+          </h2>
           {#each s.byTroop as [troop, pct] (troop)}
             <div class="res">
               <span class="res-name">{tx.atkDef} ({troopName(troop)})</span>
@@ -46,7 +50,7 @@
           {/each}
           {#if s.power > 0}
             <div class="res">
-              <span class="res-name">⚡ {tx.power}</span>
+              <span class="res-name"><EmojiIcon name="high-voltage" size={13} /> {tx.power}</span>
               <span class="res-val">+{formatQty(s.power)}</span>
             </div>
           {/if}
