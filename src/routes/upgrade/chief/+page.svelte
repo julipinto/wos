@@ -13,7 +13,9 @@
   import RemoveButton from '$lib/components/RemoveButton.svelte';
   import EmojiIcon from '$lib/components/EmojiIcon.svelte';
   import Totals from '$lib/tools/upgrade/Totals.svelte';
-  import { sumLadder, formatQty } from '$lib/tools/upgrade/engine';
+  import DeficitPanel from '$lib/tools/upgrade/DeficitPanel.svelte';
+  import { sumLadder, formatQty, addBags } from '$lib/tools/upgrade/engine';
+  import { type ResourceBag } from '$lib/tools/upgrade/types';
   import { GEAR_PIECES, GEAR_LADDER } from '$lib/tools/upgrade/data/gear';
   import { CHARM_SLOTS_PER_PIECE, CHARM_LADDER } from '$lib/tools/upgrade/data/charms';
   import {
@@ -120,6 +122,7 @@
       };
     })
   ]);
+  const needed = $derived(items.reduce((acc, it) => addBags(acc, it.totals), {} as ResourceBag));
 
   // ── Combined power gain, per troop ──────────────────────────────────────────
   interface TroopPower {
@@ -231,6 +234,8 @@
   </div>
 
   <Totals {items} emptyHint={i18n.m.upgrade.addHint} />
+
+  <DeficitPanel {needed} />
 
   {#if hasPower}
     <section class="power">

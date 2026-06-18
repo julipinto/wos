@@ -5,7 +5,9 @@
   import RemoveButton from '$lib/components/RemoveButton.svelte';
   import RangeSelect from '$lib/tools/upgrade/RangeSelect.svelte';
   import Totals from '$lib/tools/upgrade/Totals.svelte';
-  import { sumLadder, combine, formatDuration } from '$lib/tools/upgrade/engine';
+  import DeficitPanel from '$lib/tools/upgrade/DeficitPanel.svelte';
+  import { sumLadder, combine, formatDuration, addBags } from '$lib/tools/upgrade/engine';
+  import { type ResourceBag } from '$lib/tools/upgrade/types';
   import { EXPERTS } from '$lib/tools/upgrade/data/experts';
   import { EXPERT_SKILLS } from '$lib/tools/upgrade/data/expertSkills';
   import { readJson, writeJson } from '$lib/utils/storage';
@@ -106,6 +108,13 @@
   );
   const skillResult = $derived(
     combine(skillRows.map((r) => sumLadder(skillById(r.skill)?.ladder ?? [], r.from, r.to)))
+  );
+
+  const needed = $derived(
+    [...affinityItems, ...skillItems].reduce(
+      (acc, it) => addBags(acc, it.totals),
+      {} as ResourceBag
+    )
   );
 </script>
 
@@ -221,6 +230,8 @@
       </div>
     {/if}
   {/if}
+
+  <DeficitPanel {needed} />
 </div>
 
 <style>
