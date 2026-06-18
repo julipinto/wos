@@ -24,12 +24,17 @@
     CHIEF_PIECE_TROOP,
     type ChiefTroop
   } from '$lib/tools/upgrade/chief-gear-stats';
+  import { TROOP_NOTO } from '$lib/tools/upgrade/data/hero-catalog';
   import { readJson, writeJson } from '$lib/utils/storage';
 
   const tx = $derived(i18n.m.upgrade.chief as unknown as Record<string, string>);
   const pieceName = (id: string) => GEAR_PIECES.find((p) => p.id === id)?.name ?? id;
   const troopName = (t: ChiefTroop) => tx[t];
   const fmtPct = (n: number) => `${Math.round(n * 100) / 100}%`;
+
+  // Chief pieces are troop-locked, so we group both sections by troop.
+  const CHIEF_TROOPS: ChiefTroop[] = ['infantry', 'lancer', 'marksman'];
+  const piecesOfTroop = (t: ChiefTroop) => GEAR_PIECES.filter((p) => CHIEF_PIECE_TROOP[p.id] === t);
 
   interface Active {
     sid: string;
@@ -165,73 +170,91 @@
 
   <!-- Gear -->
   <h2 class="section-label"><EmojiIcon name="shield" size={14} /> {tx.gear}</h2>
-  {#if gear.length > 0}
-    <div class="rows">
-      {#each gear as a, i (a.sid)}
-        <div class="row">
-          <span class="row-name">{pieceName(a.sid)}</span>
-          <div class="row-ctl">
-            <RangeSelect
-              labels={gLabels}
-              from={a.from}
-              to={a.to}
-              onChange={(f, t) => setGear(i, f, t)}
-              ariaFrom="{pieceName(a.sid)} {i18n.m.upgrade.from}"
-              ariaTo="{pieceName(a.sid)} {i18n.m.upgrade.to}"
-            />
-            <RemoveButton onclick={() => removeGear(i)} />
-          </div>
+  {#each CHIEF_TROOPS as troop (troop)}
+    {@const avail = gearAvailable.filter((p) => CHIEF_PIECE_TROOP[p.id] === troop)}
+    {@const hasActive = gear.some((a) => CHIEF_PIECE_TROOP[a.sid] === troop)}
+    {#if hasActive || avail.length > 0}
+      <h3 class="troop-sub">
+        <EmojiIcon name={TROOP_NOTO[troop]} size={13} />
+        {troopName(troop)}
+      </h3>
+      {#if hasActive}
+        <div class="rows">
+          {#each gear as a, i (a.sid)}
+            {#if CHIEF_PIECE_TROOP[a.sid] === troop}
+              <div class="row">
+                <span class="row-name">{pieceName(a.sid)}</span>
+                <div class="row-ctl">
+                  <RangeSelect
+                    labels={gLabels}
+                    from={a.from}
+                    to={a.to}
+                    onChange={(f, t) => setGear(i, f, t)}
+                    ariaFrom="{pieceName(a.sid)} {i18n.m.upgrade.from}"
+                    ariaTo="{pieceName(a.sid)} {i18n.m.upgrade.to}"
+                  />
+                  <RemoveButton onclick={() => removeGear(i)} />
+                </div>
+              </div>
+            {/if}
+          {/each}
         </div>
-      {/each}
-    </div>
-  {/if}
-  {#if gearAvailable.length > 0}
-    <div class="chips">
-      {#each gearAvailable as p (p.id)}
-        <button class="chip" type="button" onclick={() => addGear(p.id)}>+ {p.name}</button>
-      {/each}
-    </div>
-  {/if}
+      {/if}
+      {#if avail.length > 0}
+        <div class="chips">
+          {#each avail as p (p.id)}
+            <button class="chip" type="button" onclick={() => addGear(p.id)}>+ {p.name}</button>
+          {/each}
+        </div>
+      {/if}
+    {/if}
+  {/each}
 
   <!-- Charms -->
   <h2 class="section-label"><EmojiIcon name="prayer-beads" size={14} /> {tx.charms}</h2>
-  <div class="rows">
-    {#each GEAR_PIECES as p (p.id)}
-      <div class="piece">
-        <div class="piece-head">
-          <span class="row-name">{p.name}</span>
-          <div class="slot-btns">
-            {#each SLOTS as n (n)}
-              <button
-                class="slot-btn"
-                class:on={!!charmOf(p.id, n)}
-                type="button"
-                aria-pressed={!!charmOf(p.id, n)}
-                aria-label="{p.name} · {n}"
-                onclick={() => toggleCharm(p.id, n)}>{n}</button
-              >
-            {/each}
-          </div>
-        </div>
-        {#each SLOTS as n (n)}
-          {@const a = charmOf(p.id, n)}
-          {#if a}
-            <div class="slot-range">
-              <span class="slot-lbl">{n}</span>
-              <RangeSelect
-                labels={cLabels}
-                from={a.from}
-                to={a.to}
-                onChange={(f, t) => setCharm(p.id, n, f, t)}
-                ariaFrom="{p.name} · {n} {i18n.m.upgrade.from}"
-                ariaTo="{p.name} · {n} {i18n.m.upgrade.to}"
-              />
+  {#each CHIEF_TROOPS as troop (troop)}
+    <h3 class="troop-sub">
+      <EmojiIcon name={TROOP_NOTO[troop]} size={13} />
+      {troopName(troop)}
+    </h3>
+    <div class="rows">
+      {#each piecesOfTroop(troop) as p (p.id)}
+        <div class="piece">
+          <div class="piece-head">
+            <span class="row-name">{p.name}</span>
+            <div class="slot-btns">
+              {#each SLOTS as n (n)}
+                <button
+                  class="slot-btn"
+                  class:on={!!charmOf(p.id, n)}
+                  type="button"
+                  aria-pressed={!!charmOf(p.id, n)}
+                  aria-label="{p.name} · {n}"
+                  onclick={() => toggleCharm(p.id, n)}>{n}</button
+                >
+              {/each}
             </div>
-          {/if}
-        {/each}
-      </div>
-    {/each}
-  </div>
+          </div>
+          {#each SLOTS as n (n)}
+            {@const a = charmOf(p.id, n)}
+            {#if a}
+              <div class="slot-range">
+                <span class="slot-lbl">{n}</span>
+                <RangeSelect
+                  labels={cLabels}
+                  from={a.from}
+                  to={a.to}
+                  onChange={(f, t) => setCharm(p.id, n, f, t)}
+                  ariaFrom="{p.name} · {n} {i18n.m.upgrade.from}"
+                  ariaTo="{p.name} · {n} {i18n.m.upgrade.to}"
+                />
+              </div>
+            {/if}
+          {/each}
+        </div>
+      {/each}
+    </div>
+  {/each}
 
   <Totals {items} emptyHint={i18n.m.upgrade.addHint} />
 
@@ -285,6 +308,15 @@
     flex: 1;
     height: 1px;
     background: linear-gradient(90deg, var(--border), transparent);
+  }
+  .troop-sub {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-mid);
+    margin: 6px 0 8px;
   }
   .rows {
     display: grid;
