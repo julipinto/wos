@@ -11,6 +11,7 @@
   import PageHeader from '$lib/components/PageHeader.svelte';
   import RangeSelect from '$lib/tools/upgrade/RangeSelect.svelte';
   import RemoveButton from '$lib/components/RemoveButton.svelte';
+  import EmojiIcon from '$lib/components/EmojiIcon.svelte';
   import Totals from '$lib/tools/upgrade/Totals.svelte';
   import { sumLadder, formatQty } from '$lib/tools/upgrade/engine';
   import { GEAR_PIECES, GEAR_LADDER } from '$lib/tools/upgrade/data/gear';
@@ -160,7 +161,7 @@
   <PageHeader title={i18n.m.upgrade.cat.chief} sub={tx.sub} backHref="/upgrade" />
 
   <!-- Gear -->
-  <h2 class="section-label">🛡 {tx.gear}</h2>
+  <h2 class="section-label"><EmojiIcon name="shield" size={14} /> {tx.gear}</h2>
   {#if gear.length > 0}
     <div class="rows">
       {#each gear as a, i (a.sid)}
@@ -190,7 +191,7 @@
   {/if}
 
   <!-- Charms -->
-  <h2 class="section-label">📿 {tx.charms}</h2>
+  <h2 class="section-label"><EmojiIcon name="prayer-beads" size={14} /> {tx.charms}</h2>
   <div class="rows">
     {#each GEAR_PIECES as p (p.id)}
       <div class="piece">
@@ -233,7 +234,7 @@
 
   {#if hasPower}
     <section class="power">
-      <h2 class="section-label">📈 {tx.powerGain}</h2>
+      <h2 class="section-label"><EmojiIcon name="chart-increasing" size={14} /> {tx.powerGain}</h2>
       {#each powerByTroop.troops as [troop, p] (troop)}
         <div class="troop-row">
           <span class="troop-name">{troopName(troop)}</span>
@@ -246,7 +247,7 @@
       {/each}
       {#if powerByTroop.power > 0}
         <div class="troop-row">
-          <span class="troop-name">⚡ {tx.power}</span>
+          <span class="troop-name"><EmojiIcon name="high-voltage" size={13} /> {tx.power}</span>
           <span class="stats"><span class="g">+{formatQty(powerByTroop.power)}</span></span>
         </div>
       {/if}

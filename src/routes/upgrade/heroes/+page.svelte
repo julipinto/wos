@@ -14,6 +14,7 @@
   import DeficitPanel from '$lib/tools/upgrade/DeficitPanel.svelte';
   import RemoveButton from '$lib/components/RemoveButton.svelte';
   import ResourceIcon from '$lib/components/ResourceIcon.svelte';
+  import EmojiIcon from '$lib/components/EmojiIcon.svelte';
   import {
     sumLadder,
     combine,
@@ -39,6 +40,7 @@
     HERO_CATALOG,
     heroFromCatalog,
     TROOP_EMOJI,
+    TROOP_NOTO,
     type HeroRarity,
     type TroopType
   } from '$lib/tools/upgrade/data/hero-catalog';
@@ -331,7 +333,7 @@
           <span
             class="troop"
             title={tx['troop' + cat.troopType[0].toUpperCase() + cat.troopType.slice(1)]}
-            >{TROOP_EMOJI[cat.troopType]}</span
+            ><EmojiIcon name={TROOP_NOTO[cat.troopType]} size={15} /></span
           >
           <div class="hero-pick">
             <Select
@@ -348,7 +350,7 @@
         </div>
 
         <div class="field">
-          <span class="field-label">⭐ {tx.star}</span>
+          <span class="field-label"><EmojiIcon name="star" size={12} /> {tx.star}</span>
           <div class="star-grid">
             <div class="star-side">
               <span class="side-tag">{tx.from}</span>
@@ -404,7 +406,8 @@
 
         {#if cat.hasExclusiveGear}
           <div class="field">
-            <span class="field-label">🔧 {tx.exclusiveGear}</span>
+            <span class="field-label"><EmojiIcon name="wrench" size={12} /> {tx.exclusiveGear}</span
+            >
             <div class="ex-grid">
               <Select
                 value={h.exFrom}
@@ -445,7 +448,7 @@
   {/if}
 
   <section class="gear">
-    <h2 class="section-label">🛡 {tx.gearPool}</h2>
+    <h2 class="section-label"><EmojiIcon name="shield" size={14} /> {tx.gearPool}</h2>
     <p class="note">{tx.gearNote}</p>
     {#each gearPool as p, i (i)}
       {@const g = pieceGain(p)}
@@ -536,7 +539,7 @@
         {/if}
         {#if g.commandPct > 0 || (g.heroAtk ?? 0) > 0 || (g.heroDef ?? 0) > 0 || g.heroHp > 0}
           <p class="gain">
-            📈
+            <EmojiIcon name="chart-increasing" size={12} />
             {#if g.commandPct > 0}<span class="g-pct"
                 >+{fmtPct(g.commandPct)}
                 {g.commandKind === 'lethality' ? tx.statLethality : tx.statTroopHealth} ({troopName(
@@ -557,7 +560,7 @@
 
   {#if powerRows.length > 0}
     <section class="shopping">
-      <h2 class="section-label">📈 {tx.powerGain}</h2>
+      <h2 class="section-label"><EmojiIcon name="chart-increasing" size={14} /> {tx.powerGain}</h2>
       {#each powerRows as row (row.k)}
         <div class="res">
           <span class="res-name">{row.label}</span>
@@ -570,7 +573,7 @@
 
   {#if hasOutput}
     <section class="shopping">
-      <h2 class="section-label">🛒 {tx.shopping}</h2>
+      <h2 class="section-label"><EmojiIcon name="shopping-cart" size={14} /> {tx.shopping}</h2>
       {#each shardRows as row (row.k)}
         <div class="res">
           <span class="res-icon"><ResourceIcon resource={row.k} /></span>
