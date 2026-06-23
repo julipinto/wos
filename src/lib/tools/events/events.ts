@@ -33,6 +33,12 @@ export interface EventDef {
   durationHours: number;
   /** Hide until the server reaches this age in days (unlock gate). */
   availableAfterAgeDays?: number;
+  /**
+   * Multi-day event with a per-day focus (e.g. SvS prep arms-race). Each entry
+   * is a theme i18n key; the event expands to one 24h (UTC-day) occurrence per
+   * theme, starting on the event's anchor day. Overrides durationHours.
+   */
+  dailyThemes?: string[];
 }
 
 /** Curated v1 event set. Cyclic offsets are relative to the SvS battle (Sat). */
@@ -98,6 +104,16 @@ export const EVENT_DEFS: EventDef[] = [
   },
   // ── 28-day headline rotation (Saturdays), anchored to SvS ──
   {
+    id: 'svs_prep',
+    category: 'growth',
+    tier: 'estimate',
+    svsOffsetDays: -5, // Monday before the Saturday battle
+    repeatDays: 28,
+    durationHours: 24,
+    availableAfterAgeDays: 80,
+    dailyThemes: ['construction', 'research', 'beasts', 'heroes', 'power'] // Mon→Fri
+  },
+  {
     id: 'svs',
     category: 'pvp',
     tier: 'estimate',
@@ -139,7 +155,12 @@ export interface Occurrence {
   end: number; // ms
   /** True when a cyclic event is placed from the global anchor (no real SvS seeded). */
   estimate: boolean;
+  /** Per-day theme key, for multi-day themed events (SvS prep). */
+  theme?: string;
 }
+
+/** Floor a timestamp to its UTC midnight (epoch is UTC-aligned to DAY_MS). */
+const floorUtcDay = (ms: number) => Math.floor(ms / DAY_MS) * DAY_MS;
 
 function resolveAnchor(def: EventDef, svsAnchorMs: number): number {
   return def.svsOffsetDays != null
@@ -188,9 +209,24 @@ export function projectEvents(opts: ProjectOpts, defs: EventDef[] = EVENT_DEFS):
       def.availableAfterAgeDays != null
         ? serverOpen + def.availableAfterAgeDays * DAY_MS
         : -Infinity;
+    const estimate = def.svsOffsetDays != null && opts.svsDateMs == null;
+    if (def.dailyThemes?.length) {
+      // Expand each cycle into one UTC-day occurrence per theme.
+      const span = { ...def, durationHours: def.dailyThemes.length * 24 };
+      for (const cycle of eventOccurrences(span, svsAnchor, opts.nowMs, to)) {
+        const day0 = floorUtcDay(cycle.start);
+        def.dailyThemes.forEach((theme, i) => {
+          const start = day0 + i * DAY_MS;
+          const end = start + DAY_MS;
+          if (end < opts.nowMs || start > to || start < unlockMs) return;
+          items.push({ def, start, end, estimate, theme });
+        });
+      }
+      continue;
+    }
     for (const o of eventOccurrences(def, svsAnchor, opts.nowMs, to)) {
       if (o.start < unlockMs) continue;
-      items.push({ def, ...o, estimate: def.svsOffsetDays != null && opts.svsDateMs == null });
+      items.push({ def, ...o, estimate });
     }
   }
   items.sort((a, b) => a.start - b.start);

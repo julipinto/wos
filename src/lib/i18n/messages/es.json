@@ -677,7 +677,8 @@
       "svs": "SvS — State of Power",
       "canyon_clash": "Canyon Clash",
       "king_of_icefield": "King of Icefield",
-      "brothers_in_arms": "Brothers in Arms"
+      "brothers_in_arms": "Brothers in Arms",
+      "svs_prep": "Prep. de SvS"
     },
     "viewList": "Lista",
     "viewCalendar": "Calendario",
@@ -687,6 +688,13 @@
     "catPvp": "PvP",
     "catAlliance": "Alianza",
     "catGrowth": "Crecimiento",
-    "noDay": "Sin eventos este día."
+    "noDay": "Sin eventos este día.",
+    "themes": {
+      "construction": "Construcción",
+      "research": "Investigación",
+      "beasts": "Caza de bestias",
+      "heroes": "Héroes",
+      "power": "Aumento de poder"
+    }
   }
 }
