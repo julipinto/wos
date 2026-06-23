@@ -5,7 +5,9 @@ import {
   GLOBAL_SVS_ANCHOR,
   eventOccurrences,
   projectEvents,
-  lockedEvents
+  lockedEvents,
+  estimateStateOpenMs,
+  estimateStateAgeDays
 } from '../../src/lib/tools/events/events';
 
 const NOW = Date.parse('2026-06-18T00:00:00Z');
@@ -79,6 +81,26 @@ describe('SvS prep (multi-day themed)', () => {
     expect(prep[0].start).toBe(Date.parse('2026-06-22T00:00:00Z'));
     expect(prep[0].end - prep[0].start).toBe(DAY_MS);
     expect(new Date(prep[0].start).getUTCDay()).toBe(1); // Monday
+  });
+});
+
+describe('state → open date / age', () => {
+  it('returns the anchor date exactly on an anchor state', () => {
+    expect(estimateStateOpenMs(3200)).toBe(Date.parse('2025-07-26'));
+    expect(estimateStateOpenMs(300)).toBe(Date.parse('2023-08-02'));
+  });
+
+  it('interpolates between anchors and stays monotonic (higher state = newer)', () => {
+    const mid = estimateStateOpenMs(2100); // between 2000 and 2200
+    expect(mid).toBeGreaterThan(Date.parse('2024-11-01'));
+    expect(mid).toBeLessThan(Date.parse('2024-12-12'));
+    expect(estimateStateOpenMs(3000)).toBeLessThan(estimateStateOpenMs(3200));
+  });
+
+  it('age decreases with newer (higher) states', () => {
+    const now = Date.parse('2026-06-18T00:00:00Z');
+    expect(estimateStateAgeDays(300, now)).toBeGreaterThan(estimateStateAgeDays(3200, now));
+    expect(estimateStateAgeDays(99999, now)).toBeGreaterThanOrEqual(0);
   });
 });
 

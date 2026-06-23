@@ -712,6 +712,9 @@
     "repWeekly": "semanal",
     "repMonthly": "mensual",
     "catCustom": "Personalizado",
-    "more": "más"
+    "more": "más",
+    "serverNumber": "Número de servidor",
+    "serverNumberHelp": "Estima la edad por el estado (aprox.). Déjalo vacío para poner los días a mano.",
+    "opened": "abierto"
   }
 }

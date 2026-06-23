@@ -17,6 +17,51 @@ const HOUR_MS = 3_600_000;
 /** Global SvS battle anchor (Sat 10:00 UTC) used when the user hasn't seeded one. */
 export const GLOBAL_SVS_ANCHOR = Date.parse('2024-10-12T10:00:00Z');
 
+/**
+ * State open-date anchors (UTC), to estimate server age from a state number.
+ * The exact per-state dates live behind whiteoutsurvival.pl's backend (not usable
+ * offline); these ~20 anchors interpolate to within a few days. States open
+ * sequentially; merges remove some numbers but don't move open dates. Verified
+ * 2026-06-18 against the whiteoutsurvival.pl timeline.
+ */
+const STATE_ANCHORS: { s: number; t: number }[] = [
+  { s: 1, t: Date.parse('2023-02-12') },
+  { s: 210, t: Date.parse('2023-07-02') },
+  { s: 300, t: Date.parse('2023-08-02') },
+  { s: 350, t: Date.parse('2023-08-20') },
+  { s: 500, t: Date.parse('2023-10-19') },
+  { s: 600, t: Date.parse('2023-11-22') },
+  { s: 700, t: Date.parse('2023-12-25') },
+  { s: 800, t: Date.parse('2024-01-21') },
+  { s: 1000, t: Date.parse('2024-03-25') },
+  { s: 1200, t: Date.parse('2024-05-17') },
+  { s: 1400, t: Date.parse('2024-07-02') },
+  { s: 1600, t: Date.parse('2024-08-15') },
+  { s: 1800, t: Date.parse('2024-09-25') },
+  { s: 2000, t: Date.parse('2024-11-01') },
+  { s: 2200, t: Date.parse('2024-12-12') },
+  { s: 2400, t: Date.parse('2025-01-14') },
+  { s: 2600, t: Date.parse('2025-02-23') },
+  { s: 2800, t: Date.parse('2025-04-19') },
+  { s: 3000, t: Date.parse('2025-06-10') },
+  { s: 3200, t: Date.parse('2025-07-26') }
+];
+
+/** Estimated open date (ms) for a state number — piecewise-linear over the anchors. */
+export function estimateStateOpenMs(state: number): number {
+  const A = STATE_ANCHORS;
+  const lerp = (p: { s: number; t: number }, q: { s: number; t: number }) =>
+    p.t + ((state - p.s) * (q.t - p.t)) / (q.s - p.s);
+  if (state <= A[0].s) return lerp(A[0], A[1]); // extrapolate before the first anchor
+  for (let i = 1; i < A.length; i++) if (state <= A[i].s) return lerp(A[i - 1], A[i]);
+  return lerp(A[A.length - 2], A[A.length - 1]); // extrapolate past the last anchor
+}
+
+/** Estimated server age in days for a state number (clamped at 0). */
+export function estimateStateAgeDays(state: number, nowMs: number): number {
+  return Math.max(0, Math.round((nowMs - estimateStateOpenMs(state)) / DAY_MS));
+}
+
 export type EventTier = 'deterministic' | 'estimate' | 'cadence' | 'seasonal';
 export type EventCategory = 'pvp' | 'alliance' | 'growth' | 'seasonal';
 
