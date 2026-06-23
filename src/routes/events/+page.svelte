@@ -7,13 +7,16 @@
   import { i18n } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import NumberInput from '$lib/components/NumberInput.svelte';
+  import Segmented from '$lib/components/Segmented.svelte';
   import { projectEvents, lockedEvents, DAY_MS, type Occurrence } from '$lib/tools/events/events';
   import { readJson, writeJson } from '$lib/utils/storage';
 
   const AGE_KEY = 'events-server-age-v1';
   const SVS_KEY = 'events-svs-date-v1';
+  const VIEW_KEY = 'events-view-v1';
   let serverAge = $state(Math.max(0, readJson<number>(AGE_KEY) ?? 100));
   let svsDate = $state(readJson<string>(SVS_KEY) ?? ''); // 'YYYY-MM-DD'
+  let view = $state<'list' | 'calendar'>(readJson<'list' | 'calendar'>(VIEW_KEY) ?? 'list');
   const now = Date.now();
 
   function setAge(n: number) {
@@ -23,6 +26,10 @@
   function setSvs(v: string) {
     svsDate = v;
     writeJson(SVS_KEY, v);
+  }
+  function setView(v: string) {
+    view = v as 'list' | 'calendar';
+    writeJson(VIEW_KEY, view);
   }
 
   const tx = $derived(i18n.m.events as unknown as Record<string, string>);
@@ -54,6 +61,47 @@
     }
     return out;
   });
+
+  // ── Calendar (month grid) ──
+  const dayKeyOf = (ms: number) => {
+    const d = new Date(ms);
+    return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  };
+  const byDay = $derived.by(() => {
+    const m = new Map<string, Occurrence[]>();
+    for (const it of items) {
+      const k = dayKeyOf(it.start);
+      const arr = m.get(k);
+      if (arr) arr.push(it);
+      else m.set(k, [it]);
+    }
+    return m;
+  });
+  // 6-week grid starting on the Monday of the current week (DST-safe day stepping).
+  const gridDays = $derived.by(() => {
+    const d = new Date(now);
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); // back to Monday
+    const out: number[] = [];
+    for (let i = 0; i < 42; i++) {
+      out.push(d.getTime());
+      d.setDate(d.getDate() + 1);
+    }
+    return out;
+  });
+  const weekdayLabels = $derived(
+    gridDays
+      .slice(0, 7)
+      .map((ms) => new Intl.DateTimeFormat(undefined, { weekday: 'short' }).format(new Date(ms)))
+  );
+  const startOfToday = (() => {
+    const d = new Date(now);
+    d.setHours(0, 0, 0, 0);
+    return d.getTime();
+  })();
+  let selectedDay = $state(startOfToday); // midnight-local ms
+  const selectedItems = $derived(byDay.get(dayKeyOf(selectedDay)) ?? []);
+  const todayKey = dayKeyOf(now);
 
   const pad = (n: number) => String(n).padStart(2, '0');
   const utcTime = (ms: number) => {
@@ -92,6 +140,23 @@
   <title>{tx.title} · {i18n.m.landing.kicker}</title>
 </svelte:head>
 
+{#snippet eventRow(o: Occurrence)}
+  {@const b = badge(o)}
+  <div class="ev">
+    <span class="dot" style="--c: {CAT_COLOR[o.def.category]}"></span>
+    <div class="ev-body">
+      <span class="ev-name">{eventName(o.def.id)}</span>
+      <span class="ev-time">
+        {utcTime(o.start)}
+        {tx.utc} · {localTime(o.start)}
+        {tx.local}
+        {#if b}<span class="tag" class:cadence={o.def.tier === 'cadence'}>{b}</span>{/if}
+      </span>
+    </div>
+    <span class="ev-rel" class:now={o.start <= now && now <= o.end}>{relative(o)}</span>
+  </div>
+{/snippet}
+
 <div class="wrap">
   <PageHeader title={tx.title} sub={tx.sub} backHref="/" />
 
@@ -119,31 +184,74 @@
     </label>
   </div>
 
-  {#if groups.length === 0}
-    <p class="empty">{tx.empty}</p>
-  {/if}
+  <div class="toolbar">
+    <Segmented
+      value={view}
+      ariaLabel={tx.view}
+      options={[
+        { value: 'list', label: tx.viewList },
+        { value: 'calendar', label: tx.viewCalendar }
+      ]}
+      onChange={setView}
+    />
+  </div>
 
-  {#each groups as g (g.key)}
-    <div class="day">
-      <h2 class="day-head">{dayLabel(g.dayMs)}</h2>
-      {#each g.items as o (o.def.id + o.start)}
-        {@const b = badge(o)}
-        <div class="ev">
-          <span class="dot" style="--c: {CAT_COLOR[o.def.category]}"></span>
-          <div class="ev-body">
-            <span class="ev-name">{eventName(o.def.id)}</span>
-            <span class="ev-time">
-              {utcTime(o.start)}
-              {tx.utc} · {localTime(o.start)}
-              {tx.local}
-              {#if b}<span class="tag" class:cadence={o.def.tier === 'cadence'}>{b}</span>{/if}
-            </span>
-          </div>
-          <span class="ev-rel" class:now={o.start <= now && now <= o.end}>{relative(o)}</span>
-        </div>
+  <div class="legend">
+    <span class="leg"><span class="tag">{tx.tierEstimate}</span></span>
+    <span class="leg"><span class="tag cadence">{tx.tierCadence}</span></span>
+    <span class="leg"><span class="dot reliable"></span>{tx.legendReliable}</span>
+    <span class="leg"><span class="dot" style="--c: {CAT_COLOR.pvp}"></span>{tx.catPvp}</span>
+    <span class="leg"
+      ><span class="dot" style="--c: {CAT_COLOR.alliance}"></span>{tx.catAlliance}</span
+    >
+    <span class="leg"><span class="dot" style="--c: {CAT_COLOR.growth}"></span>{tx.catGrowth}</span>
+  </div>
+
+  {#if view === 'list'}
+    {#if groups.length === 0}
+      <p class="empty">{tx.empty}</p>
+    {/if}
+    {#each groups as g (g.key)}
+      <div class="day">
+        <h2 class="day-head">{dayLabel(g.dayMs)}</h2>
+        {#each g.items as o (o.def.id + o.start)}{@render eventRow(o)}{/each}
+      </div>
+    {/each}
+  {:else}
+    <div class="cal-grid cal-head">
+      {#each weekdayLabels as w (w)}<span class="cal-wd">{w}</span>{/each}
+    </div>
+    <div class="cal-grid">
+      {#each gridDays as ms (ms)}
+        {@const key = dayKeyOf(ms)}
+        {@const evs = byDay.get(key) ?? []}
+        <button
+          type="button"
+          class="cal-cell"
+          class:today={key === todayKey}
+          class:selected={ms === selectedDay}
+          class:past={ms < startOfToday}
+          onclick={() => (selectedDay = ms)}
+        >
+          <span class="cal-num">{new Date(ms).getDate()}</span>
+          <span class="cal-dots">
+            {#each evs.slice(0, 4) as o (o.def.id + o.start)}
+              <span class="cal-dot" style="--c: {CAT_COLOR[o.def.category]}"></span>
+            {/each}
+            {#if evs.length > 4}<span class="cal-more">+{evs.length - 4}</span>{/if}
+          </span>
+        </button>
       {/each}
     </div>
-  {/each}
+    <div class="cal-detail">
+      <h2 class="day-head">{dayLabel(selectedDay)}</h2>
+      {#if selectedItems.length > 0}
+        {#each selectedItems as o (o.def.id + o.start)}{@render eventRow(o)}{/each}
+      {:else}
+        <p class="empty">{tx.noDay}</p>
+      {/if}
+    </div>
+  {/if}
 
   {#if locked.length > 0}
     <section class="locked">
@@ -221,6 +329,95 @@
     font-size: 11px;
     padding: 6px 10px;
     cursor: pointer;
+  }
+  .toolbar {
+    margin-bottom: 12px;
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    margin-bottom: 20px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+  .leg {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .dot.reliable {
+    background: var(--text-mid);
+    box-shadow: none;
+  }
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .cal-head {
+    margin-bottom: 4px;
+  }
+  .cal-wd {
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-dim);
+    padding-bottom: 2px;
+  }
+  .cal-cell {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 3px;
+    padding: 4px 2px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text);
+    overflow: hidden;
+  }
+  .cal-cell.past {
+    opacity: 0.4;
+  }
+  .cal-cell.today {
+    border-color: var(--border-accent);
+  }
+  .cal-cell.selected {
+    background: var(--accent-glow);
+    border-color: var(--accent);
+  }
+  .cal-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1;
+  }
+  .cal-dots {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+  }
+  .cal-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--c);
+  }
+  .cal-more {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    color: var(--text-dim);
+  }
+  .cal-detail {
+    margin-top: 18px;
   }
   .day {
     margin-bottom: 18px;
