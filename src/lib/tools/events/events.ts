@@ -1,0 +1,211 @@
+/**
+ * Recurring-events projection. Two clocks (see research): time-of-day is
+ * UNIVERSAL UTC for every server; which-week is per-server, anchored to the SvS
+ * 28-day cycle + server age. So we project from:
+ *   - a server age in days (→ server open date) that GATES events by unlock day, and
+ *   - an SvS anchor: the global estimate by default, or a real SvS date the user
+ *     gives to lock the cyclic events precisely.
+ *
+ * Tiers (honesty): 'deterministic' = real UTC weekly/daily cadence (exact);
+ * 'estimate' = cyclic events placed from the global SvS anchor (real date only
+ * once the user seeds their SvS); 'cadence' = day is known but the in-game hour
+ * is alliance-set/unconfirmed. Data verified 2026-06-18 (see memory wos-events-data).
+ */
+export const DAY_MS = 86_400_000;
+const HOUR_MS = 3_600_000;
+
+/** Global SvS battle anchor (Sat 10:00 UTC) used when the user hasn't seeded one. */
+export const GLOBAL_SVS_ANCHOR = Date.parse('2024-10-12T10:00:00Z');
+
+export type EventTier = 'deterministic' | 'estimate' | 'cadence';
+export type EventCategory = 'pvp' | 'alliance' | 'growth';
+
+export interface EventDef {
+  id: string;
+  category: EventCategory;
+  tier: EventTier;
+  /** Fixed events: a real past occurrence start (ISO UTC). */
+  anchorUtc?: string;
+  /** Cyclic events: offset in days from the SvS battle anchor. */
+  svsOffsetDays?: number;
+  /** Repeat period in days (1 daily, 7 weekly, 14 biweekly, 28 monthly-cycle). */
+  repeatDays: number;
+  durationHours: number;
+  /** Hide until the server reaches this age in days (unlock gate). */
+  availableAfterAgeDays?: number;
+}
+
+/** Curated v1 event set. Cyclic offsets are relative to the SvS battle (Sat). */
+export const EVENT_DEFS: EventDef[] = [
+  // ── Universal weekly (deterministic from the UTC week) ──
+  {
+    id: 'alliance_championship',
+    category: 'alliance',
+    tier: 'deterministic',
+    anchorUtc: '2024-01-01T00:00:00Z', // a Monday
+    repeatDays: 7,
+    durationHours: 7 * 24
+  },
+  {
+    id: 'hall_of_heroes',
+    category: 'growth',
+    tier: 'deterministic',
+    anchorUtc: '2023-12-31T00:00:00Z', // a Sunday (Sun–Tue)
+    repeatDays: 7,
+    durationHours: 3 * 24
+  },
+  {
+    id: 'crazy_joe',
+    category: 'pvp',
+    tier: 'cadence',
+    anchorUtc: '2024-01-02T00:00:00Z', // a Tuesday (also runs Thu in PvP weeks)
+    repeatDays: 7,
+    durationHours: 2
+  },
+  // ── Biweekly (alternating / fortnightly) ──
+  {
+    id: 'sunfire_castle',
+    category: 'pvp',
+    tier: 'estimate',
+    svsOffsetDays: 0, // a Saturday, fortnightly from SvS week
+    repeatDays: 14,
+    durationHours: 5,
+    availableAfterAgeDays: 53
+  },
+  {
+    id: 'foundry_battle',
+    category: 'pvp',
+    tier: 'cadence',
+    svsOffsetDays: 1, // Sunday
+    repeatDays: 14,
+    durationHours: 1
+  },
+  {
+    id: 'frostfire_mine',
+    category: 'pvp',
+    tier: 'cadence',
+    svsOffsetDays: 8, // Sunday, alternating with Foundry
+    repeatDays: 14,
+    durationHours: 1
+  },
+  {
+    id: 'alliance_mobilization',
+    category: 'alliance',
+    tier: 'estimate',
+    svsOffsetDays: -7, // Monday, off-SvS fortnight
+    repeatDays: 14,
+    durationHours: 6 * 24
+  },
+  // ── 28-day headline rotation (Saturdays), anchored to SvS ──
+  {
+    id: 'svs',
+    category: 'pvp',
+    tier: 'estimate',
+    svsOffsetDays: 0,
+    repeatDays: 28,
+    durationHours: 12,
+    availableAfterAgeDays: 80
+  },
+  {
+    id: 'canyon_clash',
+    category: 'pvp',
+    tier: 'cadence',
+    svsOffsetDays: 7,
+    repeatDays: 28,
+    durationHours: 1
+  },
+  {
+    id: 'king_of_icefield',
+    category: 'pvp',
+    tier: 'estimate',
+    svsOffsetDays: 14,
+    repeatDays: 28,
+    durationHours: 7 * 24,
+    availableAfterAgeDays: 80
+  },
+  {
+    id: 'brothers_in_arms',
+    category: 'alliance',
+    tier: 'cadence',
+    svsOffsetDays: 20, // Friday 00:00 → Sunday 00:00
+    repeatDays: 28,
+    durationHours: 48
+  }
+];
+
+export interface Occurrence {
+  def: EventDef;
+  start: number; // ms
+  end: number; // ms
+  /** True when a cyclic event is placed from the global anchor (no real SvS seeded). */
+  estimate: boolean;
+}
+
+function resolveAnchor(def: EventDef, svsAnchorMs: number): number {
+  return def.svsOffsetDays != null
+    ? svsAnchorMs + def.svsOffsetDays * DAY_MS
+    : Date.parse(def.anchorUtc!);
+}
+
+/** Occurrences of one event overlapping [fromMs, toMs] (includes one already running). */
+export function eventOccurrences(
+  def: EventDef,
+  svsAnchorMs: number,
+  fromMs: number,
+  toMs: number
+): { start: number; end: number }[] {
+  const anchor = resolveAnchor(def, svsAnchorMs);
+  const period = def.repeatDays * DAY_MS;
+  const dur = def.durationHours * HOUR_MS;
+  if (!period) return [];
+  let k = Math.ceil((fromMs - dur - anchor) / period);
+  const out: { start: number; end: number }[] = [];
+  for (let guard = 0; guard < 500; guard++) {
+    const start = anchor + k * period;
+    if (start > toMs) break;
+    if (start + dur >= fromMs) out.push({ start, end: start + dur });
+    k++;
+  }
+  return out;
+}
+
+export interface ProjectOpts {
+  nowMs: number;
+  horizonDays: number;
+  serverAgeDays: number;
+  /** Optional real SvS battle date (ms) to lock the cyclic events. */
+  svsDateMs?: number;
+}
+
+/** All upcoming occurrences across events, gated by server age, sorted by start. */
+export function projectEvents(opts: ProjectOpts, defs: EventDef[] = EVENT_DEFS): Occurrence[] {
+  const svsAnchor = opts.svsDateMs ?? GLOBAL_SVS_ANCHOR;
+  const serverOpen = opts.nowMs - opts.serverAgeDays * DAY_MS;
+  const to = opts.nowMs + opts.horizonDays * DAY_MS;
+  const items: Occurrence[] = [];
+  for (const def of defs) {
+    const unlockMs =
+      def.availableAfterAgeDays != null
+        ? serverOpen + def.availableAfterAgeDays * DAY_MS
+        : -Infinity;
+    for (const o of eventOccurrences(def, svsAnchor, opts.nowMs, to)) {
+      if (o.start < unlockMs) continue;
+      items.push({ def, ...o, estimate: def.svsOffsetDays != null && opts.svsDateMs == null });
+    }
+  }
+  items.sort((a, b) => a.start - b.start);
+  return items;
+}
+
+/** Events not yet unlocked for this server, with the date they unlock. */
+export function lockedEvents(
+  opts: Pick<ProjectOpts, 'nowMs' | 'serverAgeDays'>,
+  defs: EventDef[] = EVENT_DEFS
+): { def: EventDef; unlockMs: number }[] {
+  const serverOpen = opts.nowMs - opts.serverAgeDays * DAY_MS;
+  return defs
+    .filter((d) => d.availableAfterAgeDays != null)
+    .map((d) => ({ def: d, unlockMs: serverOpen + (d.availableAfterAgeDays ?? 0) * DAY_MS }))
+    .filter((e) => e.unlockMs > opts.nowMs)
+    .sort((a, b) => a.unlockMs - b.unlockMs);
+}
