@@ -678,6 +678,15 @@
       "canyon_clash": "Canyon Clash",
       "king_of_icefield": "King of Icefield",
       "brothers_in_arms": "Brothers in Arms"
-    }
+    },
+    "viewList": "قائمة",
+    "viewCalendar": "تقويم",
+    "view": "العرض",
+    "legend": "مفتاح",
+    "legendReliable": "وقت ثابت (موثوق)",
+    "catPvp": "PvP",
+    "catAlliance": "تحالف",
+    "catGrowth": "تطوير",
+    "noDay": "لا أحداث في هذا اليوم."
   }
 }

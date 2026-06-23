@@ -678,6 +678,15 @@
       "canyon_clash": "Canyon Clash",
       "king_of_icefield": "King of Icefield",
       "brothers_in_arms": "Brothers in Arms"
-    }
+    },
+    "viewList": "List",
+    "viewCalendar": "Calendar",
+    "view": "View",
+    "legend": "Legend",
+    "legendReliable": "fixed time (reliable)",
+    "catPvp": "PvP",
+    "catAlliance": "Alliance",
+    "catGrowth": "Growth",
+    "noDay": "No events this day."
   }
 }
