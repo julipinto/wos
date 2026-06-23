@@ -67,7 +67,11 @@ const TIER_PCT: Record<string, number> = {
   'Red T3': 140.25,
   'Red T3 1-Star': 144.5,
   'Red T3 2-Star': 148.75,
-  'Red T3 3-Star': 153
+  'Red T3 3-Star': 153,
+  'Red T4': 161.5,
+  'Red T4 1-Star': 170,
+  'Red T4 2-Star': 178.5,
+  'Red T4 3-Star': 187
 };
 
 export const chiefStatPct = (label: string) => TIER_PCT[label] ?? 0;

@@ -252,7 +252,8 @@
       "queues": "build queues",
       "queuesNote": "The 2nd queue needs an active build queue (VIP perk or purchase).",
       "prereqNeed": "{target} needs {list}",
-      "capWarn": "above the Furnace ({furnace})"
+      "capWarn": "above the Furnace ({furnace})",
+      "power": "construction power"
     },
     "setAll": "set all",
     "apply": "apply",

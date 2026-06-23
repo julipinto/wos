@@ -193,5 +193,27 @@ export const GEAR_LADDER: LevelCost[] = [
     label: 'Red T3 3-Star',
     cost: { hardenedAlloy: 86000, polishingSolution: 1070, designPlans: 180, lunarAmber: 25 },
     time: 0
+  },
+  // Red T4 — verified 2026-06-18 across fis-wos + 2 GitHub data repos (cost &
+  // stat% agree); worth one in-game spot-check.
+  {
+    label: 'Red T4',
+    cost: { hardenedAlloy: 120000, polishingSolution: 1500, designPlans: 250, lunarAmber: 40 },
+    time: 0
+  },
+  {
+    label: 'Red T4 1-Star',
+    cost: { hardenedAlloy: 140000, polishingSolution: 1650, designPlans: 275, lunarAmber: 40 },
+    time: 0
+  },
+  {
+    label: 'Red T4 2-Star',
+    cost: { hardenedAlloy: 160000, polishingSolution: 1800, designPlans: 300, lunarAmber: 40 },
+    time: 0
+  },
+  {
+    label: 'Red T4 3-Star',
+    cost: { hardenedAlloy: 180000, polishingSolution: 1950, designPlans: 325, lunarAmber: 40 },
+    time: 0
   }
 ];

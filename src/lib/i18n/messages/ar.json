@@ -252,7 +252,8 @@
       "queues": "طوابير البناء",
       "queuesNote": "الطابور الثاني يتطلب طابور بناء نشطًا (ميزة VIP أو شراء).",
       "prereqNeed": "{target} يتطلب {list}",
-      "capWarn": "أعلى من الفرن ({furnace})"
+      "capWarn": "أعلى من الفرن ({furnace})",
+      "power": "قوة البناء"
     },
     "setAll": "تعيين الكل",
     "apply": "تطبيق",
