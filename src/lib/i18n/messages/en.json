@@ -703,6 +703,15 @@
     },
     "tierSeasonal": "annual ~ confirm",
     "catSeasonal": "Seasonal",
-    "seasonalTitle": "Seasonal (annual)"
+    "seasonalTitle": "Seasonal (annual)",
+    "customTitle": "Custom days",
+    "customLabel": "Label (e.g. R5 rotation)",
+    "customAdd": "Add",
+    "customRepeat": "Repeat",
+    "repNone": "once",
+    "repWeekly": "weekly",
+    "repMonthly": "monthly",
+    "catCustom": "Custom",
+    "more": "more"
   }
 }

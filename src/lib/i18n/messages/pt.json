@@ -703,6 +703,15 @@
     },
     "tierSeasonal": "anual ~ confirme",
     "catSeasonal": "Sazonal",
-    "seasonalTitle": "Sazonais (anuais)"
+    "seasonalTitle": "Sazonais (anuais)",
+    "customTitle": "Dias personalizados",
+    "customLabel": "Nome (ex.: rotação do R5)",
+    "customAdd": "Adicionar",
+    "customRepeat": "Repetir",
+    "repNone": "uma vez",
+    "repWeekly": "semanal",
+    "repMonthly": "mensal",
+    "catCustom": "Personalizado",
+    "more": "mais"
   }
 }

@@ -703,6 +703,15 @@
     },
     "tierSeasonal": "ежегодно ~ уточните",
     "catSeasonal": "Сезонные",
-    "seasonalTitle": "Сезонные (ежегодно)"
+    "seasonalTitle": "Сезонные (ежегодно)",
+    "customTitle": "Свои дни",
+    "customLabel": "Название (напр. ротация R5)",
+    "customAdd": "Добавить",
+    "customRepeat": "Повтор",
+    "repNone": "один раз",
+    "repWeekly": "еженедельно",
+    "repMonthly": "ежемесячно",
+    "catCustom": "Свои",
+    "more": "ещё"
   }
 }
