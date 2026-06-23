@@ -57,6 +57,31 @@ describe('projectEvents', () => {
   });
 });
 
+describe('SvS prep (multi-day themed)', () => {
+  it('expands into 5 themed UTC-days before the SvS Saturday', () => {
+    const svsDateMs = Date.parse('2026-06-27T10:00:00Z'); // Saturday
+    const items = projectEvents({
+      nowMs: Date.parse('2026-06-20T00:00:00Z'),
+      horizonDays: 20,
+      serverAgeDays: 300,
+      svsDateMs
+    });
+    const prep = items.filter((x) => x.def.id === 'svs_prep');
+    expect(prep).toHaveLength(5);
+    expect(prep.map((p) => p.theme)).toEqual([
+      'construction',
+      'research',
+      'beasts',
+      'heroes',
+      'power'
+    ]);
+    // first theme day = Monday before the battle, at 00:00 UTC
+    expect(prep[0].start).toBe(Date.parse('2026-06-22T00:00:00Z'));
+    expect(prep[0].end - prep[0].start).toBe(DAY_MS);
+    expect(new Date(prep[0].start).getUTCDay()).toBe(1); // Monday
+  });
+});
+
 describe('lockedEvents', () => {
   it('lists not-yet-unlocked events with their unlock date', () => {
     const locked = lockedEvents({ nowMs: NOW, serverAgeDays: 10 });

@@ -145,7 +145,11 @@
   <div class="ev">
     <span class="dot" style="--c: {CAT_COLOR[o.def.category]}"></span>
     <div class="ev-body">
-      <span class="ev-name">{eventName(o.def.id)}</span>
+      <span class="ev-name"
+        >{eventName(o.def.id)}{#if o.theme}<span class="theme"
+            >· {(i18n.m.events.themes as Record<string, string>)[o.theme]}</span
+          >{/if}</span
+      >
       <span class="ev-time">
         {utcTime(o.start)}
         {tx.utc} · {localTime(o.start)}
@@ -457,6 +461,13 @@
     font-family: var(--font-display);
     font-weight: 700;
     font-size: 15px;
+  }
+  .theme {
+    margin-inline-start: 6px;
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: 12px;
+    color: #4ade80;
   }
   .ev-time {
     font-family: var(--font-mono);
