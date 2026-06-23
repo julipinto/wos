@@ -158,7 +158,7 @@ export const EVENT_DEFS: EventDef[] = [
     tier: 'cadence',
     svsOffsetDays: 8, // Sunday, alternating with Foundry
     repeatDays: 14,
-    durationHours: 1
+    durationHours: 0.5 // 30 min, fixed UTC slots
   },
   {
     id: 'alliance_mobilization',
