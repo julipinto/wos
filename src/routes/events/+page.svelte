@@ -38,13 +38,48 @@
     writeJson(VIEW_KEY, view);
   }
 
+  // ── Custom user markers (e.g. "R5 rotation") ──
+  type Repeat = 'none' | 'weekly' | 'monthly';
+  interface CustomMarker {
+    id: string;
+    label: string;
+    date: string; // 'YYYY-MM-DD'
+    repeat: Repeat;
+  }
+  const CUSTOM_KEY = 'events-custom-v1';
+  let customMarkers = $state<CustomMarker[]>(readJson<CustomMarker[]>(CUSTOM_KEY) ?? []);
+  const persistCustom = () =>
+    writeJson(
+      CUSTOM_KEY,
+      customMarkers.map((m) => ({ ...m }))
+    );
+  let cLabel = $state('');
+  let cDate = $state('');
+  let cRepeat = $state<Repeat>('none');
+  function addCustom() {
+    if (!cLabel.trim() || !cDate) return;
+    const id = crypto.randomUUID?.() ?? `c${Date.now()}`;
+    customMarkers.push({ id, label: cLabel.trim(), date: cDate, repeat: cRepeat });
+    persistCustom();
+    cLabel = '';
+  }
+  function removeCustom(id: string) {
+    customMarkers = customMarkers.filter((m) => m.id !== id);
+    persistCustom();
+  }
+
   const tx = $derived(i18n.m.events as unknown as Record<string, string>);
   const eventName = (id: string) => (i18n.m.events.names as Record<string, string>)[id] ?? id;
+  const themeName = (k: string) => (i18n.m.events.themes as Record<string, string>)[k] ?? k;
+  const displayName = (o: Occurrence) => o.label ?? eventName(o.def.id);
+  /** Compact label for a calendar cell chip (theme for prep days). */
+  const chipText = (o: Occurrence) => (o.theme ? themeName(o.theme) : displayName(o));
   const CAT_COLOR: Record<string, string> = {
     pvp: '#fb7185',
     alliance: '#60a5fa',
     growth: '#4ade80',
-    seasonal: '#fbbf24'
+    seasonal: '#fbbf24',
+    custom: '#a78bfa'
   };
 
   const svsDateMs = $derived(svsDate ? Date.parse(`${svsDate}T10:00:00Z`) : undefined);
@@ -54,37 +89,15 @@
   const locked = $derived(lockedEvents({ nowMs: now, serverAgeDays: serverAge }));
   const seasonal = seasonalNext(now);
 
-  // Group occurrences under local-day headers (items are already sorted).
-  const groups = $derived.by(() => {
-    const out: { key: string; dayMs: number; items: Occurrence[] }[] = [];
-    for (const it of items) {
-      const d = new Date(it.start);
-      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-      let g = out[out.length - 1];
-      if (!g || g.key !== key) {
-        g = { key, dayMs: it.start, items: [] };
-        out.push(g);
-      }
-      g.items.push(it);
-    }
-    return out;
-  });
-
-  // ── Calendar (month grid) ──
   const dayKeyOf = (ms: number) => {
     const d = new Date(ms);
     return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
   };
-  const byDay = $derived.by(() => {
-    const m = new Map<string, Occurrence[]>();
-    for (const it of items) {
-      const k = dayKeyOf(it.start);
-      const arr = m.get(k);
-      if (arr) arr.push(it);
-      else m.set(k, [it]);
-    }
-    return m;
-  });
+  const startOfToday = (() => {
+    const d = new Date(now);
+    d.setHours(0, 0, 0, 0);
+    return d.getTime();
+  })();
   // 6-week grid starting on the Monday of the current week (DST-safe day stepping).
   const gridDays = $derived.by(() => {
     const d = new Date(now);
@@ -102,11 +115,69 @@
       .slice(0, 7)
       .map((ms) => new Intl.DateTimeFormat(undefined, { weekday: 'short' }).format(new Date(ms)))
   );
-  const startOfToday = (() => {
-    const d = new Date(now);
-    d.setHours(0, 0, 0, 0);
-    return d.getTime();
-  })();
+
+  // Expand custom markers into all-day occurrences across the visible grid range.
+  const customItems = $derived.by(() => {
+    const out: Occurrence[] = [];
+    const from = gridDays[0];
+    const to = gridDays[gridDays.length - 1] + DAY_MS;
+    const step = (d: Date, r: Repeat) =>
+      r === 'monthly' ? d.setMonth(d.getMonth() + 1) : d.setDate(d.getDate() + 7);
+    for (const m of customMarkers) {
+      const [y, mo, dd] = m.date.split('-').map(Number);
+      if (!y) continue;
+      const cur = new Date(y, mo - 1, dd);
+      let guard = 0;
+      while (m.repeat !== 'none' && cur.getTime() < from && guard++ < 600) step(cur, m.repeat);
+      for (guard = 0; guard < 600; guard++) {
+        const start = cur.getTime();
+        if (start > to) break;
+        if (start + DAY_MS >= from)
+          out.push({
+            def: {
+              id: `custom:${m.id}`,
+              category: 'custom',
+              tier: 'deterministic',
+              durationHours: 24
+            } as unknown as Occurrence['def'],
+            start,
+            end: start + DAY_MS,
+            estimate: false,
+            label: m.label
+          });
+        if (m.repeat === 'none') break;
+        step(cur, m.repeat);
+      }
+    }
+    return out;
+  });
+  const allItems = $derived([...items, ...customItems].sort((a, b) => a.start - b.start));
+
+  // Group occurrences under local-day headers.
+  const groups = $derived.by(() => {
+    const out: { key: string; dayMs: number; items: Occurrence[] }[] = [];
+    for (const it of allItems) {
+      const key = dayKeyOf(it.start);
+      let g = out[out.length - 1];
+      if (!g || g.key !== key) {
+        g = { key, dayMs: it.start, items: [] };
+        out.push(g);
+      }
+      g.items.push(it);
+    }
+    return out;
+  });
+  const byDay = $derived.by(() => {
+    const m = new Map<string, Occurrence[]>();
+    for (const it of allItems) {
+      const k = dayKeyOf(it.start);
+      const arr = m.get(k);
+      if (arr) arr.push(it);
+      else m.set(k, [it]);
+    }
+    return m;
+  });
+
   let selectedDay = $state(startOfToday); // midnight-local ms
   const selectedItems = $derived(byDay.get(dayKeyOf(selectedDay)) ?? []);
   const todayKey = dayKeyOf(now);
@@ -162,9 +233,7 @@
     <span class="dot" style="--c: {CAT_COLOR[o.def.category]}"></span>
     <div class="ev-body">
       <span class="ev-name"
-        >{eventName(o.def.id)}{#if o.theme}<span class="theme"
-            >· {(i18n.m.events.themes as Record<string, string>)[o.theme]}</span
-          >{/if}</span
+        >{displayName(o)}{#if o.theme}<span class="theme">· {themeName(o.theme)}</span>{/if}</span
       >
       <span class="ev-time">
         {utcTime(o.start)}
@@ -228,6 +297,7 @@
     <span class="leg"
       ><span class="dot" style="--c: {CAT_COLOR.seasonal}"></span>{tx.catSeasonal}</span
     >
+    <span class="leg"><span class="dot" style="--c: {CAT_COLOR.custom}"></span>{tx.catCustom}</span>
   </div>
 
   {#if view === 'list'}
@@ -257,11 +327,11 @@
           onclick={() => (selectedDay = ms)}
         >
           <span class="cal-num">{new Date(ms).getDate()}</span>
-          <span class="cal-dots">
-            {#each evs.slice(0, 4) as o (o.def.id + o.start)}
-              <span class="cal-dot" style="--c: {CAT_COLOR[o.def.category]}"></span>
+          <span class="cal-chips">
+            {#each evs.slice(0, 2) as o (o.def.id + o.start)}
+              <span class="cal-chip" style="--c: {CAT_COLOR[o.def.category]}">{chipText(o)}</span>
             {/each}
-            {#if evs.length > 4}<span class="cal-more">+{evs.length - 4}</span>{/if}
+            {#if evs.length > 2}<span class="cal-more">+{evs.length - 2}</span>{/if}
           </span>
         </button>
       {/each}
@@ -308,6 +378,65 @@
       {/each}
     </section>
   {/if}
+
+  <section class="custom">
+    <h2 class="section-label">✏️ {tx.customTitle}</h2>
+    <div class="custom-form">
+      <input
+        class="date-in"
+        type="text"
+        placeholder={tx.customLabel}
+        value={cLabel}
+        oninput={(e) => (cLabel = e.currentTarget.value)}
+        aria-label={tx.customLabel}
+      />
+      <div class="custom-row">
+        <input
+          class="date-in"
+          type="date"
+          value={cDate}
+          oninput={(e) => (cDate = e.currentTarget.value)}
+          aria-label={tx.customTitle}
+        />
+        <select
+          class="date-in rep"
+          value={cRepeat}
+          onchange={(e) => (cRepeat = e.currentTarget.value as Repeat)}
+          aria-label={tx.customRepeat}
+        >
+          <option value="none">{tx.repNone}</option>
+          <option value="weekly">{tx.repWeekly}</option>
+          <option value="monthly">{tx.repMonthly}</option>
+        </select>
+        <button
+          class="add-btn"
+          type="button"
+          onclick={addCustom}
+          disabled={!cLabel.trim() || !cDate}>{tx.customAdd}</button
+        >
+      </div>
+    </div>
+    {#each customMarkers as m (m.id)}
+      <div class="ev">
+        <span class="dot" style="--c: {CAT_COLOR.custom}"></span>
+        <div class="ev-body">
+          <span class="ev-name">{m.label}</span>
+          <span class="ev-time"
+            >{dateLabel(Date.parse(`${m.date}T00:00:00`))}
+            {#if m.repeat !== 'none'}<span class="tag custom-tag"
+                >{m.repeat === 'weekly' ? tx.repWeekly : tx.repMonthly}</span
+              >{/if}</span
+          >
+        </div>
+        <button
+          class="clear"
+          type="button"
+          onclick={() => removeCustom(m.id)}
+          aria-label={i18n.m.upgrade.troops.remove}>🗑</button
+        >
+      </div>
+    {/each}
+  </section>
 
   <p class="note">{tx.note}</p>
 </div>
@@ -412,19 +541,19 @@
     padding-bottom: 2px;
   }
   .cal-cell {
-    aspect-ratio: 1;
+    min-height: 62px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 3px;
-    padding: 4px 2px;
+    align-items: stretch;
+    gap: 2px;
+    padding: 4px 3px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 8px;
     cursor: pointer;
     color: var(--text);
     overflow: hidden;
+    text-align: start;
   }
   .cal-cell.past {
     opacity: 0.4;
@@ -440,24 +569,67 @@
     font-family: var(--font-mono);
     font-size: 11px;
     line-height: 1;
+    align-self: flex-end;
   }
-  .cal-dots {
+  .cal-chips {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
     gap: 2px;
+    min-width: 0;
   }
-  .cal-dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--c);
+  .cal-chip {
+    font-family: var(--font-mono);
+    font-size: 8.5px;
+    line-height: 1.3;
+    padding: 1px 3px;
+    border-radius: 3px;
+    border-inline-start: 2px solid var(--c);
+    background: color-mix(in srgb, var(--c) 18%, transparent);
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .cal-more {
     font-family: var(--font-mono);
     font-size: 8px;
     color: var(--text-dim);
+    padding-inline-start: 3px;
+  }
+  .custom {
+    margin-top: 24px;
+  }
+  .custom-form {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .custom-row {
+    display: flex;
+    gap: 8px;
+  }
+  .rep {
+    flex: 0 0 auto;
+    cursor: pointer;
+  }
+  .add-btn {
+    flex-shrink: 0;
+    background: var(--accent-glow);
+    border: 1px solid var(--border-accent);
+    border-radius: var(--r-pill);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 0 16px;
+    cursor: pointer;
+  }
+  .add-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+  .custom-tag {
+    color: #a78bfa;
+    border-color: #a78bfa55;
   }
   .cal-detail {
     margin-top: 18px;

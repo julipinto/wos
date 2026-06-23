@@ -703,6 +703,15 @@
     },
     "tierSeasonal": "سنوي ~ تأكد",
     "catSeasonal": "موسمي",
-    "seasonalTitle": "موسمية (سنوية)"
+    "seasonalTitle": "موسمية (سنوية)",
+    "customTitle": "أيام مخصّصة",
+    "customLabel": "التسمية (مثل تناوب R5)",
+    "customAdd": "إضافة",
+    "customRepeat": "تكرار",
+    "repNone": "مرة",
+    "repWeekly": "أسبوعي",
+    "repMonthly": "شهري",
+    "catCustom": "مخصّص",
+    "more": "أكثر"
   }
 }

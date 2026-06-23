@@ -219,6 +219,8 @@ export interface Occurrence {
   estimate: boolean;
   /** Per-day theme key, for multi-day themed events (SvS prep). */
   theme?: string;
+  /** Literal label for user-defined custom markers (overrides the i18n name). */
+  label?: string;
 }
 
 /** Floor a timestamp to its UTC midnight (epoch is UTC-aligned to DAY_MS). */
