@@ -252,7 +252,8 @@
       "queues": "filas de construção",
       "queuesNote": "A 2ª fila exige a fila de construção ativa (benefício de VIP ou compra).",
       "prereqNeed": "{target} exige {list}",
-      "capWarn": "acima do Furnace ({furnace})"
+      "capWarn": "acima do Furnace ({furnace})",
+      "power": "poder de construção"
     },
     "setAll": "definir todos",
     "apply": "aplicar",

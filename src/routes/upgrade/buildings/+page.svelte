@@ -17,11 +17,13 @@
     sumRange,
     combine,
     formatDuration,
+    formatQty,
     applySpeed,
     makespan,
     queueLoads,
     presentResources
   } from '$lib/tools/upgrade/engine';
+  import { buildingPowerGain } from '$lib/tools/upgrade/building-power';
   import { boosters } from '$lib/tools/upgrade/boosters-store.svelte';
   import { fcTier, furnaceReqs } from '$lib/tools/upgrade/prereqs';
   import { type LevelCost } from '$lib/tools/upgrade/types';
@@ -37,6 +39,10 @@
   );
   const result = $derived(
     combine(rows.map((r) => sumRange(buildingsCalc.tableOf(r.buildingId), r.from, r.to)))
+  );
+  // Construction power gained across all rows (community data; no combat stats).
+  const powerGain = $derived(
+    rows.reduce((s, r) => s + buildingPowerGain(r.buildingId, r.from, r.to), 0)
   );
   const resRows = $derived(presentResources(result.totals));
   // Refinement FC for the selected intensity — shown as a "+ refinement" total
@@ -216,6 +222,10 @@
     fcRefine={refineRfc > 0 ? refineFc : 0}
     emptyHint={i18n.m.upgrade.addHint}
   />
+
+  {#if powerGain > 0}
+    <p class="power-gain">📈 +{formatQty(powerGain)} {i18n.m.upgrade.buildings.power}</p>
+  {/if}
 
   {#if resRows.length > 0}
     {#if zimanPct > 0}
@@ -430,6 +440,13 @@
     font-size: 11px;
     line-height: 1.5;
     color: var(--accent);
+    margin: 12px 0 0;
+  }
+  .power-gain {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: #4ade80;
     margin: 12px 0 0;
   }
 

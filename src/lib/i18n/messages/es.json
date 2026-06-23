@@ -252,7 +252,8 @@
       "queues": "colas de construcción",
       "queuesNote": "La 2ª cola requiere una cola de construcción activa (ventaja VIP o compra).",
       "prereqNeed": "{target} requiere {list}",
-      "capWarn": "por encima del Horno ({furnace})"
+      "capWarn": "por encima del Horno ({furnace})",
+      "power": "poder de construcción"
     },
     "setAll": "definir todos",
     "apply": "aplicar",
