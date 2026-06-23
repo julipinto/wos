@@ -116,13 +116,23 @@ export const EVENT_DEFS: EventDef[] = [
     repeatDays: 7,
     durationHours: 3 * 24
   },
+  // Crazy Joe runs Tue + Thu of the SvS / KoI / Hall-of-Chiefs week → biweekly
+  // (those are weeks 1 & 3 of the 28-day cycle). ~40 min each; alliance-set time.
   {
     id: 'crazy_joe',
     category: 'pvp',
     tier: 'cadence',
-    anchorUtc: '2024-01-02T00:00:00Z', // a Tuesday (also runs Thu in PvP weeks)
-    repeatDays: 7,
-    durationHours: 2
+    svsOffsetDays: -4, // Tuesday of the SvS week
+    repeatDays: 14,
+    durationHours: 1
+  },
+  {
+    id: 'crazy_joe_thu',
+    category: 'pvp',
+    tier: 'cadence',
+    svsOffsetDays: -2, // Thursday of the SvS week
+    repeatDays: 14,
+    durationHours: 1
   },
   // ── Biweekly (alternating / fortnightly) ──
   {
