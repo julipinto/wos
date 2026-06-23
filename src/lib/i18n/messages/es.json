@@ -42,6 +42,10 @@
     "territory": {
       "title": "planificador de territorio",
       "desc": "Planifica la colmena de tu alianza — coloca el HQ y las banderas y ve el territorio cubierto."
+    },
+    "calendar": {
+      "title": "calendario de eventos",
+      "desc": "Eventos recurrentes próximos según la edad del servidor — SvS, campeonatos, batallas de castillo y más."
     }
   },
   "slush": {
@@ -642,5 +646,38 @@
     "download": "Archivo",
     "fromFile": "Desde archivo",
     "selectHint": "Selecciona una pieza para editar."
+  },
+  "events": {
+    "title": "calendario de eventos",
+    "sub": "Próximos eventos recurrentes, proyectados por la edad de tu servidor. Horas en UTC + tu hora local.",
+    "serverAge": "Edad del servidor (días)",
+    "serverAgeHelp": "Bloquea eventos que se abren con la edad del servidor (p. ej. SvS ~día 80).",
+    "svsDate": "Una fecha reciente de SvS (opcional)",
+    "svsDateHelp": "Fija el ciclo de 28 días con exactitud — si no, los cíclicos son estimaciones.",
+    "svsDateClear": "limpiar",
+    "utc": "UTC",
+    "local": "local",
+    "ongoing": "en curso",
+    "in": "en",
+    "tierEstimate": "estimación",
+    "tierCadence": "confirma la hora en el juego",
+    "lockedTitle": "Se abre más tarde",
+    "unlocksIn": "abre en",
+    "days": "d",
+    "empty": "No hay eventos en las próximas semanas para esta edad de servidor.",
+    "note": "Los eventos cíclicos varían ±1–3 semanas entre estados — indica una fecha de SvS para fijarlos. Confirma siempre en el juego.",
+    "names": {
+      "alliance_championship": "Alliance Championship",
+      "hall_of_heroes": "Hall of Heroes",
+      "crazy_joe": "Crazy Joe",
+      "sunfire_castle": "Sunfire Castle",
+      "foundry_battle": "Foundry Battle",
+      "frostfire_mine": "Frostfire Mine",
+      "alliance_mobilization": "Alliance Mobilization",
+      "svs": "SvS — State of Power",
+      "canyon_clash": "Canyon Clash",
+      "king_of_icefield": "King of Icefield",
+      "brothers_in_arms": "Brothers in Arms"
+    }
   }
 }

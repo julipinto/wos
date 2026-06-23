@@ -7,14 +7,20 @@
   import GlyphUpgrade from '$lib/components/icons/GlyphUpgrade.svelte';
   import GlyphTerritory from '$lib/components/icons/GlyphTerritory.svelte';
   import GlyphTz from '$lib/components/icons/GlyphTz.svelte';
+  import GlyphCalendar from '$lib/components/icons/GlyphCalendar.svelte';
   import GlyphSlush from '$lib/components/icons/GlyphSlush.svelte';
   import GlyphGingado from '$lib/components/icons/GlyphGingado.svelte';
   import GlyphSoon from '$lib/components/icons/GlyphSoon.svelte';
 
   // Each everyday tool: its route, glyph component, and i18n key.
-  const tools: { href: string; glyph: Component; key: 'upgrade' | 'territory' | 'tz' }[] = [
+  const tools: {
+    href: string;
+    glyph: Component;
+    key: 'upgrade' | 'territory' | 'tz' | 'calendar';
+  }[] = [
     { href: 'upgrade', glyph: GlyphUpgrade, key: 'upgrade' },
     { href: 'territory', glyph: GlyphTerritory, key: 'territory' },
+    { href: 'events', glyph: GlyphCalendar, key: 'calendar' },
     { href: 'tz', glyph: GlyphTz, key: 'tz' }
   ];
   const events: { href: string; glyph: Component; key: 'slush' | 'gingado' }[] = [
