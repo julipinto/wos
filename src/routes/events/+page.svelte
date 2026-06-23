@@ -56,9 +56,6 @@
       if (n > 0) setAge(estimateStateAgeDays(n, now));
     }, 400);
   }
-  const serverOpenHint = $derived(
-    serverNumber > 0 ? `${tx.opened} ${dateLabel(estimateStateOpenMs(serverNumber))}` : ''
-  );
   function setSvs(v: string) {
     svsDate = v;
     writeJson(SVS_KEY, v);
@@ -230,6 +227,9 @@
     new Intl.DateTimeFormat(undefined, { day: '2-digit', month: 'short', timeZone: 'UTC' }).format(
       new Date(ms)
     );
+  const serverOpenHint = $derived(
+    serverNumber > 0 ? `${tx.opened} ${dateLabel(estimateStateOpenMs(serverNumber))}` : ''
+  );
 
   function relative(o: Occurrence): string {
     if (o.start <= now && now <= o.end) return tx.ongoing;

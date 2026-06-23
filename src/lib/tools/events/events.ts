@@ -11,6 +11,8 @@
  * once the user seeds their SvS); 'cadence' = day is known but the in-game hour
  * is alliance-set/unconfirmed. Data verified 2026-06-18 (see memory wos-events-data).
  */
+import STATE_OPEN_DATES from './state-open-dates.json';
+
 export const DAY_MS = 86_400_000;
 const HOUR_MS = 3_600_000;
 
@@ -47,8 +49,15 @@ const STATE_ANCHORS: { s: number; t: number }[] = [
   { s: 3200, t: Date.parse('2025-07-26') }
 ];
 
-/** Estimated open date (ms) for a state number — piecewise-linear over the anchors. */
+/**
+ * Open date (ms) for a state number. Exact when the scraped table has it
+ * (scripts/scrape-state-dates.mjs → state-open-dates.json, source
+ * whiteoutsurvival.pl); otherwise piecewise-linear over the anchors for states
+ * past the snapshot.
+ */
 export function estimateStateOpenMs(state: number): number {
+  const exact = (STATE_OPEN_DATES as Record<string, string>)[String(Math.round(state))];
+  if (exact) return Date.parse(`${exact}T00:00:00Z`);
   const A = STATE_ANCHORS;
   const lerp = (p: { s: number; t: number }, q: { s: number; t: number }) =>
     p.t + ((state - p.s) * (q.t - p.t)) / (q.s - p.s);
