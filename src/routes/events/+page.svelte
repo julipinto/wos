@@ -24,6 +24,9 @@
   let serverAge = $state(Math.max(0, readJson<number>(AGE_KEY) ?? 100));
   let svsDate = $state(readJson<string>(SVS_KEY) ?? ''); // 'YYYY-MM-DD'
   let view = $state<'list' | 'calendar'>(readJson<'list' | 'calendar'>(VIEW_KEY) ?? 'list');
+  const SEASONAL_KEY = 'events-seasonal-open-v1';
+  let seasonalOpen = $state(readJson<boolean>(SEASONAL_KEY) ?? false);
+  const toggleSeasonal = () => writeJson(SEASONAL_KEY, (seasonalOpen = !seasonalOpen));
   const now = Date.now();
 
   function setAge(n: number) {
@@ -362,21 +365,32 @@
 
   {#if seasonal.length > 0}
     <section class="locked">
-      <h2 class="section-label">🎉 {tx.seasonalTitle}</h2>
-      {#each seasonal as s (s.def.id)}
-        <div class="ev">
-          <span class="dot" style="--c: {CAT_COLOR.seasonal}"></span>
-          <div class="ev-body">
-            <span class="ev-name">{eventName(s.def.id)}</span>
-            <span class="ev-time"
-              >{dateRange(s.start, s.end)} <span class="tag">{tx.tierSeasonal}</span></span
+      <button
+        class="section-label section-toggle"
+        type="button"
+        aria-expanded={seasonalOpen}
+        onclick={toggleSeasonal}
+      >
+        <span class="caret" class:open={seasonalOpen}>▸</span>
+        🎉 {tx.seasonalTitle}
+        <span class="count">{seasonal.length}</span>
+      </button>
+      {#if seasonalOpen}
+        {#each seasonal as s (s.def.id)}
+          <div class="ev">
+            <span class="dot" style="--c: {CAT_COLOR.seasonal}"></span>
+            <div class="ev-body">
+              <span class="ev-name">{eventName(s.def.id)}</span>
+              <span class="ev-time"
+                >{dateRange(s.start, s.end)} <span class="tag">{tx.tierSeasonal}</span></span
+              >
+            </div>
+            <span class="ev-rel"
+              >{relative({ def: s.def, start: s.start, end: s.end, estimate: false })}</span
             >
           </div>
-          <span class="ev-rel"
-            >{relative({ def: s.def, start: s.start, end: s.end, estimate: false })}</span
-          >
-        </div>
-      {/each}
+        {/each}
+      {/if}
     </section>
   {/if}
 
@@ -736,6 +750,25 @@
     flex: 1;
     height: 1px;
     background: linear-gradient(90deg, var(--border), transparent);
+  }
+  .section-toggle {
+    width: 100%;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    padding: 0;
+  }
+  .caret {
+    display: inline-block;
+    transition: transform 0.15s ease;
+    color: var(--text-dim);
+  }
+  .caret.open {
+    transform: rotate(90deg);
+  }
+  .count {
+    color: var(--text-dim);
+    font-size: 10px;
   }
   .empty {
     font-family: var(--font-mono);
