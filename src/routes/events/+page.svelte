@@ -8,7 +8,13 @@
   import PageHeader from '$lib/components/PageHeader.svelte';
   import NumberInput from '$lib/components/NumberInput.svelte';
   import Segmented from '$lib/components/Segmented.svelte';
-  import { projectEvents, lockedEvents, DAY_MS, type Occurrence } from '$lib/tools/events/events';
+  import {
+    projectEvents,
+    lockedEvents,
+    seasonalNext,
+    DAY_MS,
+    type Occurrence
+  } from '$lib/tools/events/events';
   import { readJson, writeJson } from '$lib/utils/storage';
 
   const AGE_KEY = 'events-server-age-v1';
@@ -37,7 +43,8 @@
   const CAT_COLOR: Record<string, string> = {
     pvp: '#fb7185',
     alliance: '#60a5fa',
-    growth: '#4ade80'
+    growth: '#4ade80',
+    seasonal: '#fbbf24'
   };
 
   const svsDateMs = $derived(svsDate ? Date.parse(`${svsDate}T10:00:00Z`) : undefined);
@@ -45,6 +52,7 @@
     projectEvents({ nowMs: now, horizonDays: 35, serverAgeDays: serverAge, svsDateMs })
   );
   const locked = $derived(lockedEvents({ nowMs: now, serverAgeDays: serverAge }));
+  const seasonal = seasonalNext(now);
 
   // Group occurrences under local-day headers (items are already sorted).
   const groups = $derived.by(() => {
@@ -133,7 +141,15 @@
   // Cadence = day known but in-game hour unconfirmed; estimate = cyclic date not
   // yet pinned to a real SvS. Show the stronger caveat.
   const badge = (o: Occurrence) =>
-    o.def.tier === 'cadence' ? tx.tierCadence : o.estimate ? tx.tierEstimate : null;
+    o.def.tier === 'seasonal'
+      ? tx.tierSeasonal
+      : o.def.tier === 'cadence'
+        ? tx.tierCadence
+        : o.estimate
+          ? tx.tierEstimate
+          : null;
+  const dateRange = (start: number, end: number) =>
+    `${dateLabel(start)} – ${dateLabel(end - DAY_MS)}`;
 </script>
 
 <svelte:head>
@@ -209,6 +225,9 @@
       ><span class="dot" style="--c: {CAT_COLOR.alliance}"></span>{tx.catAlliance}</span
     >
     <span class="leg"><span class="dot" style="--c: {CAT_COLOR.growth}"></span>{tx.catGrowth}</span>
+    <span class="leg"
+      ><span class="dot" style="--c: {CAT_COLOR.seasonal}"></span>{tx.catSeasonal}</span
+    >
   </div>
 
   {#if view === 'list'}
@@ -265,6 +284,26 @@
           <span class="dot" style="--c: {CAT_COLOR[l.def.category]}"></span>
           <div class="ev-body"><span class="ev-name">{eventName(l.def.id)}</span></div>
           <span class="ev-rel">{unlockIn(l.unlockMs)} · {dateLabel(l.unlockMs)}</span>
+        </div>
+      {/each}
+    </section>
+  {/if}
+
+  {#if seasonal.length > 0}
+    <section class="locked">
+      <h2 class="section-label">🎉 {tx.seasonalTitle}</h2>
+      {#each seasonal as s (s.def.id)}
+        <div class="ev">
+          <span class="dot" style="--c: {CAT_COLOR.seasonal}"></span>
+          <div class="ev-body">
+            <span class="ev-name">{eventName(s.def.id)}</span>
+            <span class="ev-time"
+              >{dateRange(s.start, s.end)} <span class="tag">{tx.tierSeasonal}</span></span
+            >
+          </div>
+          <span class="ev-rel"
+            >{relative({ def: s.def, start: s.start, end: s.end, estimate: false })}</span
+          >
         </div>
       {/each}
     </section>
