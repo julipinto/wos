@@ -4,6 +4,7 @@
    * optional real SvS date to lock the 28-day cycle). Times shown in UTC + the
    * viewer's local time; cyclic/uncertain events carry an honesty badge.
    */
+  import { onMount } from 'svelte';
   import { i18n } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import NumberInput from '$lib/components/NumberInput.svelte';
@@ -24,24 +25,36 @@
   const SVS_KEY = 'events-svs-date-v1';
   const NUM_KEY = 'events-server-num-v1';
   const VIEW_KEY = 'events-view-v1';
-  let serverNumber = $state(Math.max(0, readJson<number>(NUM_KEY) ?? 0));
+  const initServer = Math.max(0, readJson<number>(NUM_KEY) ?? 0);
+  let serverNumber = $state(initServer);
+  let serverInput = $state(initServer > 0 ? String(initServer) : '');
   let serverAge = $state(Math.max(0, readJson<number>(AGE_KEY) ?? 100));
   let svsDate = $state(readJson<string>(SVS_KEY) ?? ''); // 'YYYY-MM-DD'
   let view = $state<'list' | 'calendar'>(readJson<'list' | 'calendar'>(VIEW_KEY) ?? 'list');
   const SEASONAL_KEY = 'events-seasonal-open-v1';
   let seasonalOpen = $state(readJson<boolean>(SEASONAL_KEY) ?? false);
   const toggleSeasonal = () => writeJson(SEASONAL_KEY, (seasonalOpen = !seasonalOpen));
-  const now = Date.now();
+  // Prerendered HTML bakes in build-time; refresh to the client's real clock on mount.
+  let now = $state(Date.now());
+  onMount(() => {
+    now = Date.now();
+  });
 
   function setAge(n: number) {
     serverAge = Math.max(0, Math.round(n) || 0);
     writeJson(AGE_KEY, serverAge);
   }
-  // Typing a state number auto-estimates the age; the age field stays editable.
-  function setServer(n: number) {
-    serverNumber = Math.max(0, Math.round(n) || 0);
-    writeJson(NUM_KEY, serverNumber);
-    if (serverNumber > 0) setAge(estimateStateAgeDays(serverNumber, now));
+  // Typing a state number auto-estimates the age (debounced); age stays editable.
+  let serverTimer: ReturnType<typeof setTimeout> | undefined;
+  function onServerInput(v: string) {
+    serverInput = v;
+    clearTimeout(serverTimer);
+    serverTimer = setTimeout(() => {
+      const n = Math.max(0, parseInt(v.replace(/\D/g, ''), 10) || 0);
+      serverNumber = n;
+      writeJson(NUM_KEY, n);
+      if (n > 0) setAge(estimateStateAgeDays(n, now));
+    }, 400);
   }
   const serverOpenHint = $derived(
     serverNumber > 0 ? `${tx.opened} ${dateLabel(estimateStateOpenMs(serverNumber))}` : ''
@@ -104,33 +117,31 @@
     projectEvents({ nowMs: now, horizonDays: 35, serverAgeDays: serverAge, svsDateMs })
   );
   const locked = $derived(lockedEvents({ nowMs: now, serverAgeDays: serverAge }));
-  const seasonal = seasonalNext(now);
+  const seasonal = $derived(seasonalNext(now));
 
+  // Everything is keyed by UTC day — events are defined in UTC, so a 00:00 UTC
+  // event lands on its UTC date (no off-by-one for non-UTC viewers). Local time
+  // is still shown per row as a secondary hint.
   const dayKeyOf = (ms: number) => {
     const d = new Date(ms);
-    return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    return `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`;
   };
-  const startOfToday = (() => {
-    const d = new Date(now);
-    d.setHours(0, 0, 0, 0);
-    return d.getTime();
-  })();
-  // 6-week grid starting on the Monday of the current week (DST-safe day stepping).
+  const startOfToday = $derived(Math.floor(now / DAY_MS) * DAY_MS); // UTC midnight
+  // 6-week grid from the Monday of the current UTC week (UTC → DST-safe stepping).
   const gridDays = $derived.by(() => {
-    const d = new Date(now);
-    d.setHours(0, 0, 0, 0);
-    d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); // back to Monday
-    const out: number[] = [];
-    for (let i = 0; i < 42; i++) {
-      out.push(d.getTime());
-      d.setDate(d.getDate() + 1);
-    }
-    return out;
+    const today = Math.floor(now / DAY_MS) * DAY_MS;
+    const dow = (new Date(today).getUTCDay() + 6) % 7; // Mon = 0
+    const start = today - dow * DAY_MS;
+    return Array.from({ length: 42 }, (_, i) => start + i * DAY_MS);
   });
   const weekdayLabels = $derived(
     gridDays
       .slice(0, 7)
-      .map((ms) => new Intl.DateTimeFormat(undefined, { weekday: 'short' }).format(new Date(ms)))
+      .map((ms) =>
+        new Intl.DateTimeFormat(undefined, { weekday: 'short', timeZone: 'UTC' }).format(
+          new Date(ms)
+        )
+      )
   );
 
   // Expand custom markers into all-day occurrences across the visible grid range.
@@ -139,11 +150,11 @@
     const from = gridDays[0];
     const to = gridDays[gridDays.length - 1] + DAY_MS;
     const step = (d: Date, r: Repeat) =>
-      r === 'monthly' ? d.setMonth(d.getMonth() + 1) : d.setDate(d.getDate() + 7);
+      r === 'monthly' ? d.setUTCMonth(d.getUTCMonth() + 1) : d.setUTCDate(d.getUTCDate() + 7);
     for (const m of customMarkers) {
       const [y, mo, dd] = m.date.split('-').map(Number);
       if (!y) continue;
-      const cur = new Date(y, mo - 1, dd);
+      const cur = new Date(Date.UTC(y, mo - 1, dd));
       let guard = 0;
       while (m.repeat !== 'none' && cur.getTime() < from && guard++ < 600) step(cur, m.repeat);
       for (guard = 0; guard < 600; guard++) {
@@ -195,9 +206,10 @@
     return m;
   });
 
-  let selectedDay = $state(startOfToday); // midnight-local ms
+  let selectedDay = $state(Math.floor(Date.now() / DAY_MS) * DAY_MS); // UTC midnight
+  onMount(() => (selectedDay = startOfToday));
   const selectedItems = $derived(byDay.get(dayKeyOf(selectedDay)) ?? []);
-  const todayKey = dayKeyOf(now);
+  const todayKey = $derived(dayKeyOf(now));
 
   const pad = (n: number) => String(n).padStart(2, '0');
   const utcTime = (ms: number) => {
@@ -209,11 +221,16 @@
     return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
   };
   const dayLabel = (ms: number) =>
-    new Intl.DateTimeFormat(undefined, { weekday: 'short', day: '2-digit', month: 'short' }).format(
+    new Intl.DateTimeFormat(undefined, {
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short',
+      timeZone: 'UTC'
+    }).format(new Date(ms));
+  const dateLabel = (ms: number) =>
+    new Intl.DateTimeFormat(undefined, { day: '2-digit', month: 'short', timeZone: 'UTC' }).format(
       new Date(ms)
     );
-  const dateLabel = (ms: number) =>
-    new Intl.DateTimeFormat(undefined, { day: '2-digit', month: 'short' }).format(new Date(ms));
 
   function relative(o: Occurrence): string {
     if (o.start <= now && now <= o.end) return tx.ongoing;
@@ -269,7 +286,14 @@
   <div class="controls">
     <label class="field">
       <span class="field-label">{tx.serverNumber}</span>
-      <NumberInput value={serverNumber} onChange={setServer} ariaLabel={tx.serverNumber} />
+      <input
+        class="date-in"
+        type="text"
+        inputmode="numeric"
+        value={serverInput}
+        oninput={(e) => onServerInput(e.currentTarget.value)}
+        aria-label={tx.serverNumber}
+      />
       <span class="hint">{serverOpenHint || tx.serverNumberHelp}</span>
     </label>
     <label class="field">
@@ -348,7 +372,7 @@
           class:past={ms < startOfToday}
           onclick={() => (selectedDay = ms)}
         >
-          <span class="cal-num">{new Date(ms).getDate()}</span>
+          <span class="cal-num">{new Date(ms).getUTCDate()}</span>
           <span class="cal-chips">
             {#each evs.slice(0, 2) as o (o.def.id + o.start)}
               <span class="cal-chip" style="--c: {CAT_COLOR[o.def.category]}">{chipText(o)}</span>
@@ -457,7 +481,7 @@
         <div class="ev-body">
           <span class="ev-name">{m.label}</span>
           <span class="ev-time"
-            >{dateLabel(Date.parse(`${m.date}T00:00:00`))}
+            >{dateLabel(Date.parse(`${m.date}T00:00:00Z`))}
             {#if m.repeat !== 'none'}<span class="tag custom-tag"
                 >{m.repeat === 'weekly' ? tx.repWeekly : tx.repMonthly}</span
               >{/if}</span
