@@ -127,11 +127,10 @@
     return `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`;
   };
   const startOfToday = $derived(Math.floor(now / DAY_MS) * DAY_MS); // UTC midnight
-  // 6-week grid from the Monday of the current UTC week (UTC → DST-safe stepping).
+  // 6-week grid from the Sunday of the current UTC week (UTC → DST-safe stepping).
   const gridDays = $derived.by(() => {
     const today = Math.floor(now / DAY_MS) * DAY_MS;
-    const dow = (new Date(today).getUTCDay() + 6) % 7; // Mon = 0
-    const start = today - dow * DAY_MS;
+    const start = today - new Date(today).getUTCDay() * DAY_MS; // back to Sunday (UTC day 0)
     return Array.from({ length: 42 }, (_, i) => start + i * DAY_MS);
   });
   const weekdayLabels = $derived(
