@@ -10,6 +10,8 @@
  * Jasser/Seo-yoon are marksman-class but support-role → typed 'support'.
  * Re-verify in-client before treating as final; new generations land ~80 days.
  */
+import type { EmojiName } from '$lib/components/EmojiIcon.svelte';
+
 export type HeroRarity = 'mythic' | 'epic' | 'rare';
 export type TroopType = 'infantry' | 'lancer' | 'marksman' | 'support';
 
@@ -22,7 +24,7 @@ export const TROOP_EMOJI: Record<TroopType, string> = {
 };
 
 /** Same troops as Iconify "noto" names (consistent SVG; for markup, not text labels). */
-export const TROOP_NOTO: Record<TroopType, string> = {
+export const TROOP_NOTO: Record<TroopType, EmojiName> = {
   infantry: 'shield',
   lancer: 'trident-emblem',
   marksman: 'bow-and-arrow',
