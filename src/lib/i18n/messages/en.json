@@ -712,6 +712,9 @@
     "repWeekly": "weekly",
     "repMonthly": "monthly",
     "catCustom": "Custom",
-    "more": "more"
+    "more": "more",
+    "serverNumber": "Server number",
+    "serverNumberHelp": "Auto-estimates age from the state. Leave blank to set days manually.",
+    "opened": "opened"
   }
 }

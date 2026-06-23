@@ -13,6 +13,8 @@
     projectEvents,
     lockedEvents,
     seasonalNext,
+    estimateStateAgeDays,
+    estimateStateOpenMs,
     DAY_MS,
     type Occurrence
   } from '$lib/tools/events/events';
@@ -20,7 +22,9 @@
 
   const AGE_KEY = 'events-server-age-v1';
   const SVS_KEY = 'events-svs-date-v1';
+  const NUM_KEY = 'events-server-num-v1';
   const VIEW_KEY = 'events-view-v1';
+  let serverNumber = $state(Math.max(0, readJson<number>(NUM_KEY) ?? 0));
   let serverAge = $state(Math.max(0, readJson<number>(AGE_KEY) ?? 100));
   let svsDate = $state(readJson<string>(SVS_KEY) ?? ''); // 'YYYY-MM-DD'
   let view = $state<'list' | 'calendar'>(readJson<'list' | 'calendar'>(VIEW_KEY) ?? 'list');
@@ -33,6 +37,15 @@
     serverAge = Math.max(0, Math.round(n) || 0);
     writeJson(AGE_KEY, serverAge);
   }
+  // Typing a state number auto-estimates the age; the age field stays editable.
+  function setServer(n: number) {
+    serverNumber = Math.max(0, Math.round(n) || 0);
+    writeJson(NUM_KEY, serverNumber);
+    if (serverNumber > 0) setAge(estimateStateAgeDays(serverNumber, now));
+  }
+  const serverOpenHint = $derived(
+    serverNumber > 0 ? `${tx.opened} ${dateLabel(estimateStateOpenMs(serverNumber))}` : ''
+  );
   function setSvs(v: string) {
     svsDate = v;
     writeJson(SVS_KEY, v);
@@ -254,6 +267,11 @@
   <PageHeader title={tx.title} sub={tx.sub} backHref="/" />
 
   <div class="controls">
+    <label class="field">
+      <span class="field-label">{tx.serverNumber}</span>
+      <NumberInput value={serverNumber} onChange={setServer} ariaLabel={tx.serverNumber} />
+      <span class="hint">{serverOpenHint || tx.serverNumberHelp}</span>
+    </label>
     <label class="field">
       <span class="field-label">{tx.serverAge}</span>
       <NumberInput value={serverAge} onChange={setAge} ariaLabel={tx.serverAge} />
