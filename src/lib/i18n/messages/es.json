@@ -678,7 +678,12 @@
       "canyon_clash": "Canyon Clash",
       "king_of_icefield": "King of Icefield",
       "brothers_in_arms": "Brothers in Arms",
-      "svs_prep": "Prep. de SvS"
+      "svs_prep": "Prep. de SvS",
+      "valentine": "San Valentín",
+      "anniversary": "Aniversario",
+      "halloween": "Halloween",
+      "thanksgiving": "Acción de Gracias",
+      "christmas": "Navidad"
     },
     "viewList": "Lista",
     "viewCalendar": "Calendario",
@@ -695,6 +700,9 @@
       "beasts": "Caza de bestias",
       "heroes": "Héroes",
       "power": "Aumento de poder"
-    }
+    },
+    "tierSeasonal": "anual ~ confirma",
+    "catSeasonal": "Estacional",
+    "seasonalTitle": "Estacionales (anuales)"
   }
 }

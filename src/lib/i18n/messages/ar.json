@@ -678,7 +678,12 @@
       "canyon_clash": "Canyon Clash",
       "king_of_icefield": "King of Icefield",
       "brothers_in_arms": "Brothers in Arms",
-      "svs_prep": "تحضير SvS"
+      "svs_prep": "تحضير SvS",
+      "valentine": "عيد الحب",
+      "anniversary": "الذكرى السنوية",
+      "halloween": "الهالوين",
+      "thanksgiving": "عيد الشكر",
+      "christmas": "عيد الميلاد"
     },
     "viewList": "قائمة",
     "viewCalendar": "تقويم",
@@ -695,6 +700,9 @@
       "beasts": "صيد الوحوش",
       "heroes": "تطوير الأبطال",
       "power": "زيادة القوة"
-    }
+    },
+    "tierSeasonal": "سنوي ~ تأكد",
+    "catSeasonal": "موسمي",
+    "seasonalTitle": "موسمية (سنوية)"
   }
 }

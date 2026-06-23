@@ -17,8 +17,8 @@ const HOUR_MS = 3_600_000;
 /** Global SvS battle anchor (Sat 10:00 UTC) used when the user hasn't seeded one. */
 export const GLOBAL_SVS_ANCHOR = Date.parse('2024-10-12T10:00:00Z');
 
-export type EventTier = 'deterministic' | 'estimate' | 'cadence';
-export type EventCategory = 'pvp' | 'alliance' | 'growth';
+export type EventTier = 'deterministic' | 'estimate' | 'cadence' | 'seasonal';
+export type EventCategory = 'pvp' | 'alliance' | 'growth' | 'seasonal';
 
 export interface EventDef {
   id: string;
@@ -28,8 +28,10 @@ export interface EventDef {
   anchorUtc?: string;
   /** Cyclic events: offset in days from the SvS battle anchor. */
   svsOffsetDays?: number;
+  /** Annual seasonal event on a fixed UTC month/day (recurs every year). */
+  annual?: { month: number; day: number; durationDays: number };
   /** Repeat period in days (1 daily, 7 weekly, 14 biweekly, 28 monthly-cycle). */
-  repeatDays: number;
+  repeatDays?: number;
   durationHours: number;
   /** Hide until the server reaches this age in days (unlock gate). */
   availableAfterAgeDays?: number;
@@ -146,8 +148,68 @@ export const EVENT_DEFS: EventDef[] = [
     svsOffsetDays: 20, // Friday 00:00 → Sunday 00:00
     repeatDays: 28,
     durationHours: 48
+  },
+  // ── Seasonal (annual real-world holidays; stable windows, names rotate yearly).
+  // Lunar New Year is omitted (its date drifts with the lunar calendar); Summer
+  // is announced-only. Windows verified across 2024–2026 occurrences.
+  {
+    id: 'valentine',
+    category: 'seasonal',
+    tier: 'seasonal',
+    annual: { month: 2, day: 11, durationDays: 7 },
+    durationHours: 0
+  },
+  {
+    id: 'anniversary',
+    category: 'seasonal',
+    tier: 'seasonal',
+    annual: { month: 3, day: 5, durationDays: 9 },
+    durationHours: 0
+  },
+  {
+    id: 'halloween',
+    category: 'seasonal',
+    tier: 'seasonal',
+    annual: { month: 10, day: 26, durationDays: 8 },
+    durationHours: 0
+  },
+  {
+    id: 'thanksgiving',
+    category: 'seasonal',
+    tier: 'seasonal',
+    annual: { month: 11, day: 21, durationDays: 9 },
+    durationHours: 0
+  },
+  {
+    id: 'christmas',
+    category: 'seasonal',
+    tier: 'seasonal',
+    annual: { month: 12, day: 23, durationDays: 7 },
+    durationHours: 0
   }
 ];
+
+function annualOccurrence(def: EventDef, year: number): { start: number; end: number } {
+  const a = def.annual!;
+  const start = Date.UTC(year, a.month - 1, a.day);
+  return { start, end: start + a.durationDays * DAY_MS };
+}
+
+/** Next occurrence of each annual seasonal event (this year, or next if it's passed). */
+export function seasonalNext(
+  nowMs: number,
+  defs: EventDef[] = EVENT_DEFS
+): { def: EventDef; start: number; end: number }[] {
+  const y = new Date(nowMs).getUTCFullYear();
+  return defs
+    .filter((d) => d.annual)
+    .map((d) => {
+      let occ = annualOccurrence(d, y);
+      if (occ.end < nowMs) occ = annualOccurrence(d, y + 1);
+      return { def: d, ...occ };
+    })
+    .sort((a, b) => a.start - b.start);
+}
 
 export interface Occurrence {
   def: EventDef;
@@ -176,7 +238,7 @@ export function eventOccurrences(
   toMs: number
 ): { start: number; end: number }[] {
   const anchor = resolveAnchor(def, svsAnchorMs);
-  const period = def.repeatDays * DAY_MS;
+  const period = (def.repeatDays ?? 0) * DAY_MS;
   const dur = def.durationHours * HOUR_MS;
   if (!period) return [];
   let k = Math.ceil((fromMs - dur - anchor) / period);
@@ -210,6 +272,14 @@ export function projectEvents(opts: ProjectOpts, defs: EventDef[] = EVENT_DEFS):
         ? serverOpen + def.availableAfterAgeDays * DAY_MS
         : -Infinity;
     const estimate = def.svsOffsetDays != null && opts.svsDateMs == null;
+    if (def.annual) {
+      const y = new Date(opts.nowMs).getUTCFullYear();
+      for (const yr of [y, y + 1]) {
+        const occ = annualOccurrence(def, yr);
+        if (occ.end >= opts.nowMs && occ.start <= to) items.push({ def, ...occ, estimate: false });
+      }
+      continue;
+    }
     if (def.dailyThemes?.length) {
       // Expand each cycle into one UTC-day occurrence per theme.
       const span = { ...def, durationHours: def.dailyThemes.length * 24 };

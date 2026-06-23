@@ -678,7 +678,12 @@
       "canyon_clash": "Canyon Clash",
       "king_of_icefield": "King of Icefield",
       "brothers_in_arms": "Brothers in Arms",
-      "svs_prep": "Подготовка к SvS"
+      "svs_prep": "Подготовка к SvS",
+      "valentine": "День святого Валентина",
+      "anniversary": "Годовщина",
+      "halloween": "Хэллоуин",
+      "thanksgiving": "День благодарения",
+      "christmas": "Рождество"
     },
     "viewList": "Список",
     "viewCalendar": "Календарь",
@@ -695,6 +700,9 @@
       "beasts": "Охота на зверей",
       "heroes": "Развитие героев",
       "power": "Усиление"
-    }
+    },
+    "tierSeasonal": "ежегодно ~ уточните",
+    "catSeasonal": "Сезонные",
+    "seasonalTitle": "Сезонные (ежегодно)"
   }
 }
