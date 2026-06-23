@@ -8,6 +8,7 @@
   import PageHeader from '$lib/components/PageHeader.svelte';
   import NumberInput from '$lib/components/NumberInput.svelte';
   import Segmented from '$lib/components/Segmented.svelte';
+  import Select from '$lib/components/Select.svelte';
   import {
     projectEvents,
     lockedEvents,
@@ -398,16 +399,18 @@
           oninput={(e) => (cDate = e.currentTarget.value)}
           aria-label={tx.customTitle}
         />
-        <select
-          class="date-in rep"
-          value={cRepeat}
-          onchange={(e) => (cRepeat = e.currentTarget.value as Repeat)}
-          aria-label={tx.customRepeat}
-        >
-          <option value="none">{tx.repNone}</option>
-          <option value="weekly">{tx.repWeekly}</option>
-          <option value="monthly">{tx.repMonthly}</option>
-        </select>
+        <div class="rep">
+          <Select
+            value={cRepeat}
+            ariaLabel={tx.customRepeat}
+            options={[
+              { value: 'none', label: tx.repNone },
+              { value: 'weekly', label: tx.repWeekly },
+              { value: 'monthly', label: tx.repMonthly }
+            ]}
+            onChange={(v) => (cRepeat = v as Repeat)}
+          />
+        </div>
         <button
           class="add-btn"
           type="button"
@@ -609,8 +612,8 @@
     gap: 8px;
   }
   .rep {
-    flex: 0 0 auto;
-    cursor: pointer;
+    flex: 0 0 7.5rem;
+    min-width: 0;
   }
   .add-btn {
     flex-shrink: 0;
