@@ -63,18 +63,53 @@
     const py = y - CENTER;
     return { x: sx * (px * c - py * c) + CENTER, y: sy * (px * c + py * c) + CENTER };
   }
-  // Crop the iso viewBox to the diamond's bounds (drops the empty bands).
-  const ISO_VIEWBOX = (() => {
+  // Crop the iso viewBox to the diamond's bounds (drops the empty bands). Keep the
+  // numeric box too, so the HTML label overlay can map grid points → % positions.
+  const ISO_VB = (() => {
     const pts = [isoPoint(0, 0), isoPoint(N, 0), isoPoint(0, N), isoPoint(N, N)];
     const xs = pts.map((p) => p.x);
     const ys = pts.map((p) => p.y);
     const minX = Math.min(...xs);
     const minY = Math.min(...ys);
-    const w = Math.max(...xs) - minX;
-    const h = Math.max(...ys) - minY;
-    return `${minX - 1} ${minY - 1} ${w + 2} ${h + 2}`;
+    return {
+      x: minX - 1,
+      y: minY - 1,
+      w: Math.max(...xs) - minX + 2,
+      h: Math.max(...ys) - minY + 2
+    };
   })();
+  const ISO_VIEWBOX = `${ISO_VB.x} ${ISO_VB.y} ${ISO_VB.w} ${ISO_VB.h}`;
   const viewBox = $derived(view === 'iso' ? ISO_VIEWBOX : `0 0 ${N} ${N}`);
+
+  // Map an object's centre to a percent position inside the board box, view-aware
+  // (the overlay div fills the same box the SVG renders into). Labels are HTML so
+  // they get a constant, readable font size + a chip — never shrinking with zoom.
+  function labelPos(o: PlacedObject): { left: number; top: number } {
+    const def = OBJECT_DEFS[o.type];
+    const cx = o.x + def.w / 2;
+    const cy = o.y + def.h / 2;
+    if (view === 'iso') {
+      const p = isoPoint(cx, cy);
+      return {
+        left: ((p.x - ISO_VB.x) / ISO_VB.w) * 100,
+        top: ((p.y - ISO_VB.y) / ISO_VB.h) * 100
+      };
+    }
+    return { left: (cx / N) * 100, top: (cy / N) * 100 };
+  }
+  // Font scales gently with zoom but is clamped — readable on the overview,
+  // not cartoonish up close (mirrors wostools' clamp(min, k·cell, max)).
+  const labelFont = $derived(Math.max(10, Math.min(22, 7 * zoom + 5)));
+  // Which objects get a label, precomputed (name/furnace + optional sub-label).
+  const labelled = $derived.by(() => {
+    if (!showLabels) return [];
+    return objects
+      .map((o) => {
+        const primary = o.type === 'bearTrap' ? o.name : labelField === 'name' ? o.name : o.furnace;
+        return { o, primary, sub: o.label };
+      })
+      .filter((l) => l.primary || l.sub);
+  });
 
   // Heatmap: colour tagged objects by power, cool → hot, normalised to the max.
   const maxPower = $derived(Math.max(0, ...objects.map((o) => o.power ?? 0)));
@@ -608,48 +643,6 @@
             />
           {/if}
         </g>
-        <!-- Labels live OUTSIDE the transformed group so they stay upright even
-           in iso (positioned via the iso projection). -->
-        {#if showLabels}
-          {#each objects as o (o.id)}
-            <!-- bears have no furnace, so always show their name; cities follow the toggle -->
-            {@const primary =
-              o.type === 'bearTrap' ? o.name : labelField === 'name' ? o.name : o.furnace}
-            {#if primary || o.label}
-              {@const def = OBJECT_DEFS[o.type]}
-              {@const cx = o.x + def.w / 2}
-              {@const cy = o.y + def.h / 2}
-              {@const both = !!primary && !!o.label}
-              {@const bear = o.type === 'bearTrap'}
-              <!-- Offsets are in GRID units, then projected — so they're the right
-                 scale in iso too. Bears push name/label below their centred number. -->
-              {@const nameDy = bear ? 0.8 : both ? -0.28 : 0}
-              {@const labelDy = bear ? (primary ? 1.2 : 0.8) : both ? 0.28 : 0}
-              {@const nameP =
-                view === 'iso' ? isoPoint(cx, cy + nameDy) : { x: cx, y: cy + nameDy }}
-              {@const labelP =
-                view === 'iso' ? isoPoint(cx, cy + labelDy) : { x: cx, y: cy + labelDy }}
-              {#if primary}
-                <text
-                  class="tile-label"
-                  x={nameP.x}
-                  y={nameP.y}
-                  text-anchor="middle"
-                  dominant-baseline="central">{primary}</text
-                >
-              {/if}
-              {#if o.label}
-                <text
-                  class="tile-label tile-sub"
-                  x={labelP.x}
-                  y={labelP.y}
-                  text-anchor="middle"
-                  dominant-baseline="central">{o.label}</text
-                >
-              {/if}
-            {/if}
-          {/each}
-        {/if}
         <!-- Bear-trap numbers (1..3) — always shown, upright, so cities can be
            matched to the trap they join. -->
         {#each bearTraps as bt, i (bt.id)}
@@ -667,6 +660,20 @@
           >
         {/each}
       </svg>
+      <!-- Labels are HTML over the board (not SVG text) so they stay a constant,
+         readable size with a contrast chip — never shrinking into the grid. -->
+      {#if showLabels}
+        <div class="label-layer" style="font-size: {labelFont}px">
+          {#each labelled as l (l.o.id)}
+            {@const pos = labelPos(l.o)}
+            {@const bear = l.o.type === 'bearTrap'}
+            <div class="tile-label" class:bear style="left: {pos.left}%; top: {pos.top}%">
+              {#if l.primary}<span class="tl-name">{l.primary}</span>{/if}
+              {#if l.sub}<span class="tl-sub">{l.sub}</span>{/if}
+            </div>
+          {/each}
+        </div>
+      {/if}
     </div>
   </div>
 </div>
@@ -735,6 +742,7 @@
     }
   }
   .board {
+    position: relative;
     overflow: hidden;
     background: var(--bg);
     min-width: 100%;
@@ -792,20 +800,41 @@
       stroke-width: 0.1;
     }
   }
-  .tile-label {
-    fill: #fff;
-    font-family: var(--font-mono);
-    font-size: 0.5px;
-    font-weight: 700;
-    paint-order: stroke;
-    stroke: rgba(0, 0, 0, 0.55);
-    stroke-width: 0.06px;
+  /* HTML label overlay — fills the same box the SVG renders into. */
+  .label-layer {
+    position: absolute;
+    inset: 0;
     pointer-events: none;
+    z-index: 4;
   }
-  /* custom annotation, kept alongside the name */
-  .tile-sub {
-    fill: #fbbf24;
-    font-size: 0.42px;
+  .tile-label {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    line-height: 1.1;
+    white-space: nowrap;
+    font-family: var(--font-mono);
+    font-weight: 700;
+  }
+  /* bears centre a number, so push their text below it */
+  .tile-label.bear {
+    transform: translate(-50%, 6%);
+  }
+  .tl-name,
+  .tl-sub {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: rgba(15, 25, 40, 0.82);
+  }
+  .tl-name {
+    color: #fff;
+  }
+  .tl-sub {
+    color: #fbbf24;
+    font-size: 0.85em;
   }
   .bear-num {
     fill: #fff;
