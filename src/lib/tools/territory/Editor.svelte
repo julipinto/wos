@@ -12,7 +12,7 @@
     hasBears: boolean;
     bearCount: number;
     furnaceOptions: { value: string; label: string }[];
-    setTag: (key: 'name' | 'furnace' | 'power', value: string | number) => void;
+    setTag: (key: 'name' | 'label' | 'furnace' | 'power', value: string | number) => void;
     toggleBear: (n: number) => void;
     onRemove: () => void;
     onClose: () => void;
@@ -43,6 +43,14 @@
         type="text"
         value={selected.name ?? ''}
         oninput={(e) => setTag('name', e.currentTarget.value)}
+      />
+    </label>
+    <label class="ed-field">
+      <span class="field-label">{i18n.m.territory.tag.label}</span>
+      <input
+        type="text"
+        value={selected.label ?? ''}
+        oninput={(e) => setTag('label', e.currentTarget.value)}
       />
     </label>
     {#if isCity}

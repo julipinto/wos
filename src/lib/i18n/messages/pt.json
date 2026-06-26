@@ -597,7 +597,8 @@
       "name": "nome",
       "furnace": "fornalha",
       "power": "poder",
-      "bear": "armadilha"
+      "bear": "armadilha",
+      "label": "label"
     },
     "maps": {
       "title": "mapas salvos",

@@ -97,6 +97,8 @@ export interface PlacedObject {
    *  which bear traps (1..3) the city joins — a city can take part in several
    *  (on different days). */
   name?: string;
+  /** Free annotation, kept alongside the name (any object, incl. HQ/banners). */
+  label?: string;
   furnace?: string;
   power?: number;
   bear?: number[];
@@ -152,12 +154,13 @@ function encodeLayout(mode: string, objects: PlacedObject[]): string {
   );
   const o = objects.map((ob) => {
     const base: (string | number | number[])[] = [TYPE_ORDER.indexOf(ob.type), ob.x, ob.y];
-    if (ob.name || ob.furnace || (ob.power ?? 0) > 0 || (ob.bear?.length ?? 0) > 0)
+    if (ob.name || ob.furnace || (ob.power ?? 0) > 0 || (ob.bear?.length ?? 0) > 0 || ob.label)
       base.push(
         ob.name ?? '',
         ob.furnace ? FURNACE_LEVELS.indexOf(ob.furnace) + 1 : 0,
         ob.power ?? 0,
-        ob.bear?.length ? ob.bear : 0
+        ob.bear?.length ? ob.bear : 0,
+        ob.label ?? ''
       );
     return base;
   });
@@ -201,7 +204,7 @@ export async function importLayout(code: string): Promise<ImportedLayout | null>
     const objects: PlacedObject[] = [];
     for (const row of rows) {
       if (!Array.isArray(row)) continue;
-      const [t, x, y, name, fur, power, bear] = row;
+      const [t, x, y, name, fur, power, bear, label] = row;
       // type + furnace may be strings (old) or indices (compact).
       const type = typeof t === 'number' ? TYPE_ORDER[t] : t;
       if (typeof type !== 'string' || !allowed.has(type)) continue;
@@ -213,6 +216,7 @@ export async function importLayout(code: string): Promise<ImportedLayout | null>
         y
       };
       if (name) ob.name = String(name);
+      if (label) ob.label = String(label);
       const furnace = typeof fur === 'number' ? FURNACE_LEVELS[fur - 1] : fur;
       if (furnace) ob.furnace = String(furnace);
       if (typeof power === 'number' && power > 0) ob.power = power;

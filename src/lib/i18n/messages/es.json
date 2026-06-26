@@ -597,7 +597,8 @@
       "name": "nombre",
       "furnace": "horno",
       "power": "poder",
-      "bear": "trampa de oso"
+      "bear": "trampa de oso",
+      "label": "etiqueta"
     },
     "maps": {
       "title": "mapas guardados",
