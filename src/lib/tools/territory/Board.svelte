@@ -436,18 +436,20 @@
             {@const def = OBJECT_DEFS[o.type]}
             {@const cx = o.x + def.w / 2}
             {@const cy = o.y + def.h / 2}
-            {@const p = view === 'iso' ? isoPoint(cx, cy) : { x: cx, y: cy }}
             {@const both = !!primary && !!o.label}
-            <!-- bear traps already show a big centred number, so push their
-                 name/label below it instead of overlapping. -->
             {@const bear = o.type === 'bearTrap'}
-            {@const yName = bear ? p.y + 0.85 : both ? p.y - 0.3 : p.y}
-            {@const yLabel = bear ? p.y + (primary ? 1.25 : 0.85) : both ? p.y + 0.32 : p.y}
+            <!-- Offsets are in GRID units, then projected — so they're the right
+                 scale in iso too. Bears push name/label below their centred number. -->
+            {@const nameDy = bear ? 0.8 : both ? -0.28 : 0}
+            {@const labelDy = bear ? (primary ? 1.2 : 0.8) : both ? 0.28 : 0}
+            {@const nameP = view === 'iso' ? isoPoint(cx, cy + nameDy) : { x: cx, y: cy + nameDy }}
+            {@const labelP =
+              view === 'iso' ? isoPoint(cx, cy + labelDy) : { x: cx, y: cy + labelDy }}
             {#if primary}
               <text
                 class="tile-label"
-                x={p.x}
-                y={yName}
+                x={nameP.x}
+                y={nameP.y}
                 text-anchor="middle"
                 dominant-baseline="central">{primary}</text
               >
@@ -455,8 +457,8 @@
             {#if o.label}
               <text
                 class="tile-label tile-sub"
-                x={p.x}
-                y={yLabel}
+                x={labelP.x}
+                y={labelP.y}
                 text-anchor="middle"
                 dominant-baseline="central">{o.label}</text
               >
