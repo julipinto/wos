@@ -1,5 +1,6 @@
 <script lang="ts">
   import { i18n } from '$lib/i18n/index.svelte';
+  import IconButton from '$lib/components/IconButton.svelte';
 
   // The zoom bar: −/+ stepping, a live % readout, and Fit-to-content. Display and
   // filter toggles now live in the left Rail; this stays minimal in the top bar.
@@ -16,28 +17,20 @@
 </script>
 
 <div class="zoom">
-  <button
-    class="ctl"
-    type="button"
+  <IconButton
+    label="zoom out"
+    size="sm"
     onclick={() => (zoom = Math.max(MINZ, +(zoom - STEP).toFixed(2)))}
-    disabled={zoom <= MINZ}
-    aria-label="zoom out">−</button
+    disabled={zoom <= MINZ}>−</IconButton
   >
   <span class="zoom-val">{Math.round(zoom * 100)}%</span>
-  <button
-    class="ctl"
-    type="button"
+  <IconButton
+    label="zoom in"
+    size="sm"
     onclick={() => (zoom = Math.min(MAXZ, +(zoom + STEP).toFixed(2)))}
-    disabled={zoom >= MAXZ}
-    aria-label="zoom in">+</button
+    disabled={zoom >= MAXZ}>+</IconButton
   >
-  <button
-    class="ctl fit"
-    type="button"
-    onclick={onFit}
-    title={i18n.m.territory.fit}
-    aria-label={i18n.m.territory.fit}>⊡</button
-  >
+  <IconButton label={i18n.m.territory.fit} size="sm" onclick={onFit}>⊡</IconButton>
 </div>
 
 <style>
@@ -45,24 +38,6 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-  }
-  .ctl {
-    width: 30px;
-    height: 30px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text-mid);
-    font-size: 16px;
-    cursor: pointer;
-  }
-  .ctl:hover:not(:disabled) {
-    color: var(--accent);
-    border-color: var(--border-accent);
-  }
-  .ctl:disabled {
-    opacity: 0.4;
-    cursor: default;
   }
   .zoom-val {
     font-family: var(--font-mono);
