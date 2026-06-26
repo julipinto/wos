@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { i18n, fmt } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import Icon from '$lib/components/Icon.svelte';
@@ -129,6 +129,7 @@
     bearFocus = 0;
     tool = modeById(m).types[0];
     clearHist();
+    autoFit();
   }
 
   let tool = $state<TerritoryType>(modeById(initialMode).types[0]);
@@ -201,6 +202,7 @@
     selectedIds = [];
     save();
     clearHist();
+    autoFit();
   }
 
   const furnaceOptions = [
@@ -281,6 +283,10 @@
 
   // ── Search / go-to ──────────────────────────────────────────────────────
   let board = $state<ReturnType<typeof Board>>();
+  /** Frame the freshly-loaded hive once the new objects have rendered. */
+  function autoFit() {
+    tick().then(() => requestAnimationFrame(() => board?.fit()));
+  }
   function focusObject(o: PlacedObject) {
     const def = OBJECT_DEFS[o.type];
     selectedIds = [o.id];
@@ -336,6 +342,7 @@
     selectedIds = [];
     save();
     clearHist();
+    autoFit();
   }
   // Accept a full share link OR a raw code; apply if it parses.
   async function parseAndApply(text: string): Promise<boolean> {
@@ -496,6 +503,7 @@
     bind:bearFocus
     {labelField}
     onLabelField={setLabelField}
+    onFit={() => board?.fit()}
     {hasBears}
     {bearCount}
   />

@@ -159,8 +159,11 @@
   }
 
   // ── Zoom (wheel-to-cursor / pinch / fit) ────────────────────────────────
-  const MINZ = 1;
-  const MAXZ = 3;
+  // The board is a square 60×60 that's often taller than the (62vh) viewport,
+  // so the floor goes below 100% to let the whole hive fit on screen at once;
+  // the ceiling goes higher for fine single-cell work. Keep in sync with Controls.
+  const MINZ = 0.35;
+  const MAXZ = 4;
   /** Zoom keeping the point under (clientX,clientY) fixed. Content scales by an
    *  exact ratio, so the new scroll is pure math (applied once width relays). */
   async function zoomAt(target: number, clientX: number, clientY: number) {
@@ -210,8 +213,9 @@
     pinchBusy = false;
   }
 
-  /** Fit the placed objects into view — uses the live CTM so it works in iso too. */
-  async function fit() {
+  /** Fit the placed objects into view — uses the live CTM so it works in iso too.
+   *  Exported so the page can auto-frame the hive after a load / import / mode switch. */
+  export async function fit() {
     if (!scroller) return;
     if (!objects.length || !plane) {
       scroller.scrollLeft = 0;
@@ -274,6 +278,8 @@
     const el = scroller;
     const wheel = (e: WheelEvent) => onWheel(e);
     el?.addEventListener('wheel', wheel, { passive: false });
+    // Land framed on the hive (not the empty 60×60) once layout settles.
+    if (objects.length) requestAnimationFrame(() => fit());
     return () => el?.removeEventListener('wheel', wheel);
   });
   function onPointerDown(e: PointerEvent) {
