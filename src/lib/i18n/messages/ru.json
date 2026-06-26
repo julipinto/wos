@@ -659,6 +659,8 @@
     "duplicate": "дублировать",
     "objectsN": "{n} объектов",
     "fit": "Вписать",
+    "jumpHq": "К штабу",
+    "jumpBear": "К ловушке",
     "search": {
       "label": "Поиск",
       "placeholder": "Поиск по имени/метке или x,y…",

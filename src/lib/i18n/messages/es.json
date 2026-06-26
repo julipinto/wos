@@ -659,6 +659,8 @@
     "duplicate": "duplicar",
     "objectsN": "{n} objetos",
     "fit": "Ajustar",
+    "jumpHq": "Ir al cuartel",
+    "jumpBear": "Ir a la trampa de oso",
     "search": {
       "label": "Buscar",
       "placeholder": "Buscar nombre/etiqueta o x,y…",

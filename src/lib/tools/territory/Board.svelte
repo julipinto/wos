@@ -136,6 +136,17 @@
   let flash = $state<{ x: number; y: number; n: number } | null>(null);
   let flashN = 0;
   let flashTimer: ReturnType<typeof setTimeout> | undefined;
+  // The cell under the cursor — drives the crosshair + the live coordinate badge.
+  let hoverCell = $state<{ x: number; y: number } | null>(null);
+  // Coordinate badge text: prefer the hovered cell, else the single selection.
+  const readout = $derived.by(() => {
+    if (hoverCell) return `${hoverCell.x},${hoverCell.y}`;
+    if (selectedIds.length === 1) {
+      const o = objects.find((p) => p.id === selectedIds[0]);
+      if (o) return `${o.x},${o.y}`;
+    }
+    return null;
+  });
   // Two-finger pan: tracks live pointers so a second finger pans the board even
   // in Edit mode (where one finger places / marquee-selects).
   const pointers = new Map<number, { x: number; y: number }>();
@@ -342,6 +353,12 @@
   }
   function onPointerMove(e: PointerEvent) {
     if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    // Track the hovered cell for the crosshair + coordinate badge (mouse only;
+    // touch has no hover and would leave a stale cell highlighted).
+    if (e.pointerType !== 'touch') {
+      const hc = cellFromEvent(e);
+      hoverCell = hc && hc.x >= 0 && hc.y >= 0 && hc.x < N && hc.y < N ? hc : null;
+    }
     // Two-finger gesture (any mode): combined pinch-zoom + pan.
     if (twoPan && scroller && pointers.size >= 2) {
       e.preventDefault();
@@ -491,6 +508,9 @@
 
 <div class="board-wrap">
   <button class="fit-btn" type="button" onclick={fit} title="Fit" aria-label="Fit">⊡</button>
+  {#if readout}
+    <span class="coord-badge">{readout}</span>
+  {/if}
   <div class="board-scroll" bind:this={scroller}>
     <div class="board" class:iso={view === 'iso'} style="width: {zoom * 100}%">
       <svg
@@ -501,6 +521,7 @@
         onpointermove={onPointerMove}
         onpointerup={onPointerUp}
         onpointercancel={onPointerUp}
+        onpointerleave={() => (hoverCell = null)}
         ondblclick={onGridRemove}
         role="application"
         aria-label="grid"
@@ -562,6 +583,9 @@
                     : 0.05}
             />
           {/each}
+          {#if hoverCell && boardMode === 'edit'}
+            <rect class="hover" x={hoverCell.x} y={hoverCell.y} width="1" height="1" />
+          {/if}
           {#if flash}
             {#key flash.n}
               <rect
@@ -672,6 +696,21 @@
     color: var(--accent);
     border-color: var(--border-accent);
   }
+  /* Live coordinate readout — bottom-left, like a map's cursor position. */
+  .coord-badge {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    z-index: 5;
+    padding: 3px 8px;
+    background: rgba(15, 25, 40, 0.92);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-mid);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    pointer-events: none;
+  }
   .board-scroll {
     overflow: auto;
     border: 1px solid var(--border);
@@ -726,6 +765,12 @@
     stroke: #93d4ff;
     stroke-width: 0.08;
     stroke-dasharray: 0.3 0.2;
+    pointer-events: none;
+  }
+  .hover {
+    fill: rgba(147, 212, 255, 0.12);
+    stroke: rgba(147, 212, 255, 0.6);
+    stroke-width: 0.06;
     pointer-events: none;
   }
   .flash {
