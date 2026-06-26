@@ -18,9 +18,12 @@ const LOCAL_ORIGIN = 'local';
 export type CollabStatus = 'connecting' | 'connected' | 'disconnected';
 
 export interface PeerState {
+  id: number; // awareness clientID (stable key)
+  self: boolean; // this client
   name: string;
   color: string;
   selection?: string[];
+  cursor?: { x: number; y: number } | null;
 }
 
 export interface CollabOpts {
@@ -36,8 +39,10 @@ export interface CollabOpts {
 export interface CollabSession {
   /** Reconcile the shared doc to match the local objects (call after persist). */
   pushLocal: () => void;
-  /** Broadcast this peer's current selection (for live highlight — phase 3). */
+  /** Broadcast this peer's current selection (drives the remote selection halos). */
   setSelection: (ids: string[]) => void;
+  /** Broadcast this peer's live cursor in grid coords (null to hide). */
+  setCursor: (p: { x: number; y: number } | null) => void;
   destroy: () => void;
 }
 
@@ -88,8 +93,17 @@ export function startCollab(opts: CollabOpts): CollabSession {
 
   const emitPeers = () => {
     const states: PeerState[] = [];
-    aw.getStates().forEach((s) => {
-      if (s.user) states.push({ ...(s.user as PeerState), selection: s.selection as string[] });
+    aw.getStates().forEach((s, id) => {
+      const u = s.user as { name: string; color: string } | undefined;
+      if (!u) return;
+      states.push({
+        id,
+        self: id === aw.clientID,
+        name: u.name,
+        color: u.color,
+        selection: s.selection as string[] | undefined,
+        cursor: s.cursor as { x: number; y: number } | null | undefined
+      });
     });
     opts.onPeers(states);
   };
@@ -103,6 +117,7 @@ export function startCollab(opts: CollabOpts): CollabSession {
   return {
     pushLocal,
     setSelection: (ids: string[]) => aw.setLocalStateField('selection', ids),
+    setCursor: (p) => aw.setLocalStateField('cursor', p),
     destroy: () => {
       clearTimeout(seedTimer);
       aw.off('change', emitPeers);
