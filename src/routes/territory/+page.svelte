@@ -139,6 +139,7 @@
     writeJson(LABELBY_KEY, f);
   }
   let heatmap = $state(false);
+  let colorByPrimary = $state(false); // colour cities by their primary bear trap
   let highlight = $state(''); // '' = off · a type · 'orphaned'
   let importOpen = $state(false);
   let importText = $state('');
@@ -194,6 +195,21 @@
 
   const hasBears = $derived(activeMode.types.includes('bearTrap'));
   const bearCount = $derived(objects.filter((o) => o.type === 'bearTrap').length);
+  // Per-trap load: how many cities take it as primary vs backup (balance view).
+  const bearTally = $derived.by(() => {
+    const stats: { n: number; main: number; backup: number }[] = [];
+    for (let n = 1; n <= bearCount; n++) {
+      let main = 0;
+      let backup = 0;
+      for (const o of objects) {
+        if (o.type !== 'city' || !o.bear?.includes(n)) continue;
+        if (o.bearMain?.includes(n)) main++;
+        else backup++;
+      }
+      stats.push({ n, main, backup });
+    }
+    return stats;
+  });
   let bearFocus = $state(0); // 0 = show all; 1..3 = highlight that bear's group
   // A city can join several bear traps (different days) — toggle each on/off.
   function toggleBear(n: number) {
@@ -735,11 +751,13 @@
         {labelField}
         onLabelField={setLabelField}
         bind:heatmap
+        bind:colorByPrimary
         bind:bearFocus
         bind:highlight
         {highlightOptions}
         {hasBears}
         {bearCount}
+        bearStats={bearTally}
         connectivity={!!activeMode.connectivity}
       />
     </div>
@@ -765,6 +783,7 @@
         {labelField}
         {heatmap}
         {highlight}
+        {colorByPrimary}
         connectivity={!!activeMode.connectivity}
         bind:viewport
         peers={collabPeers}
