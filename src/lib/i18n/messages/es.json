@@ -649,7 +649,8 @@
     "fromFile": "Desde archivo",
     "selectHint": "Selecciona una pieza para editar.",
     "undo": "deshacer",
-    "redo": "rehacer"
+    "redo": "rehacer",
+    "duplicate": "duplicar"
   },
   "events": {
     "title": "calendario de eventos",
