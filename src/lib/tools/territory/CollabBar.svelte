@@ -9,12 +9,28 @@
     status: CollabStatus;
     peers: PeerState[];
     copied: boolean;
+    myName: string;
+    myColor: string;
     onStart: () => void;
     onCopy: () => void;
     onLeave: () => void;
+    onRename: (name: string) => void;
   }
-  let { active, status, peers, copied, onStart, onCopy, onLeave }: Props = $props();
+  let {
+    active,
+    status,
+    peers,
+    copied,
+    myName,
+    myColor,
+    onStart,
+    onCopy,
+    onLeave,
+    onRename
+  }: Props = $props();
 
+  // Show only OTHER peers as avatars (you have the name input); cap the row.
+  const others = $derived(peers.filter((p) => !p.self));
   const initials = (name: string) =>
     name
       .split(/[\s-]+/)
@@ -33,8 +49,18 @@
       <span class="dot {status}"></span>
       {i18n.m.territory.collab[status]}
     </span>
+    <label class="me" title={i18n.m.territory.collab.yourName}>
+      <span class="avatar" style="background: {myColor}">{initials(myName)}</span>
+      <input
+        class="name-input"
+        value={myName}
+        maxlength="18"
+        aria-label={i18n.m.territory.collab.yourName}
+        onchange={(e) => onRename(e.currentTarget.value)}
+      />
+    </label>
     <span class="peers" aria-label={i18n.m.territory.collab.online}>
-      {#each peers as p, i (p.name + i)}
+      {#each others as p (p.id)}
         <span class="avatar" style="background: {p.color}" title={p.name}>{initials(p.name)}</span>
       {/each}
     </span>
@@ -91,6 +117,25 @@
     font-family: var(--font-mono);
     font-size: 11px;
     color: var(--text-mid);
+  }
+  .me {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .name-input {
+    width: 9ch;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 5px 9px;
+  }
+  .name-input:focus-visible {
+    outline: none;
+    border-color: var(--accent);
   }
   .dot {
     width: 8px;

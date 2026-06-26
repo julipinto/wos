@@ -672,7 +672,10 @@
       "connecting": "Conectando…",
       "connected": "En vivo",
       "disconnected": "Sin conexión",
-      "online": "En línea"
+      "online": "En línea",
+      "yourName": "Tu nombre",
+      "joined": "{name} entró",
+      "left": "{name} salió"
     },
     "search": {
       "label": "Buscar",

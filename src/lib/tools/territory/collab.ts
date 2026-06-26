@@ -49,6 +49,8 @@ export interface CollabSession {
   setSelection: (ids: string[]) => void;
   /** Broadcast this peer's live cursor in grid coords (null to hide). */
   setCursor: (p: { x: number; y: number } | null) => void;
+  /** Update this peer's display name / colour (after the user edits it). */
+  setUser: (user: { name: string; color: string }) => void;
   destroy: () => void;
 }
 
@@ -155,6 +157,7 @@ export function startCollab(opts: CollabOpts): CollabSession {
     pushLocal,
     setSelection: (ids: string[]) => aw.setLocalStateField('selection', ids),
     setCursor: (p) => aw.setLocalStateField('cursor', p),
+    setUser: (user) => aw.setLocalStateField('user', user),
     destroy: () => {
       aw.off('change', emitPeers);
       provider.destroy();

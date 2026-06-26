@@ -400,13 +400,41 @@
     writeJson(COLLAB_USER_KEY, u);
     return u;
   }
-  const me = loadUser();
+  let me = $state(loadUser());
   let collabActive = $state(false);
   let collabStatus = $state<CollabStatus>('disconnected');
   let collabPeers = $state<PeerState[]>([]);
   let collabCopied = $state(false);
   let collabSession: CollabSession | null = null;
   let applyingRemote = false; // guards the remote→local apply from echoing back
+
+  function renamePeer(name: string) {
+    const n = name.trim().slice(0, 18) || me.name;
+    me = { ...me, name: n };
+    writeJson(COLLAB_USER_KEY, me);
+    collabSession?.setUser(me);
+  }
+
+  // Join / leave toasts: diff the remote peer set whenever awareness changes.
+  let toasts = $state<{ id: number; text: string; color: string }[]>([]);
+  let toastN = 0;
+  let prevPeers = new Map<number, { name: string; color: string }>();
+  function pushToast(text: string, color: string) {
+    const id = ++toastN;
+    toasts = [...toasts, { id, text, color }];
+    setTimeout(() => (toasts = toasts.filter((t) => t.id !== id)), 3500);
+  }
+  $effect(() => {
+    const cur = new Map(
+      collabPeers.filter((p) => !p.self).map((p) => [p.id, { name: p.name, color: p.color }])
+    );
+    for (const [id, p] of cur)
+      if (!prevPeers.has(id))
+        pushToast(fmt(i18n.m.territory.collab.joined, { name: p.name }), p.color);
+    for (const [id, p] of prevPeers)
+      if (!cur.has(id)) pushToast(fmt(i18n.m.territory.collab.left, { name: p.name }), p.color);
+    prevPeers = cur;
+  });
 
   async function startCollabSession(room: string, key: string | undefined, seed: boolean) {
     if (collabSession) return;
@@ -619,9 +647,12 @@
     status={collabStatus}
     peers={collabPeers}
     copied={collabCopied}
+    myName={me.name}
+    myColor={me.color}
     onStart={startCollab}
     onCopy={copyCollabLink}
     onLeave={leaveCollab}
+    onRename={renamePeer}
   />
 
   <div class="topbar">
@@ -860,6 +891,16 @@
     onLoad={loadMap}
   />
 
+  {#if toasts.length}
+    <div class="toasts">
+      {#each toasts as t (t.id)}
+        <div class="toast">
+          <span class="toast-dot" style="background: {t.color}"></span>{t.text}
+        </div>
+      {/each}
+    </div>
+  {/if}
+
   {#if ctx}
     <ContextMenu
       x={ctx.x}
@@ -995,6 +1036,45 @@
     gap: 12px;
     margin-bottom: 16px;
     flex-wrap: wrap;
+  }
+  /* Transient join/leave notifications, bottom-centre. */
+  .toasts {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%);
+    z-index: 80;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    pointer-events: none;
+  }
+  .toast {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-pill);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 8px 14px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    animation: toast-in 0.2s ease;
+  }
+  .toast-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex: none;
+  }
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
   }
   .tb-actions {
     margin-inline-start: auto;
