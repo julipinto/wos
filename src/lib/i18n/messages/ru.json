@@ -625,6 +625,8 @@
     },
     "bearFocus": "медведь",
     "bearAll": "все",
+    "bearPrimary": "основная ловушка",
+    "bearPrimaryHint": "★ = основная ловушка · остальные запасные",
     "labelFurnace": "печь",
     "labelName": "имя",
     "copyCode": "копировать код",

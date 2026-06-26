@@ -625,6 +625,8 @@
     },
     "bearFocus": "الدب",
     "bearAll": "الكل",
+    "bearPrimary": "الفخ الرئيسي",
+    "bearPrimaryHint": "★ = الفخ الرئيسي · والبقية احتياطية",
     "labelFurnace": "الفرن",
     "labelName": "الاسم",
     "copyCode": "نسخ الرمز",

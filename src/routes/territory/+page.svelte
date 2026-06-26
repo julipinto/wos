@@ -70,7 +70,11 @@
 
   // ── Undo / redo (bounded) — logic lives in history.svelte.ts ─────────────
   const cloneLayout = (a: PlacedObject[]) =>
-    a.map((o) => ({ ...o, bear: o.bear ? [...o.bear] : undefined }));
+    a.map((o) => ({
+      ...o,
+      bear: o.bear ? [...o.bear] : undefined,
+      bearMain: o.bearMain ? [...o.bearMain] : undefined
+    }));
   const save = () => writeJson(layoutKey(mode), cloneLayout(objects));
 
   const undoRedo = createHistory<PlacedObject[]>({
@@ -196,10 +200,31 @@
     const o = selected;
     if (!o) return;
     const set = new Set(o.bear ?? []);
-    if (set.has(n)) set.delete(n);
-    else set.add(n);
+    if (set.has(n)) {
+      set.delete(n);
+      // leaving a trap also drops it as a primary
+      if (o.bearMain?.includes(n)) {
+        const m = o.bearMain.filter((x) => x !== n);
+        if (m.length) o.bearMain = m;
+        else delete o.bearMain;
+      }
+    } else set.add(n);
     if (set.size) o.bear = [...set].sort((a, b) => a - b);
     else delete o.bear;
+    persist();
+  }
+  // Mark/unmark a trap as a PRIMARY for the selected city (joins it if needed).
+  function toggleBearMain(n: number) {
+    const o = selected;
+    if (!o) return;
+    const join = new Set(o.bear ?? []);
+    join.add(n);
+    o.bear = [...join].sort((a, b) => a - b);
+    const main = new Set(o.bearMain ?? []);
+    if (main.has(n)) main.delete(n);
+    else main.add(n);
+    if (main.size) o.bearMain = [...main].sort((a, b) => a - b);
+    else delete o.bearMain;
     persist();
   }
 
@@ -288,6 +313,7 @@
     const copies = src.map((o) => ({
       ...o,
       bear: o.bear ? [...o.bear] : undefined,
+      bearMain: o.bearMain ? [...o.bearMain] : undefined,
       id: newId(o.type),
       x: o.x + off,
       y: o.y + off
@@ -302,7 +328,11 @@
   }
   let clipboard: PlacedObject[] = [];
   function copySelection() {
-    clipboard = selectedObjects().map((o) => ({ ...o, bear: o.bear ? [...o.bear] : undefined }));
+    clipboard = selectedObjects().map((o) => ({
+      ...o,
+      bear: o.bear ? [...o.bear] : undefined,
+      bearMain: o.bearMain ? [...o.bearMain] : undefined
+    }));
   }
   function pasteClipboard() {
     placeClones(clipboard);
@@ -802,6 +832,7 @@
             .map((t) => ({ value: t, label: objName(OBJECT_DEFS[t].i18n) }))}
           {setTag}
           {toggleBear}
+          {toggleBearMain}
           onConvert={convertSelected}
           onDuplicate={duplicateSelected}
           onRemove={removeSelected}

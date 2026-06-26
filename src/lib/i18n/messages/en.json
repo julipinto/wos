@@ -625,6 +625,8 @@
     },
     "bearFocus": "bear",
     "bearAll": "all",
+    "bearPrimary": "primary trap",
+    "bearPrimaryHint": "★ = primary trap · others are backups",
     "labelFurnace": "furnace",
     "labelName": "name",
     "copyCode": "copy code",

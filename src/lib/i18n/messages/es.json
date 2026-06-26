@@ -625,6 +625,8 @@
     },
     "bearFocus": "oso",
     "bearAll": "todos",
+    "bearPrimary": "trampa principal",
+    "bearPrimaryHint": "★ = trampa principal · las demás son backup",
     "labelFurnace": "horno",
     "labelName": "nombre",
     "copyCode": "copiar código",
