@@ -8,6 +8,21 @@ import {
   collides,
   type PlacedObject
 } from '../../src/lib/tools/territory/territory';
+import { isoPoint, gridToPct, octagon, N } from '../../src/lib/tools/territory/geometry';
+
+describe('board geometry', () => {
+  it('iso projection fixes the grid centre', () => {
+    const c = isoPoint(N / 2, N / 2);
+    expect(c.x).toBeCloseTo(N / 2);
+    expect(c.y).toBeCloseTo(N / 2);
+  });
+  it('flat gridToPct maps the centre cell to 50%', () => {
+    expect(gridToPct('flat', N / 2, N / 2)).toEqual({ left: 50, top: 50 });
+  });
+  it('octagon has eight vertices', () => {
+    expect(octagon(0, 0, 3, 3).split(' ')).toHaveLength(8);
+  });
+});
 
 const hq = (x: number, y: number): PlacedObject => ({ id: 'hq', type: 'hq', x, y });
 const banner = (id: string, x: number, y: number): PlacedObject => ({ id, type: 'banner', x, y });

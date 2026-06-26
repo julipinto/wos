@@ -9,6 +9,15 @@
     type PlacedObject
   } from './territory';
   import type { PeerState } from './collab';
+  import {
+    N,
+    isoPoint,
+    ISO_VIEWBOX,
+    FLAT_VIEWBOX,
+    ISO_TRANSFORM,
+    gridToPct,
+    octagon
+  } from './geometry';
 
   // The interactive canvas: renders the grid + objects and owns all pointer
   // interaction (place / select / move / marquee / pan). It mutates `objects`
@@ -54,77 +63,18 @@
     onPersist
   }: Props = $props();
 
-  const N = 60; // grid is N×N cells
-  const CENTER = N / 2;
-
   // The transformed group + the click-mapping CTM source, and the scroll box.
   let plane: SVGGElement | undefined = $state();
   let scroller: HTMLDivElement | undefined = $state();
 
-  // 2D isometric: rotate the square grid 45° about its centre and squash it
-  // vertically into the classic diamond. Pure affine → clicks stay invertible.
-  const ISO = `translate(${CENTER} ${CENTER}) scale(0.7071 0.55) rotate(45) translate(-${CENTER} -${CENTER})`;
-  const planeTransform = $derived(view === 'iso' ? ISO : '');
+  // Iso projection, viewBox and shape maths live in geometry.ts (pure). Here we
+  // only pick the view-dependent values.
+  const planeTransform = $derived(view === 'iso' ? ISO_TRANSFORM : '');
+  const viewBox = $derived(view === 'iso' ? ISO_VIEWBOX : FLAT_VIEWBOX);
 
-  // Project a plane point through the iso transform — so labels can sit at the
-  // right spot but draw OUTSIDE the rotated group (upright, not skewed).
-  function isoPoint(x: number, y: number): { x: number; y: number } {
-    const c = 0.7071;
-    const sx = 0.7071;
-    const sy = 0.55;
-    const px = x - CENTER;
-    const py = y - CENTER;
-    return { x: sx * (px * c - py * c) + CENTER, y: sy * (px * c + py * c) + CENTER };
-  }
-  // Crop the iso viewBox to the diamond's bounds (drops the empty bands). Keep the
-  // numeric box too, so the HTML label overlay can map grid points → % positions.
-  const ISO_VB = (() => {
-    const pts = [isoPoint(0, 0), isoPoint(N, 0), isoPoint(0, N), isoPoint(N, N)];
-    const xs = pts.map((p) => p.x);
-    const ys = pts.map((p) => p.y);
-    const minX = Math.min(...xs);
-    const minY = Math.min(...ys);
-    return {
-      x: minX - 1,
-      y: minY - 1,
-      w: Math.max(...xs) - minX + 2,
-      h: Math.max(...ys) - minY + 2
-    };
-  })();
-  const ISO_VIEWBOX = `${ISO_VB.x} ${ISO_VB.y} ${ISO_VB.w} ${ISO_VB.h}`;
-  const viewBox = $derived(view === 'iso' ? ISO_VIEWBOX : `0 0 ${N} ${N}`);
-
-  // Map a continuous grid point → percent inside the board box (view-aware). Used
-  // by labels and by remote peer cursors (both are HTML over the board).
-  function gridToPct(gx: number, gy: number): { left: number; top: number } {
-    if (view === 'iso') {
-      const p = isoPoint(gx, gy);
-      return {
-        left: ((p.x - ISO_VB.x) / ISO_VB.w) * 100,
-        top: ((p.y - ISO_VB.y) / ISO_VB.h) * 100
-      };
-    }
-    return { left: (gx / N) * 100, top: (gy / N) * 100 };
-  }
   function labelPos(o: PlacedObject): { left: number; top: number } {
     const def = OBJECT_DEFS[o.type];
-    return gridToPct(o.x + def.w / 2, o.y + def.h / 2);
-  }
-  // Octagon inscribed in a rect — bear traps render as octagons (game icon shape).
-  function octagon(x0: number, y0: number, x1: number, y1: number): string {
-    const c = Math.min(x1 - x0, y1 - y0) * 0.29;
-    return [
-      [x0 + c, y0],
-      [x1 - c, y0],
-      [x1, y0 + c],
-      [x1, y1 - c],
-      [x1 - c, y1],
-      [x0 + c, y1],
-      [x0, y1 - c],
-      [x0, y0 + c]
-    ]
-      .map((p) => p.join(','))
-      .join(' ');
+    return gridToPct(view, o.x + def.w / 2, o.y + def.h / 2);
   }
   // Other peers' selections → coloured halos (rendered in the transformed plane).
   const remoteSel = $derived.by(() => {
@@ -880,7 +830,7 @@
       {#if remoteCursors.length}
         <div class="cursor-layer">
           {#each remoteCursors as p (p.id)}
-            {@const c = gridToPct(p.cursor!.x, p.cursor!.y)}
+            {@const c = gridToPct(view, p.cursor!.x, p.cursor!.y)}
             <div class="remote-cursor" style="left: {c.left}%; top: {c.top}%; --pc: {p.color}">
               <svg viewBox="0 0 12 12" width="14" height="14" aria-hidden="true">
                 <path d="M1 1 L1 10 L4 7.5 L6 11 L7.5 10.2 L5.6 6.8 L9.5 6.6 Z" fill={p.color} />
