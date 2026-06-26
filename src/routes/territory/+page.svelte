@@ -9,6 +9,8 @@
   import Controls from '$lib/tools/territory/Controls.svelte';
   import Rail from '$lib/tools/territory/Rail.svelte';
   import Board from '$lib/tools/territory/Board.svelte';
+  import MiniMap from '$lib/tools/territory/MiniMap.svelte';
+  import ContextMenu from '$lib/tools/territory/ContextMenu.svelte';
   import Search from '$lib/tools/territory/Search.svelte';
   import Editor from '$lib/tools/territory/Editor.svelte';
   import MapsPanel from '$lib/tools/territory/MapsPanel.svelte';
@@ -356,6 +358,18 @@
     selectedIds = [];
     board?.focusCell(x + 0.5, y + 0.5);
   }
+  // Minimap viewport (filled by Board) + right-click context menu position.
+  let viewport = $state<{ x: number; y: number; w: number; h: number }>({
+    x: 0,
+    y: 0,
+    w: 60,
+    h: 60
+  });
+  let ctx = $state<{ x: number; y: number } | null>(null);
+  function openContext(id: string, x: number, y: number) {
+    selectedIds = [id];
+    ctx = { x, y };
+  }
   // Quick-jump targets for the top-bar presets.
   const seedObj = $derived(objects.find((o) => OBJECT_DEFS[o.type].seed) ?? null);
   const firstBear = $derived(objects.find((o) => o.type === 'bearTrap') ?? null);
@@ -609,8 +623,15 @@
         {heatmap}
         {highlight}
         connectivity={!!activeMode.connectivity}
+        bind:viewport
+        onContextMenu={openContext}
         onPersist={persist}
       />
+      {#if objects.length > 0}
+        <div class="minimap-wrap">
+          <MiniMap {objects} {viewport} onJump={(cx, cy) => board?.focusCell(cx, cy)} />
+        </div>
+      {/if}
     </div>
 
     <div class="stage-side">
@@ -741,6 +762,18 @@
     onLoad={loadMap}
   />
 
+  {#if ctx}
+    <ContextMenu
+      x={ctx.x}
+      y={ctx.y}
+      items={[
+        { label: i18n.m.territory.duplicate, onClick: duplicateSelected },
+        { label: i18n.m.territory.remove, danger: true, onClick: removeSelected }
+      ]}
+      onClose={() => (ctx = null)}
+    />
+  {/if}
+
   <ConfirmDialog
     open={!!confirmAction}
     message={confirmMsg}
@@ -791,6 +824,27 @@
   .stage {
     display: grid;
     gap: 14px;
+  }
+  .stage-board {
+    position: relative;
+  }
+  /* Minimap floats over the board's bottom-right; desktop only (no hover/room on
+     phones, where you pan the small board directly). */
+  .minimap-wrap {
+    display: none;
+  }
+  @media (min-width: 1024px) {
+    .minimap-wrap {
+      display: block;
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      z-index: 6;
+      opacity: 0.9;
+    }
+    .minimap-wrap:hover {
+      opacity: 1;
+    }
   }
   /* Wide desktop: three columns — the left rail, the board, and a sticky editor
      column on the right (Figma style) so editing a piece never scrolls the page.

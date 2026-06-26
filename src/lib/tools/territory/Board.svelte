@@ -25,6 +25,8 @@
     heatmap: boolean;
     connectivity: boolean;
     highlight: string;
+    viewport?: { x: number; y: number; w: number; h: number };
+    onContextMenu?: (id: string, x: number, y: number) => void;
     onPersist: () => void;
   }
   let {
@@ -40,6 +42,8 @@
     heatmap,
     connectivity,
     highlight,
+    viewport = $bindable(),
+    onContextMenu,
     onPersist
   }: Props = $props();
 
@@ -322,13 +326,53 @@
     flashTimer = setTimeout(() => (flash = null), 1300);
   }
 
+  // Report the visible grid region (for the minimap). Maps the scroller's screen
+  // corners back through the plane CTM and takes the bounding box (in iso the
+  // visible area is a diamond, so the box is a safe over-approximation).
+  function computeViewport() {
+    if (!scroller || !plane || viewport === undefined) return;
+    const ctm = plane.getScreenCTM();
+    if (!ctm) return;
+    const r = scroller.getBoundingClientRect();
+    const inv = ctm.inverse();
+    const corners = [
+      [r.left, r.top],
+      [r.right, r.top],
+      [r.left, r.bottom],
+      [r.right, r.bottom]
+    ].map(([x, y]) => new DOMPoint(x, y).matrixTransform(inv));
+    const xs = corners.map((p) => p.x);
+    const ys = corners.map((p) => p.y);
+    const x = Math.max(0, Math.min(...xs));
+    const y = Math.max(0, Math.min(...ys));
+    viewport = {
+      x,
+      y,
+      w: Math.min(N, Math.max(...xs)) - x,
+      h: Math.min(N, Math.max(...ys)) - y
+    };
+  }
+
   onMount(() => {
     const el = scroller;
     const wheel = (e: WheelEvent) => onWheel(e);
     el?.addEventListener('wheel', wheel, { passive: false });
+    const onScroll = () => computeViewport();
+    el?.addEventListener('scroll', onScroll, { passive: true });
     // Land framed on the hive (not the empty 60×60) once layout settles.
-    if (objects.length) requestAnimationFrame(() => fit());
-    return () => el?.removeEventListener('wheel', wheel);
+    requestAnimationFrame(() => {
+      if (objects.length) fit();
+      computeViewport();
+    });
+    return () => {
+      el?.removeEventListener('wheel', wheel);
+      el?.removeEventListener('scroll', onScroll);
+    };
+  });
+  // Recompute the viewport whenever zoom or view changes the projection (reading
+  // both inside the condition is what registers them as effect dependencies).
+  $effect(() => {
+    if (zoom && view) tick().then(computeViewport);
   });
   function onPointerDown(e: PointerEvent) {
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -517,6 +561,17 @@
     moved = false;
   }
 
+  // Right-click an object → the page opens a context menu (duplicate / remove).
+  function onContext(e: MouseEvent) {
+    const cell = cellFromEvent(e);
+    if (!cell) return;
+    const hit = objects.find((o) => footprintCells(o).includes(`${cell.x},${cell.y}`));
+    if (hit) {
+      e.preventDefault();
+      onContextMenu?.(hit.id, e.clientX, e.clientY);
+    }
+  }
+
   // Double-click an object to remove it right on the board (no scrolling).
   function onGridRemove(e: MouseEvent) {
     const cell = cellFromEvent(e);
@@ -565,6 +620,7 @@
         onpointerup={onPointerUp}
         onpointercancel={onPointerUp}
         onpointerleave={() => (hoverCell = null)}
+        oncontextmenu={onContext}
         ondblclick={onGridRemove}
         role="application"
         aria-label="grid"
