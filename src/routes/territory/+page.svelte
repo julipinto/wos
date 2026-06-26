@@ -16,6 +16,8 @@
   import MapsPanel from '$lib/tools/territory/MapsPanel.svelte';
   import Select from '$lib/components/Select.svelte';
   import NumberInput from '$lib/components/NumberInput.svelte';
+  import CollabBar from '$lib/tools/territory/CollabBar.svelte';
+  import type { CollabSession, CollabStatus, PeerState } from '$lib/tools/territory/collab';
   import { TERRITORY_SLIDES } from '$lib/tools/territory/tutorial';
   import { readJson, writeJson } from '$lib/utils/storage';
   import {
@@ -91,6 +93,8 @@
     lastSnap = cloneLayout(objects);
     refreshHist();
     save();
+    // Mirror the change to the room (no-op when not collaborating).
+    if (collabSession && !applyingRemote) collabSession.pushLocal();
   }
 
   function restoreHist(snap: PlacedObject[]) {
@@ -382,6 +386,73 @@
       : [])
   ]);
 
+  // ── Live collaboration (P2P via Yjs/WebRTC; lazy-loaded) ─────────────────
+  const COLLAB_USER_KEY = 'territory-collab-user-v1';
+  function loadUser(): { name: string; color: string } {
+    const saved = readJson<{ name: string; color: string }>(COLLAB_USER_KEY);
+    if (saved?.name) return saved;
+    const colors = ['#60a5fa', '#f472b6', '#34d399', '#fbbf24', '#a78bfa', '#fb7185', '#22d3ee'];
+    const animals = ['Fox', 'Bear', 'Wolf', 'Owl', 'Lynx', 'Seal', 'Hawk', 'Yeti', 'Crane'];
+    const u = {
+      name: `${animals[Math.floor(Math.random() * animals.length)]}-${Math.floor(100 + Math.random() * 900)}`,
+      color: colors[Math.floor(Math.random() * colors.length)]
+    };
+    writeJson(COLLAB_USER_KEY, u);
+    return u;
+  }
+  const me = loadUser();
+  let collabActive = $state(false);
+  let collabStatus = $state<CollabStatus>('disconnected');
+  let collabPeers = $state<PeerState[]>([]);
+  let collabCopied = $state(false);
+  let collabSession: CollabSession | null = null;
+  let applyingRemote = false; // guards the remote→local apply from echoing back
+
+  async function startCollabSession(room: string) {
+    if (collabSession) return;
+    collabActive = true;
+    collabStatus = 'connecting';
+    const { startCollab: createCollab } = await import('$lib/tools/territory/collab');
+    collabSession = createCollab({
+      room,
+      user: me,
+      getObjects: () => objects,
+      applyRemote: (objs) => {
+        applyingRemote = true;
+        objects.splice(0, objects.length, ...objs);
+        selectedIds = selectedIds.filter((id) => objects.some((o) => o.id === id));
+        save();
+        lastSnap = cloneLayout(objects); // keep undo baseline aligned with the room
+        applyingRemote = false;
+      },
+      onPeers: (p) => (collabPeers = p),
+      onStatus: (s) => (collabStatus = s)
+    });
+  }
+  function startCollab() {
+    const room = crypto.randomUUID();
+    history.replaceState(null, '', `${location.pathname}${location.search}#room=${room}`);
+    startCollabSession(room);
+  }
+  function copyCollabLink() {
+    navigator.clipboard.writeText(location.href).then(() => {
+      collabCopied = true;
+      setTimeout(() => (collabCopied = false), 1800);
+    });
+  }
+  function leaveCollab() {
+    collabSession?.destroy();
+    collabSession = null;
+    collabActive = false;
+    collabPeers = [];
+    collabStatus = 'disconnected';
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+  // Broadcast this peer's selection (live highlight comes in the next phase).
+  $effect(() => {
+    if (collabSession) collabSession.setSelection(selectedIds);
+  });
+
   // Precompute the share link (off the current page URL, so it follows the host)
   // whenever the layout/mode changes. Compression is async, so doing it here and
   // copying synchronously on click keeps the clipboard gesture valid (Safari).
@@ -467,8 +538,14 @@
   }
 
   // A shared layout link (?t=CODE) loads on open — into its embedded mode.
+  // A collab link (#room=ID) joins that live room instead.
   onMount(async () => {
     if (!readJson<boolean>(HELP_KEY)) helpOpen = true; // first visit → quick tour
+    const room = new URLSearchParams(location.hash.slice(1)).get('room');
+    if (room) {
+      startCollabSession(room);
+      return;
+    }
     const code = new URLSearchParams(location.search).get('t');
     if (!code) return;
     const parsed = await importLayout(code);
@@ -527,6 +604,16 @@
     active={mode}
     ariaLabel={i18n.m.territory.modes.label}
     onSelect={setMode}
+  />
+
+  <CollabBar
+    active={collabActive}
+    status={collabStatus}
+    peers={collabPeers}
+    copied={collabCopied}
+    onStart={startCollab}
+    onCopy={copyCollabLink}
+    onLeave={leaveCollab}
   />
 
   <div class="topbar">

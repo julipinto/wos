@@ -664,6 +664,16 @@
     "jumpHq": "Ir al cuartel",
     "jumpBear": "Ir a la trampa de oso",
     "highlight": "Resaltar",
+    "collab": {
+      "start": "Colaborar",
+      "copyLink": "Copiar enlace",
+      "copied": "Copiado",
+      "leave": "Salir",
+      "connecting": "Conectando…",
+      "connected": "En vivo",
+      "disconnected": "Sin conexión",
+      "online": "En línea"
+    },
     "search": {
       "label": "Buscar",
       "placeholder": "Buscar nombre/etiqueta o x,y…",

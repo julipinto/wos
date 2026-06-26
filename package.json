@@ -39,6 +39,8 @@
     "vitest": "^2.1.4"
   },
   "dependencies": {
-    "@iconify/svelte": "^5.2.1"
+    "@iconify/svelte": "^5.2.1",
+    "y-webrtc": "^10.3.0",
+    "yjs": "^13.6.31"
   }
 }

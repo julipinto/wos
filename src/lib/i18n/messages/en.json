@@ -664,6 +664,16 @@
     "jumpHq": "Go to HQ",
     "jumpBear": "Go to bear trap",
     "highlight": "Highlight",
+    "collab": {
+      "start": "Collaborate",
+      "copyLink": "Copy link",
+      "copied": "Copied",
+      "leave": "Leave",
+      "connecting": "Connecting…",
+      "connected": "Live",
+      "disconnected": "Offline",
+      "online": "Online"
+    },
     "search": {
       "label": "Search",
       "placeholder": "Search name/label or x,y…",
