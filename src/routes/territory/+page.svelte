@@ -19,6 +19,7 @@
   import Modal from '$lib/components/Modal.svelte';
   import Button from '$lib/components/Button.svelte';
   import IconButton from '$lib/components/IconButton.svelte';
+  import TextInput from '$lib/components/TextInput.svelte';
   import CollabBar from '$lib/tools/territory/CollabBar.svelte';
   import type { CollabSession, CollabStatus, PeerState } from '$lib/tools/territory/collab';
   import { TERRITORY_SLIDES } from '$lib/tools/territory/tutorial';
@@ -670,11 +671,17 @@
           onclick={() => firstBear && focusObject(firstBear)}>🐻</IconButton
         >
       {/if}
-      <IconButton label={i18n.m.territory.undo} size="sm" onclick={undo} disabled={!undoRedo.canUndo}
-        >↶</IconButton
+      <IconButton
+        label={i18n.m.territory.undo}
+        size="sm"
+        onclick={undo}
+        disabled={!undoRedo.canUndo}>↶</IconButton
       >
-      <IconButton label={i18n.m.territory.redo} size="sm" onclick={redo} disabled={!undoRedo.canRedo}
-        >↷</IconButton
+      <IconButton
+        label={i18n.m.territory.redo}
+        size="sm"
+        onclick={redo}
+        disabled={!undoRedo.canRedo}>↷</IconButton
       >
       <IconButton label={i18n.m.territory.help.title} size="sm" onclick={() => (helpOpen = true)}>
         <Icon name="circle-help" size={15} />
@@ -887,9 +894,7 @@
           ? i18n.m.territory.collab.start
           : i18n.m.territory.collab.passwordRequired}
       </span>
-      <input
-        class="cm-input"
-        type="text"
+      <TextInput
         bind:value={collabPassInput}
         placeholder={collabCreateOpen
           ? i18n.m.territory.collab.passwordOptional
@@ -1061,19 +1066,6 @@
     letter-spacing: 1px;
     text-transform: uppercase;
     color: var(--text-mid);
-  }
-  .cm-input {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text);
-    font-family: var(--font-mono);
-    font-size: 13px;
-    padding: 10px 14px;
-  }
-  .cm-input:focus-visible {
-    outline: none;
-    border-color: var(--accent);
   }
   /* Transient join/leave notifications, bottom-centre. */
   .toasts {
