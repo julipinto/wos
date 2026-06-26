@@ -58,6 +58,8 @@
     connectivity
   }: Props = $props();
 
+  let open = $state(false); // mobile: rail collapsed by default (desktop ignores)
+
   const legendLabels = $derived({
     title: i18n.m.territory.legend.title,
     connected: i18n.m.territory.legend.connected,
@@ -69,125 +71,141 @@
 </script>
 
 <div class="rail">
-  <section class="rail-sec">
-    <span class="rail-h">{i18n.m.territory.rail.tools}</span>
-    <Segmented
-      value={boardMode}
-      ariaLabel={i18n.m.territory.boardMode.label}
-      options={[
-        { value: 'edit', label: `✏️ ${i18n.m.territory.boardMode.edit}` },
-        { value: 'view', label: `🖐 ${i18n.m.territory.boardMode.view}` }
-      ]}
-      onChange={(v) => onBoardMode(v as 'edit' | 'view')}
-    />
-    <Segmented
-      value={view}
-      ariaLabel={i18n.m.territory.view.label}
-      options={[
-        { value: 'flat', label: i18n.m.territory.view.flat },
-        { value: 'iso', label: i18n.m.territory.view.tilt }
-      ]}
-      onChange={(v) => onView(v as 'flat' | 'iso')}
-    />
-  </section>
-
-  {#if boardMode === 'edit'}
+  <button class="rail-toggle" type="button" aria-expanded={open} onclick={() => (open = !open)}>
+    <span>⚙ {i18n.m.territory.rail.tools}</span>
+    <span class="caret" class:up={open}>▾</span>
+  </button>
+  <div class="rail-body" class:open>
     <section class="rail-sec">
-      <span class="rail-h">{i18n.m.territory.place}</span>
-      <Palette
-        {types}
-        {tool}
-        {nameOf}
-        {count}
-        {onPick}
-        ariaLabel={i18n.m.territory.place}
-        vertical
+      <span class="rail-h">{i18n.m.territory.rail.tools}</span>
+      <Segmented
+        value={boardMode}
+        ariaLabel={i18n.m.territory.boardMode.label}
+        options={[
+          { value: 'edit', label: `✏️ ${i18n.m.territory.boardMode.edit}` },
+          { value: 'view', label: `🖐 ${i18n.m.territory.boardMode.view}` }
+        ]}
+        onChange={(v) => onBoardMode(v as 'edit' | 'view')}
+      />
+      <Segmented
+        value={view}
+        ariaLabel={i18n.m.territory.view.label}
+        options={[
+          { value: 'flat', label: i18n.m.territory.view.flat },
+          { value: 'iso', label: i18n.m.territory.view.tilt }
+        ]}
+        onChange={(v) => onView(v as 'flat' | 'iso')}
       />
     </section>
-  {/if}
 
-  <section class="rail-sec">
-    <span class="rail-h">{i18n.m.territory.rail.display}</span>
-    <div class="rail-toggles">
-      <button
-        class="toggle"
-        class:on={showLabels}
-        type="button"
-        onclick={() => (showLabels = !showLabels)}
-      >
-        {i18n.m.territory.labels}
-      </button>
-      <button class="toggle" class:on={heatmap} type="button" onclick={() => (heatmap = !heatmap)}>
-        {i18n.m.territory.heatmap}
-      </button>
-      {#if hasBears && bearCount > 0}
+    {#if boardMode === 'edit'}
+      <section class="rail-sec">
+        <span class="rail-h">{i18n.m.territory.place}</span>
+        <Palette
+          {types}
+          {tool}
+          {nameOf}
+          {count}
+          {onPick}
+          ariaLabel={i18n.m.territory.place}
+          vertical
+        />
+      </section>
+    {/if}
+
+    <section class="rail-sec">
+      <span class="rail-h">{i18n.m.territory.rail.display}</span>
+      <div class="rail-toggles">
         <button
           class="toggle"
-          class:on={colorByPrimary}
+          class:on={showLabels}
           type="button"
-          onclick={() => (colorByPrimary = !colorByPrimary)}
+          onclick={() => (showLabels = !showLabels)}
         >
-          {i18n.m.territory.colorByPrimary}
+          {i18n.m.territory.labels}
         </button>
-      {/if}
-    </div>
-    {#if showLabels}
-      <Segmented
-        value={labelField}
-        options={[
-          { value: 'furnace', label: i18n.m.territory.labelFurnace },
-          { value: 'name', label: i18n.m.territory.labelName }
-        ]}
-        onChange={(v) => onLabelField(v as 'furnace' | 'name')}
-      />
-    {/if}
-    <div class="hi-row">
-      <span class="bf-label">{i18n.m.territory.highlight}</span>
-      <Select
-        value={highlight}
-        options={highlightOptions}
-        onChange={(v) => (highlight = v)}
-        ariaLabel={i18n.m.territory.highlight}
-      />
-    </div>
-    {#if hasBears && bearCount > 0}
-      <div class="bear-focus">
-        <span class="bf-label">🐻 {i18n.m.territory.bearFocus}</span>
-        <Segmented
-          value={String(bearFocus)}
-          ariaLabel={i18n.m.territory.bearFocus}
-          options={[
-            { value: '0', label: i18n.m.territory.bearAll },
-            ...Array.from({ length: bearCount }, (_, i) => ({
-              value: String(i + 1),
-              label: String(i + 1)
-            }))
-          ]}
-          onChange={(v) => (bearFocus = Number(v))}
-        />
-        <ul class="bear-tally">
-          {#each bearStats as s (s.n)}
-            <li>
-              <span class="bt-trap">🐻 {s.n}</span>
-              <span class="bt-main">{s.main} {i18n.m.territory.bearMainShort}</span>
-              <span class="bt-backup">{s.backup} {i18n.m.territory.bearBackupShort}</span>
-            </li>
-          {/each}
-        </ul>
+        <button
+          class="toggle"
+          class:on={heatmap}
+          type="button"
+          onclick={() => (heatmap = !heatmap)}
+        >
+          {i18n.m.territory.heatmap}
+        </button>
+        {#if hasBears && bearCount > 0}
+          <button
+            class="toggle"
+            class:on={colorByPrimary}
+            type="button"
+            onclick={() => (colorByPrimary = !colorByPrimary)}
+          >
+            {i18n.m.territory.colorByPrimary}
+          </button>
+        {/if}
       </div>
-    {/if}
-  </section>
+      {#if showLabels}
+        <Segmented
+          value={labelField}
+          options={[
+            { value: 'furnace', label: i18n.m.territory.labelFurnace },
+            { value: 'name', label: i18n.m.territory.labelName }
+          ]}
+          onChange={(v) => onLabelField(v as 'furnace' | 'name')}
+        />
+      {/if}
+      <div class="hi-row">
+        <span class="bf-label">{i18n.m.territory.highlight}</span>
+        <Select
+          value={highlight}
+          options={highlightOptions}
+          onChange={(v) => (highlight = v)}
+          ariaLabel={i18n.m.territory.highlight}
+        />
+      </div>
+      {#if hasBears && bearCount > 0}
+        <div class="bear-focus">
+          <span class="bf-label">🐻 {i18n.m.territory.bearFocus}</span>
+          <Segmented
+            value={String(bearFocus)}
+            ariaLabel={i18n.m.territory.bearFocus}
+            options={[
+              { value: '0', label: i18n.m.territory.bearAll },
+              ...Array.from({ length: bearCount }, (_, i) => ({
+                value: String(i + 1),
+                label: String(i + 1)
+              }))
+            ]}
+            onChange={(v) => (bearFocus = Number(v))}
+          />
+          <ul class="bear-tally">
+            {#each bearStats as s (s.n)}
+              <li>
+                <span class="bt-trap">🐻 {s.n}</span>
+                <span class="bt-main">{s.main} {i18n.m.territory.bearMainShort}</span>
+                <span class="bt-backup">{s.backup} {i18n.m.territory.bearBackupShort}</span>
+              </li>
+            {/each}
+          </ul>
+        </div>
+      {/if}
+    </section>
 
-  <section class="rail-sec">
-    <Legend {types} {nameOf} {connectivity} labels={legendLabels} />
-  </section>
+    <section class="rail-sec">
+      <Legend {types} {nameOf} {connectivity} labels={legendLabels} />
+    </section>
+  </div>
 </div>
 
 <style>
-  .rail {
+  .rail-body {
     display: flex;
     flex-direction: column;
     gap: 18px;
+  }
+  /* The collapse toggle is desktop-hidden; on phones the rail would otherwise be
+     a tall stack that pushes the board off-screen, so it collapses behind this. */
+  .rail-toggle {
+    display: none;
   }
   .rail-sec {
     display: flex;
@@ -259,17 +277,37 @@
     font-family: var(--font-mono);
     font-size: 11px;
   }
-  /* On wide screens the rail is a fixed-width left column; below that it becomes
-     a horizontal band above the board so nothing is cramped on phones. */
+  /* Phones: collapse the rail behind a toggle so the board is reachable without
+     scrolling past every control. Desktop keeps it always-open (no toggle). */
   @media (max-width: 1023px) {
-    .rail {
-      flex-direction: row;
-      flex-wrap: wrap;
-      gap: 14px 20px;
-      align-items: flex-start;
+    .rail-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-pill);
+      color: var(--text-mid);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 10px 16px;
+      cursor: pointer;
     }
-    .rail-sec {
-      flex: 0 1 auto;
+    .rail-toggle .caret {
+      transition: transform 0.2s ease;
+    }
+    .rail-toggle .caret.up {
+      transform: rotate(180deg);
+    }
+    .rail-body {
+      display: none;
+    }
+    .rail-body.open {
+      display: flex;
+      margin-top: 12px;
     }
   }
 </style>
