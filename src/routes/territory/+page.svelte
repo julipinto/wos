@@ -459,15 +459,44 @@
       onStatus: (s) => (collabStatus = s)
     });
   }
-  function startCollab() {
+  // Create / join dialogs (optional password). No password → the E2E key lives in
+  // the link (anyone with the link joins). With a password → the link is clean
+  // (#room=ID&pw=1) and the password (shared out-of-band) is the secret.
+  let collabCreateOpen = $state(false);
+  let collabPassInput = $state('');
+  let joinPrompt = $state<{ room: string } | null>(null);
+
+  function openCreate() {
+    collabPassInput = '';
+    collabCreateOpen = true;
+  }
+  function confirmCreate() {
     const room = crypto.randomUUID();
-    const key = crypto.randomUUID().replace(/-/g, ''); // E2E key — stays in the hash
-    history.replaceState(
-      null,
-      '',
-      `${location.pathname}${location.search}#room=${room}&key=${key}`
-    );
-    startCollabSession(room, key, true);
+    const pw = collabPassInput.trim();
+    collabCreateOpen = false;
+    collabPassInput = '';
+    const base = `${location.pathname}${location.search}`;
+    if (pw) {
+      history.replaceState(null, '', `${base}#room=${room}&pw=1`);
+      startCollabSession(room, pw, true);
+    } else {
+      const key = crypto.randomUUID().replace(/-/g, ''); // E2E key — stays in the hash
+      history.replaceState(null, '', `${base}#room=${room}&key=${key}`);
+      startCollabSession(room, key, true);
+    }
+  }
+  function confirmJoin() {
+    if (!joinPrompt) return;
+    const room = joinPrompt.room;
+    const pw = collabPassInput.trim();
+    joinPrompt = null;
+    collabPassInput = '';
+    startCollabSession(room, pw || undefined, false);
+    // Wrong password (or empty room) can't be told apart cleanly — nudge after a bit.
+    setTimeout(() => {
+      if (collabSession && collabPeers.filter((p) => !p.self).length === 0)
+        pushToast(i18n.m.territory.collab.joinFailed, '#fb7185');
+    }, 9000);
   }
   function copyCollabLink() {
     navigator.clipboard.writeText(location.href).then(() => {
@@ -579,7 +608,11 @@
     const hashParams = new URLSearchParams(location.hash.slice(1));
     const room = hashParams.get('room');
     if (room) {
-      startCollabSession(room, hashParams.get('key') ?? undefined, false);
+      const key = hashParams.get('key');
+      if (key) startCollabSession(room, key, false);
+      else if (hashParams.get('pw'))
+        joinPrompt = { room }; // ask for the password
+      else startCollabSession(room, undefined, false);
       return;
     }
     const code = new URLSearchParams(location.search).get('t');
@@ -649,7 +682,7 @@
     copied={collabCopied}
     myName={me.name}
     myColor={me.color}
-    onStart={startCollab}
+    onStart={openCreate}
     onCopy={copyCollabLink}
     onLeave={leaveCollab}
     onRename={renamePeer}
@@ -891,6 +924,45 @@
     onLoad={loadMap}
   />
 
+  {#if collabCreateOpen || joinPrompt}
+    <div
+      class="collab-modal-bg"
+      role="presentation"
+      onclick={(e) => {
+        if (e.target === e.currentTarget) {
+          collabCreateOpen = false;
+          joinPrompt = null;
+        }
+      }}
+    >
+      <div class="collab-modal" role="dialog">
+        <span class="cm-title">
+          {collabCreateOpen
+            ? i18n.m.territory.collab.start
+            : i18n.m.territory.collab.passwordRequired}
+        </span>
+        <input
+          class="cm-input"
+          type="text"
+          bind:value={collabPassInput}
+          placeholder={collabCreateOpen
+            ? i18n.m.territory.collab.passwordOptional
+            : i18n.m.territory.collab.password}
+          autocomplete="off"
+          onkeydown={(e) =>
+            e.key === 'Enter' && (collabCreateOpen ? confirmCreate() : confirmJoin())}
+        />
+        <button
+          class="cm-go"
+          type="button"
+          onclick={collabCreateOpen ? confirmCreate : confirmJoin}
+        >
+          {collabCreateOpen ? i18n.m.territory.collab.createRoom : i18n.m.territory.collab.enter}
+        </button>
+      </div>
+    </div>
+  {/if}
+
   {#if toasts.length}
     <div class="toasts">
       {#each toasts as t (t.id)}
@@ -1036,6 +1108,62 @@
     gap: 12px;
     margin-bottom: 16px;
     flex-wrap: wrap;
+  }
+  /* Create / join collab dialog. */
+  .collab-modal-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .collab-modal {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 320px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border-accent);
+    border-radius: var(--r-card);
+    padding: 18px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
+  }
+  .cm-title {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-mid);
+  }
+  .cm-input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    padding: 10px 14px;
+  }
+  .cm-input:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .cm-go {
+    background: var(--accent-glow);
+    border: 1px solid var(--border-accent);
+    border-radius: var(--r-pill);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 9px 14px;
+    cursor: pointer;
+  }
+  .cm-go:hover {
+    color: var(--text);
   }
   /* Transient join/leave notifications, bottom-centre. */
   .toasts {

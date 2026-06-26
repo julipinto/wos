@@ -675,7 +675,13 @@
       "online": "متصل",
       "yourName": "اسمك",
       "joined": "انضم {name}",
-      "left": "غادر {name}"
+      "left": "غادر {name}",
+      "password": "كلمة المرور",
+      "passwordOptional": "كلمة المرور (اختياري)",
+      "createRoom": "إنشاء غرفة",
+      "passwordRequired": "هذه الغرفة تتطلب كلمة مرور",
+      "enter": "دخول",
+      "joinFailed": "تعذّر الاتصال — كلمة مرور خاطئة أو غرفة فارغة"
     },
     "search": {
       "label": "بحث",
