@@ -647,7 +647,9 @@
     },
     "download": "Arquivo",
     "fromFile": "De arquivo",
-    "selectHint": "Selecione uma peça pra editar."
+    "selectHint": "Selecione uma peça pra editar.",
+    "undo": "desfazer",
+    "redo": "refazer"
   },
   "events": {
     "title": "calendário de eventos",
