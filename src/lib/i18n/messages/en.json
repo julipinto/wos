@@ -649,7 +649,8 @@
     "fromFile": "From file",
     "selectHint": "Select a piece to edit its tags.",
     "undo": "undo",
-    "redo": "redo"
+    "redo": "redo",
+    "duplicate": "duplicate"
   },
   "events": {
     "title": "event calendar",

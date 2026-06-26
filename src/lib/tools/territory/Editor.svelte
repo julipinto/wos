@@ -14,6 +14,7 @@
     furnaceOptions: { value: string; label: string }[];
     setTag: (key: 'name' | 'label' | 'furnace' | 'power', value: string | number) => void;
     toggleBear: (n: number) => void;
+    onDuplicate: () => void;
     onRemove: () => void;
     onClose: () => void;
   }
@@ -26,6 +27,7 @@
     furnaceOptions,
     setTag,
     toggleBear,
+    onDuplicate,
     onRemove,
     onClose
   }: Props = $props();
@@ -88,7 +90,12 @@
       {/if}
     {/if}
   </div>
-  <button class="ed-remove" type="button" onclick={onRemove}>× {i18n.m.territory.remove}</button>
+  <div class="ed-actions">
+    <button class="ed-dup" type="button" onclick={onDuplicate}
+      >⧉ {i18n.m.territory.duplicate}</button
+    >
+    <button class="ed-remove" type="button" onclick={onRemove}>× {i18n.m.territory.remove}</button>
+  </div>
 </div>
 
 <style>
@@ -152,8 +159,26 @@
     text-transform: uppercase;
     color: var(--text-dim);
   }
-  .ed-remove {
+  .ed-actions {
     margin-top: 12px;
+    display: flex;
+    gap: 8px;
+  }
+  .ed-dup {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    color: var(--text-mid);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 7px 14px;
+    cursor: pointer;
+  }
+  .ed-dup:hover {
+    color: var(--accent);
+    border-color: var(--border-accent);
+  }
+  .ed-remove {
     background: transparent;
     border: 1px solid rgba(251, 113, 133, 0.4);
     border-radius: var(--r-pill);

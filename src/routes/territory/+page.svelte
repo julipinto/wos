@@ -21,6 +21,7 @@
     FURNACE_LEVELS,
     exportLayout,
     importLayout,
+    collides,
     type PlacedObject,
     type TerritoryType
   } from '$lib/tools/territory/territory';
@@ -238,6 +239,39 @@
     selectedIds = [];
     persist();
   }
+
+  // ── Duplicate / copy-paste ──────────────────────────────────────────────
+  const newId = (type: string) =>
+    `${type}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+  /** Drop clones of `src` onto the board at the first diagonal offset that fits. */
+  function placeClones(src: PlacedObject[]) {
+    if (!src.length) return;
+    let off = 2;
+    const fits = (k: number) =>
+      src.every((o) => !collides(objects, { ...o, id: '__t', x: o.x + k, y: o.y + k }, '__t'));
+    while (off <= 16 && !fits(off)) off++;
+    const copies = src.map((o) => ({
+      ...o,
+      bear: o.bear ? [...o.bear] : undefined,
+      id: newId(o.type),
+      x: o.x + off,
+      y: o.y + off
+    }));
+    objects.push(...copies);
+    selectedIds = copies.map((c) => c.id);
+    persist();
+  }
+  const selectedObjects = () => objects.filter((o) => selectedIds.includes(o.id));
+  function duplicateSelected() {
+    placeClones(selectedObjects());
+  }
+  let clipboard: PlacedObject[] = [];
+  function copySelection() {
+    clipboard = selectedObjects().map((o) => ({ ...o, bear: o.bear ? [...o.bear] : undefined }));
+  }
+  function pasteClipboard() {
+    placeClones(clipboard);
+  }
   function reset() {
     objects.splice(0, objects.length);
     selectedIds = [];
@@ -336,16 +370,33 @@
     if (parsed && parsed.objects.length) applyImport(parsed);
   });
 
-  // Ctrl/Cmd+Z = undo, Ctrl/Cmd+Shift+Z or Ctrl+Y = redo. Skip while typing in
-  // a field so the browser's own text undo still works there.
+  // Keyboard shortcuts. Skip while typing in a field so the browser's own
+  // editing (text undo, copy, etc.) still works there.
   onMount(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!(e.ctrlKey || e.metaKey) || (e.key !== 'z' && e.key !== 'y')) return;
       const el = document.activeElement?.tagName;
-      if (el === 'INPUT' || el === 'TEXTAREA') return;
-      e.preventDefault();
-      if (e.key === 'y' || e.shiftKey) redo();
-      else undo();
+      if (el === 'INPUT' || el === 'TEXTAREA' || el === 'SELECT') return;
+      const mod = e.ctrlKey || e.metaKey;
+      if (mod && (e.key === 'z' || e.key === 'y')) {
+        e.preventDefault();
+        if (e.key === 'y' || e.shiftKey) redo();
+        else undo();
+      } else if (mod && e.key === 'd') {
+        e.preventDefault();
+        duplicateSelected();
+      } else if (mod && e.key === 'c') {
+        copySelection();
+      } else if (mod && e.key === 'v') {
+        e.preventDefault();
+        pasteClipboard();
+      } else if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (selectedIds.length) {
+          e.preventDefault();
+          removeSelected();
+        }
+      } else if (e.key === 'Escape') {
+        selectedIds = [];
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -460,6 +511,9 @@
           <span class="group-count"
             >{fmt(i18n.m.territory.selectedN, { n: selectedIds.length })}</span
           >
+          <button class="reset" type="button" onclick={duplicateSelected}>
+            ⧉ {i18n.m.territory.duplicate}
+          </button>
           <button class="reset" type="button" onclick={removeSelected}>
             × {i18n.m.territory.remove}
           </button>
@@ -477,6 +531,7 @@
           {furnaceOptions}
           {setTag}
           {toggleBear}
+          onDuplicate={duplicateSelected}
           onRemove={removeSelected}
           onClose={() => (selectedIds = [])}
         />
