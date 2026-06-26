@@ -688,6 +688,7 @@
       "enter": "Entrar",
       "joinFailed": "Não conectou — senha errada ou sala vazia"
     },
+    "shareProject": "Compartilhar projeto",
     "export": {
       "button": "Exportar",
       "title": "Exportar imagem / dados",
