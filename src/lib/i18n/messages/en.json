@@ -675,7 +675,13 @@
       "online": "Online",
       "yourName": "Your name",
       "joined": "{name} joined",
-      "left": "{name} left"
+      "left": "{name} left",
+      "password": "Password",
+      "passwordOptional": "Password (optional)",
+      "createRoom": "Create room",
+      "passwordRequired": "This room needs a password",
+      "enter": "Join",
+      "joinFailed": "Couldn't connect — wrong password or empty room"
     },
     "search": {
       "label": "Search",

@@ -510,10 +510,10 @@
     const hit = objects.find((o) => footprintCells(o).includes(`${x},${y}`));
 
     if (boardMode === 'view') {
-      // Drag = pan; remember the hit so a tap can still select it.
+      // Drag ALWAYS pans (even over a piece — a filled hive has no empty space to
+      // grab); a clean tap on a piece still selects it (handled on pointerup).
       dragId = hit?.id ?? null;
-      dragOff = hit ? { x: x - hit.x, y: y - hit.y } : { x: 0, y: 0 };
-      if (!hit) startPan(e);
+      startPan(e);
     } else if (hit) {
       dragId = hit.id;
       dragOff = { x: x - hit.x, y: y - hit.y };
@@ -639,8 +639,10 @@
         })
         .map((o) => o.id);
     } else if (dragId) {
-      if (moved) onPersist();
-      else selectedIds = [dragId]; // a tap selects one
+      // Moved in edit = an object was dragged (persist); moved in view = just a
+      // pan (do nothing). A clean tap selects the piece in either mode.
+      if (!moved) selectedIds = [dragId];
+      else if (boardMode === 'edit') onPersist();
     } else if (pendingPlace && !moved && boardMode === 'edit') {
       const def = OBJECT_DEFS[tool];
       const candidate: PlacedObject = {

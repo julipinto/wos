@@ -675,7 +675,13 @@
       "online": "В сети",
       "yourName": "Ваше имя",
       "joined": "{name} вошёл",
-      "left": "{name} вышел"
+      "left": "{name} вышел",
+      "password": "Пароль",
+      "passwordOptional": "Пароль (необязательно)",
+      "createRoom": "Создать комнату",
+      "passwordRequired": "Комната требует пароль",
+      "enter": "Войти",
+      "joinFailed": "Не удалось подключиться — неверный пароль или пустая комната"
     },
     "search": {
       "label": "Поиск",

@@ -675,7 +675,13 @@
       "online": "Online",
       "yourName": "Seu nome",
       "joined": "{name} entrou",
-      "left": "{name} saiu"
+      "left": "{name} saiu",
+      "password": "Senha",
+      "passwordOptional": "Senha (opcional)",
+      "createRoom": "Criar sala",
+      "passwordRequired": "Esta sala pede senha",
+      "enter": "Entrar",
+      "joinFailed": "Não conectou — senha errada ou sala vazia"
     },
     "search": {
       "label": "Buscar",
