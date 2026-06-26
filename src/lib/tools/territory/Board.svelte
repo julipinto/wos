@@ -129,9 +129,13 @@
   });
   // Other peers' live cursors (self excluded), positioned over the board.
   const remoteCursors = $derived(peers.filter((p) => !p.self && p.cursor));
-  // Font scales gently with zoom but is clamped — readable on the overview,
-  // not cartoonish up close (mirrors wostools' clamp(min, k·cell, max)).
-  const labelFont = $derived(Math.max(10, Math.min(22, 7 * zoom + 5)));
+  // Label font must be PROPORTIONAL to the rendered cell, not a fixed px size —
+  // otherwise on a 60×60 board (tiny cells) the text dwarfs the grid. We measure
+  // the board's pixel width and derive cell px = boardPx/60 · zoom (× an iso
+  // squash factor), then font = clamp(min, 0.45·cell, max). Mirrors wostools.
+  let scrollerW = $state(0);
+  const cellPx = $derived(((scrollerW || 600) * zoom * (view === 'iso' ? 0.62 : 1)) / N);
+  const labelFont = $derived(Math.max(7, Math.min(16, 0.45 * cellPx)));
   // Which objects get a label, precomputed (name/furnace + optional sub-label).
   const labelled = $derived.by(() => {
     if (!showLabels) return [];
@@ -430,6 +434,11 @@
     el?.addEventListener('wheel', wheel, { passive: false });
     const onScroll = () => computeViewport();
     el?.addEventListener('scroll', onScroll, { passive: true });
+    // Track the board's pixel width so label fonts stay proportional to the cells.
+    const measure = () => (scrollerW = el?.clientWidth ?? 0);
+    measure();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null;
+    if (el && ro) ro.observe(el);
     // Land framed on the hive (not the empty 60×60) once layout settles.
     requestAnimationFrame(() => {
       if (objects.length) fit();
@@ -438,6 +447,7 @@
     return () => {
       el?.removeEventListener('wheel', wheel);
       el?.removeEventListener('scroll', onScroll);
+      ro?.disconnect();
     };
   });
   // Recompute the viewport whenever zoom or view changes the projection (reading
@@ -1041,11 +1051,16 @@
   .tile-label.bear {
     transform: translate(-50%, 6%);
   }
+  /* Outline (not a solid chip) so dense labels stay legible where they overlap —
+     the wostools look. Multi-directional text-shadow fakes a crisp stroke. */
   .tl-name,
   .tl-sub {
-    padding: 1px 5px;
-    border-radius: 4px;
-    background: rgba(15, 25, 40, 0.82);
+    text-shadow:
+      0 0 2px rgba(0, 0, 0, 0.95),
+      1px 1px 1.5px rgba(0, 0, 0, 0.9),
+      -1px -1px 1.5px rgba(0, 0, 0, 0.9),
+      1px -1px 1.5px rgba(0, 0, 0, 0.9),
+      -1px 1px 1.5px rgba(0, 0, 0, 0.9);
   }
   .tl-name {
     color: #fff;
