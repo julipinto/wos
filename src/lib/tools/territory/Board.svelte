@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount, tick } from 'svelte';
   import {
     OBJECT_DEFS,
     computeTerritory,
@@ -30,7 +31,7 @@
     selectedIds = $bindable(),
     bearFocus = $bindable(),
     view,
-    zoom,
+    zoom = $bindable(),
     boardMode,
     tool,
     showLabels,
@@ -145,6 +146,83 @@
       ? { cx: e.clientX, cy: e.clientY, left: scroller.scrollLeft, top: scroller.scrollTop }
       : null;
   }
+
+  // ── Zoom (wheel-to-cursor / pinch / fit) ────────────────────────────────
+  const MINZ = 1;
+  const MAXZ = 3;
+  /** Zoom keeping the point under (clientX,clientY) fixed. Content scales by an
+   *  exact ratio, so the new scroll is pure math (applied once width relays). */
+  async function zoomAt(target: number, clientX: number, clientY: number) {
+    if (!scroller) return;
+    const next = Math.min(MAXZ, Math.max(MINZ, +target.toFixed(2)));
+    if (next === zoom) return;
+    const rect = scroller.getBoundingClientRect();
+    const ax = clientX - rect.left;
+    const ay = clientY - rect.top;
+    const beforeX = scroller.scrollLeft + ax;
+    const beforeY = scroller.scrollTop + ay;
+    const ratio = next / zoom;
+    zoom = next;
+    await tick();
+    if (!scroller) return;
+    scroller.scrollLeft = beforeX * ratio - ax;
+    scroller.scrollTop = beforeY * ratio - ay;
+  }
+  function onWheel(e: WheelEvent) {
+    e.preventDefault();
+    zoomAt(zoom * (e.deltaY < 0 ? 1.15 : 1 / 1.15), e.clientX, e.clientY);
+  }
+
+  /** Fit the placed objects into view — uses the live CTM so it works in iso too. */
+  async function fit() {
+    if (!scroller) return;
+    if (!objects.length || !plane) {
+      scroller.scrollLeft = 0;
+      scroller.scrollTop = 0;
+      return;
+    }
+    const ctm = plane.getScreenCTM();
+    if (!ctm) return;
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    for (const o of objects) {
+      const def = OBJECT_DEFS[o.type];
+      minX = Math.min(minX, o.x);
+      minY = Math.min(minY, o.y);
+      maxX = Math.max(maxX, o.x + def.w);
+      maxY = Math.max(maxY, o.y + def.h);
+    }
+    const pts = [
+      [minX, minY],
+      [maxX, minY],
+      [minX, maxY],
+      [maxX, maxY]
+    ].map(([x, y]) => new DOMPoint(x, y).matrixTransform(ctm));
+    const xs = pts.map((p) => p.x);
+    const ys = pts.map((p) => p.y);
+    const sw = Math.max(...xs) - Math.min(...xs) || 1;
+    const sh = Math.max(...ys) - Math.min(...ys) || 1;
+    const rect = scroller.getBoundingClientRect();
+    const scale = Math.min((rect.width * 0.85) / sw, (rect.height * 0.85) / sh);
+    const next = Math.min(MAXZ, Math.max(MINZ, +(zoom * scale).toFixed(2)));
+    const ratio = next / zoom;
+    const contentCx = scroller.scrollLeft + ((Math.min(...xs) + Math.max(...xs)) / 2 - rect.left);
+    const contentCy = scroller.scrollTop + ((Math.min(...ys) + Math.max(...ys)) / 2 - rect.top);
+    zoom = next;
+    await tick();
+    if (!scroller) return;
+    scroller.scrollLeft = contentCx * ratio - rect.width / 2;
+    scroller.scrollTop = contentCy * ratio - rect.height / 2;
+  }
+
+  onMount(() => {
+    const el = scroller;
+    const wheel = (e: WheelEvent) => onWheel(e);
+    el?.addEventListener('wheel', wheel, { passive: false });
+    return () => el?.removeEventListener('wheel', wheel);
+  });
   function onPointerDown(e: PointerEvent) {
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
@@ -158,6 +236,16 @@
         const m = midpoint();
         twoPan = { cx: m.x, cy: m.y, left: scroller.scrollLeft, top: scroller.scrollTop };
       }
+      e.preventDefault();
+      return;
+    }
+    // Middle-mouse drag pans from any mode (so Edit doesn't have to switch tools).
+    if (e.button === 1) {
+      moved = false;
+      dragId = pendingPlace = null;
+      group = null;
+      marquee = null;
+      startPan(e);
       e.preventDefault();
       return;
     }
@@ -344,149 +432,177 @@
   }
 </script>
 
-<div class="board-scroll" bind:this={scroller}>
-  <div class="board" class:iso={view === 'iso'} style="width: {zoom * 100}%">
-    <svg
-      {viewBox}
-      class="grid"
-      class:view={boardMode === 'view'}
-      onpointerdown={onPointerDown}
-      onpointermove={onPointerMove}
-      onpointerup={onPointerUp}
-      onpointercancel={onPointerUp}
-      ondblclick={onGridRemove}
-      role="application"
-      aria-label="grid"
-    >
-      <defs>
-        <pattern id="cells" width="1" height="1" patternUnits="userSpaceOnUse">
-          <rect
-            width="1"
-            height="1"
-            fill="none"
-            stroke="rgba(255,255,255,0.06)"
-            stroke-width="0.03"
-          />
-        </pattern>
-      </defs>
-      <!-- panel backdrop, generously sized to cover both viewBoxes -->
-      <rect x={-10} y={-10} width={N + 20} height={N + 20} fill="var(--bg)" />
-      <g bind:this={plane} transform={planeTransform}>
-        <!-- the playable floor — lighter than the backdrop so the iso diamond
+<div class="board-wrap">
+  <button class="fit-btn" type="button" onclick={fit} title="Fit" aria-label="Fit">⊡</button>
+  <div class="board-scroll" bind:this={scroller}>
+    <div class="board" class:iso={view === 'iso'} style="width: {zoom * 100}%">
+      <svg
+        {viewBox}
+        class="grid"
+        class:view={boardMode === 'view'}
+        onpointerdown={onPointerDown}
+        onpointermove={onPointerMove}
+        onpointerup={onPointerUp}
+        onpointercancel={onPointerUp}
+        ondblclick={onGridRemove}
+        role="application"
+        aria-label="grid"
+      >
+        <defs>
+          <pattern id="cells" width="1" height="1" patternUnits="userSpaceOnUse">
+            <rect
+              width="1"
+              height="1"
+              fill="none"
+              stroke="rgba(255,255,255,0.06)"
+              stroke-width="0.03"
+            />
+          </pattern>
+        </defs>
+        <!-- panel backdrop, generously sized to cover both viewBoxes -->
+        <rect x={-10} y={-10} width={N + 20} height={N + 20} fill="var(--bg)" />
+        <g bind:this={plane} transform={planeTransform}>
+          <!-- the playable floor — lighter than the backdrop so the iso diamond
              reads as a distinct surface -->
-        <rect width={N} height={N} fill="var(--bg-soft)" />
-        <!-- banner reach (7×7), subtle amber under everything -->
-        {#each reachCells as c (c.x + '_' + c.y)}
-          <rect x={c.x} y={c.y} width="1" height="1" fill="rgba(251,191,36,0.1)" />
-        {/each}
-        <!-- connected territory -->
-        {#each territoryCells as c (c.x + '_' + c.y)}
-          <rect x={c.x} y={c.y} width="1" height="1" fill="rgba(147,212,255,0.16)" />
-        {/each}
-        <rect width={N} height={N} fill="url(#cells)" />
-        <!-- objects -->
-        {#each objects as o (o.id)}
-          {@const def = OBJECT_DEFS[o.type]}
-          {@const orphan = territory.orphaned.has(o.id)}
-          {@const sel = selectedIds.includes(o.id)}
-          {@const lit = inFocus(o)}
-          <rect
-            class="obj"
-            x={o.x + 0.08}
-            y={o.y + 0.08}
-            width={def.w - 0.16}
-            height={def.h - 0.16}
-            rx="0.18"
-            fill={heatmap ? heatColor(o.power) : def.color}
-            fill-opacity={!lit ? 0.12 : orphan && !heatmap ? 0.25 : 0.85}
-            stroke={sel
-              ? '#ffffff'
-              : bearFocus > 0 && lit && o.type === 'bearTrap'
-                ? '#fbbf24'
-                : orphan
-                  ? '#fb7185'
-                  : 'rgba(0,0,0,0.3)'}
-            stroke-width={sel
-              ? 0.16
-              : bearFocus > 0 && lit && o.type === 'bearTrap'
-                ? 0.18
-                : orphan
-                  ? 0.12
-                  : 0.05}
-          />
-        {/each}
-        {#if marquee}
-          <rect
-            class="marquee"
-            x={Math.min(marquee.x0, marquee.x1)}
-            y={Math.min(marquee.y0, marquee.y1)}
-            width={Math.abs(marquee.x1 - marquee.x0)}
-            height={Math.abs(marquee.y1 - marquee.y0)}
-          />
-        {/if}
-      </g>
-      <!-- Labels live OUTSIDE the transformed group so they stay upright even
-           in iso (positioned via the iso projection). -->
-      {#if showLabels}
-        {#each objects as o (o.id)}
-          <!-- bears have no furnace, so always show their name; cities follow the toggle -->
-          {@const primary =
-            o.type === 'bearTrap' ? o.name : labelField === 'name' ? o.name : o.furnace}
-          {#if primary || o.label}
+          <rect width={N} height={N} fill="var(--bg-soft)" />
+          <!-- banner reach (7×7), subtle amber under everything -->
+          {#each reachCells as c (c.x + '_' + c.y)}
+            <rect x={c.x} y={c.y} width="1" height="1" fill="rgba(251,191,36,0.1)" />
+          {/each}
+          <!-- connected territory -->
+          {#each territoryCells as c (c.x + '_' + c.y)}
+            <rect x={c.x} y={c.y} width="1" height="1" fill="rgba(147,212,255,0.16)" />
+          {/each}
+          <rect width={N} height={N} fill="url(#cells)" />
+          <!-- objects -->
+          {#each objects as o (o.id)}
             {@const def = OBJECT_DEFS[o.type]}
-            {@const cx = o.x + def.w / 2}
-            {@const cy = o.y + def.h / 2}
-            {@const both = !!primary && !!o.label}
-            {@const bear = o.type === 'bearTrap'}
-            <!-- Offsets are in GRID units, then projected — so they're the right
-                 scale in iso too. Bears push name/label below their centred number. -->
-            {@const nameDy = bear ? 0.8 : both ? -0.28 : 0}
-            {@const labelDy = bear ? (primary ? 1.2 : 0.8) : both ? 0.28 : 0}
-            {@const nameP = view === 'iso' ? isoPoint(cx, cy + nameDy) : { x: cx, y: cy + nameDy }}
-            {@const labelP =
-              view === 'iso' ? isoPoint(cx, cy + labelDy) : { x: cx, y: cy + labelDy }}
-            {#if primary}
-              <text
-                class="tile-label"
-                x={nameP.x}
-                y={nameP.y}
-                text-anchor="middle"
-                dominant-baseline="central">{primary}</text
-              >
-            {/if}
-            {#if o.label}
-              <text
-                class="tile-label tile-sub"
-                x={labelP.x}
-                y={labelP.y}
-                text-anchor="middle"
-                dominant-baseline="central">{o.label}</text
-              >
-            {/if}
+            {@const orphan = territory.orphaned.has(o.id)}
+            {@const sel = selectedIds.includes(o.id)}
+            {@const lit = inFocus(o)}
+            <rect
+              class="obj"
+              x={o.x + 0.08}
+              y={o.y + 0.08}
+              width={def.w - 0.16}
+              height={def.h - 0.16}
+              rx="0.18"
+              fill={heatmap ? heatColor(o.power) : def.color}
+              fill-opacity={!lit ? 0.12 : orphan && !heatmap ? 0.25 : 0.85}
+              stroke={sel
+                ? '#ffffff'
+                : bearFocus > 0 && lit && o.type === 'bearTrap'
+                  ? '#fbbf24'
+                  : orphan
+                    ? '#fb7185'
+                    : 'rgba(0,0,0,0.3)'}
+              stroke-width={sel
+                ? 0.16
+                : bearFocus > 0 && lit && o.type === 'bearTrap'
+                  ? 0.18
+                  : orphan
+                    ? 0.12
+                    : 0.05}
+            />
+          {/each}
+          {#if marquee}
+            <rect
+              class="marquee"
+              x={Math.min(marquee.x0, marquee.x1)}
+              y={Math.min(marquee.y0, marquee.y1)}
+              width={Math.abs(marquee.x1 - marquee.x0)}
+              height={Math.abs(marquee.y1 - marquee.y0)}
+            />
           {/if}
-        {/each}
-      {/if}
-      <!-- Bear-trap numbers (1..3) — always shown, upright, so cities can be
+        </g>
+        <!-- Labels live OUTSIDE the transformed group so they stay upright even
+           in iso (positioned via the iso projection). -->
+        {#if showLabels}
+          {#each objects as o (o.id)}
+            <!-- bears have no furnace, so always show their name; cities follow the toggle -->
+            {@const primary =
+              o.type === 'bearTrap' ? o.name : labelField === 'name' ? o.name : o.furnace}
+            {#if primary || o.label}
+              {@const def = OBJECT_DEFS[o.type]}
+              {@const cx = o.x + def.w / 2}
+              {@const cy = o.y + def.h / 2}
+              {@const both = !!primary && !!o.label}
+              {@const bear = o.type === 'bearTrap'}
+              <!-- Offsets are in GRID units, then projected — so they're the right
+                 scale in iso too. Bears push name/label below their centred number. -->
+              {@const nameDy = bear ? 0.8 : both ? -0.28 : 0}
+              {@const labelDy = bear ? (primary ? 1.2 : 0.8) : both ? 0.28 : 0}
+              {@const nameP =
+                view === 'iso' ? isoPoint(cx, cy + nameDy) : { x: cx, y: cy + nameDy }}
+              {@const labelP =
+                view === 'iso' ? isoPoint(cx, cy + labelDy) : { x: cx, y: cy + labelDy }}
+              {#if primary}
+                <text
+                  class="tile-label"
+                  x={nameP.x}
+                  y={nameP.y}
+                  text-anchor="middle"
+                  dominant-baseline="central">{primary}</text
+                >
+              {/if}
+              {#if o.label}
+                <text
+                  class="tile-label tile-sub"
+                  x={labelP.x}
+                  y={labelP.y}
+                  text-anchor="middle"
+                  dominant-baseline="central">{o.label}</text
+                >
+              {/if}
+            {/if}
+          {/each}
+        {/if}
+        <!-- Bear-trap numbers (1..3) — always shown, upright, so cities can be
            matched to the trap they join. -->
-      {#each bearTraps as bt, i (bt.id)}
-        {@const def = OBJECT_DEFS[bt.type]}
-        {@const cx = bt.x + def.w / 2}
-        {@const cy = bt.y + def.h / 2}
-        {@const p = view === 'iso' ? isoPoint(cx, cy) : { x: cx, y: cy }}
-        <text
-          class="bear-num"
-          class:dim={!inFocus(bt)}
-          x={p.x}
-          y={p.y}
-          text-anchor="middle"
-          dominant-baseline="central">{i + 1}</text
-        >
-      {/each}
-    </svg>
+        {#each bearTraps as bt, i (bt.id)}
+          {@const def = OBJECT_DEFS[bt.type]}
+          {@const cx = bt.x + def.w / 2}
+          {@const cy = bt.y + def.h / 2}
+          {@const p = view === 'iso' ? isoPoint(cx, cy) : { x: cx, y: cy }}
+          <text
+            class="bear-num"
+            class:dim={!inFocus(bt)}
+            x={p.x}
+            y={p.y}
+            text-anchor="middle"
+            dominant-baseline="central">{i + 1}</text
+          >
+        {/each}
+      </svg>
+    </div>
   </div>
 </div>
 
 <style>
+  .board-wrap {
+    position: relative;
+  }
+  .fit-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 5;
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-mid);
+    font-size: 16px;
+    cursor: pointer;
+  }
+  .fit-btn:hover {
+    color: var(--accent);
+    border-color: var(--border-accent);
+  }
   .board-scroll {
     overflow: auto;
     border: 1px solid var(--border);

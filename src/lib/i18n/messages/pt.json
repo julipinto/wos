@@ -650,7 +650,8 @@
     "selectHint": "Selecione uma peça pra editar.",
     "undo": "desfazer",
     "redo": "refazer",
-    "duplicate": "duplicar"
+    "duplicate": "duplicar",
+    "objectsN": "{n} objetos"
   },
   "events": {
     "title": "calendário de eventos",
