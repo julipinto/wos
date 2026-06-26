@@ -10,6 +10,7 @@
   import Palette from '$lib/tools/territory/Palette.svelte';
   import Controls from '$lib/tools/territory/Controls.svelte';
   import Board from '$lib/tools/territory/Board.svelte';
+  import Search from '$lib/tools/territory/Search.svelte';
   import Editor from '$lib/tools/territory/Editor.svelte';
   import MapsPanel from '$lib/tools/territory/MapsPanel.svelte';
   import { TERRITORY_SLIDES } from '$lib/tools/territory/tutorial';
@@ -278,6 +279,18 @@
     persist();
   }
 
+  // ── Search / go-to ──────────────────────────────────────────────────────
+  let board = $state<ReturnType<typeof Board>>();
+  function focusObject(o: PlacedObject) {
+    const def = OBJECT_DEFS[o.type];
+    selectedIds = [o.id];
+    board?.focusCell(o.x + def.w / 2, o.y + def.h / 2);
+  }
+  function gotoCoord(x: number, y: number) {
+    selectedIds = [];
+    board?.focusCell(x + 0.5, y + 0.5);
+  }
+
   // Precompute the share link (off the current page URL, so it follows the host)
   // whenever the layout/mode changes. Compression is async, so doing it here and
   // copying synchronously on click keeps the clipboard gesture valid (Safari).
@@ -488,6 +501,7 @@
   />
 
   {#if objects.length > 0}
+    <Search {objects} nameOf={objName} onPick={focusObject} onGoto={gotoCoord} />
     <p class="obj-count">
       {fmt(i18n.m.territory.objectsN, { n: objects.length })}{#if selectedIds.length > 0}
         · {fmt(i18n.m.territory.selectedN, { n: selectedIds.length })}{/if}
@@ -497,6 +511,7 @@
   <div class="stage">
     <div class="stage-board">
       <Board
+        bind:this={board}
         {objects}
         bind:selectedIds
         bind:bearFocus

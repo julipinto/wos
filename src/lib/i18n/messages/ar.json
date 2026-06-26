@@ -651,7 +651,13 @@
     "undo": "تراجع",
     "redo": "إعادة",
     "duplicate": "تكرار",
-    "objectsN": "{n} عناصر"
+    "objectsN": "{n} عناصر",
+    "search": {
+      "label": "بحث",
+      "placeholder": "ابحث بالاسم/التسمية أو x,y…",
+      "goto": "اذهب إلى",
+      "none": "لا توجد نتائج"
+    }
   },
   "events": {
     "title": "تقويم الأحداث",

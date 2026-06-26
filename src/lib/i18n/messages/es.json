@@ -651,7 +651,13 @@
     "undo": "deshacer",
     "redo": "rehacer",
     "duplicate": "duplicar",
-    "objectsN": "{n} objetos"
+    "objectsN": "{n} objetos",
+    "search": {
+      "label": "Buscar",
+      "placeholder": "Buscar nombre/etiqueta o x,y…",
+      "goto": "ir a",
+      "none": "Sin resultados"
+    }
   },
   "events": {
     "title": "calendario de eventos",

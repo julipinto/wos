@@ -651,7 +651,13 @@
     "undo": "undo",
     "redo": "redo",
     "duplicate": "duplicate",
-    "objectsN": "{n} objects"
+    "objectsN": "{n} objects",
+    "search": {
+      "label": "Search",
+      "placeholder": "Search name/label or x,y…",
+      "goto": "go to",
+      "none": "No matches"
+    }
   },
   "events": {
     "title": "event calendar",
