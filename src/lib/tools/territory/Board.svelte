@@ -113,6 +113,22 @@
     const def = OBJECT_DEFS[o.type];
     return gridToPct(o.x + def.w / 2, o.y + def.h / 2);
   }
+  // Octagon inscribed in a rect — bear traps render as octagons (game icon shape).
+  function octagon(x0: number, y0: number, x1: number, y1: number): string {
+    const c = Math.min(x1 - x0, y1 - y0) * 0.29;
+    return [
+      [x0 + c, y0],
+      [x1 - c, y0],
+      [x1, y0 + c],
+      [x1, y1 - c],
+      [x1 - c, y1],
+      [x0 + c, y1],
+      [x0, y1 - c],
+      [x0, y0 + c]
+    ]
+      .map((p) => p.join(','))
+      .join(' ');
+  }
   // Other peers' selections → coloured halos (rendered in the transformed plane).
   const remoteSel = $derived.by(() => {
     const out: { key: string; color: string; x: number; y: number; w: number; h: number }[] = [];
@@ -290,7 +306,7 @@
   // so the floor goes below 100% to let the whole hive fit on screen at once;
   // the ceiling goes higher for fine single-cell work. Keep in sync with Controls.
   const MINZ = 0.35;
-  const MAXZ = 4;
+  const MAXZ = 8;
   /** Zoom keeping the point under (clientX,clientY) fixed. Content scales by an
    *  exact ratio, so the new scroll is pure math (applied once width relays). */
   async function zoomAt(target: number, clientX: number, clientY: number) {
@@ -748,30 +764,46 @@
             {@const orphan = territory.orphaned.has(o.id)}
             {@const sel = selectedIds.includes(o.id)}
             {@const lit = inFocus(o) && hiOk(o)}
-            <rect
-              class="obj"
-              x={o.x + 0.08}
-              y={o.y + 0.08}
-              width={def.w - 0.16}
-              height={def.h - 0.16}
-              rx="0.18"
-              fill={heatmap ? heatColor(o.power) : def.color}
-              fill-opacity={!lit ? 0.12 : orphan && !heatmap ? 0.25 : 0.85}
-              stroke={sel
-                ? '#ffffff'
-                : bearFocus > 0 && lit && o.type === 'bearTrap'
-                  ? '#fbbf24'
-                  : orphan
-                    ? '#fb7185'
-                    : 'rgba(0,0,0,0.3)'}
-              stroke-width={sel
-                ? 0.16
-                : bearFocus > 0 && lit && o.type === 'bearTrap'
-                  ? 0.18
-                  : orphan
-                    ? 0.12
-                    : 0.05}
-            />
+            {@const fillC = heatmap ? heatColor(o.power) : def.color}
+            {@const fillO = !lit ? 0.12 : orphan && !heatmap ? 0.25 : 0.85}
+            {@const strokeC = sel
+              ? '#ffffff'
+              : bearFocus > 0 && lit && o.type === 'bearTrap'
+                ? '#fbbf24'
+                : orphan
+                  ? '#fb7185'
+                  : 'rgba(0,0,0,0.3)'}
+            {@const strokeW = sel
+              ? 0.16
+              : bearFocus > 0 && lit && o.type === 'bearTrap'
+                ? 0.18
+                : orphan
+                  ? 0.12
+                  : 0.05}
+            {#if o.type === 'bearTrap'}
+              <polygon
+                class="obj"
+                points={octagon(o.x + 0.08, o.y + 0.08, o.x + def.w - 0.08, o.y + def.h - 0.08)}
+                fill={fillC}
+                fill-opacity={fillO}
+                stroke={strokeC}
+                stroke-width={strokeW}
+                stroke-linejoin="round"
+              />
+            {:else}
+              <rect
+                class="obj"
+                x={o.x + 0.08}
+                y={o.y + 0.08}
+                width={def.w - 0.16}
+                height={def.h - 0.16}
+                rx="0.18"
+                fill={fillC}
+                fill-opacity={fillO}
+                stroke={strokeC}
+                stroke-width={strokeW}
+              />
+            {/if}
           {/each}
           {#if hoverCell && boardMode === 'edit'}
             <rect class="hover" x={hoverCell.x} y={hoverCell.y} width="1" height="1" />
