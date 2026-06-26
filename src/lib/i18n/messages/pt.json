@@ -658,6 +658,8 @@
     "redo": "refazer",
     "duplicate": "duplicar",
     "objectsN": "{n} objetos",
+    "bulkEdit": "Editar todos",
+    "convert": "Converter para",
     "fit": "Enquadrar",
     "jumpHq": "Ir para o QG",
     "jumpBear": "Ir para o bear trap",
