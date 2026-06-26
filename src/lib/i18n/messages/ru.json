@@ -663,6 +663,7 @@
     "fit": "Вписать",
     "jumpHq": "К штабу",
     "jumpBear": "К ловушке",
+    "highlight": "Подсветка",
     "search": {
       "label": "Поиск",
       "placeholder": "Поиск по имени/метке или x,y…",

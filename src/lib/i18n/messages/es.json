@@ -663,6 +663,7 @@
     "fit": "Ajustar",
     "jumpHq": "Ir al cuartel",
     "jumpBear": "Ir a la trampa de oso",
+    "highlight": "Resaltar",
     "search": {
       "label": "Buscar",
       "placeholder": "Buscar nombre/etiqueta o x,y…",

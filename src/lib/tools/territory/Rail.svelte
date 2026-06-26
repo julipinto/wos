@@ -1,6 +1,7 @@
 <script lang="ts">
   import { i18n } from '$lib/i18n/index.svelte';
   import Segmented from '$lib/components/Segmented.svelte';
+  import Select from '$lib/components/Select.svelte';
   import Palette from './Palette.svelte';
   import Legend from './Legend.svelte';
 
@@ -24,6 +25,8 @@
     labelField: 'furnace' | 'name';
     onLabelField: (f: 'furnace' | 'name') => void;
     heatmap: boolean;
+    highlight: string;
+    highlightOptions: { value: string; label: string }[];
     bearFocus: number;
     hasBears: boolean;
     bearCount: number;
@@ -43,6 +46,8 @@
     labelField,
     onLabelField,
     heatmap = $bindable(),
+    highlight = $bindable(),
+    highlightOptions,
     bearFocus = $bindable(),
     hasBears,
     bearCount,
@@ -122,6 +127,15 @@
         onChange={(v) => onLabelField(v as 'furnace' | 'name')}
       />
     {/if}
+    <div class="hi-row">
+      <span class="bf-label">{i18n.m.territory.highlight}</span>
+      <Select
+        value={highlight}
+        options={highlightOptions}
+        onChange={(v) => (highlight = v)}
+        ariaLabel={i18n.m.territory.highlight}
+      />
+    </div>
     {#if hasBears && bearCount > 0}
       <div class="bear-focus">
         <span class="bf-label">🐻 {i18n.m.territory.bearFocus}</span>
@@ -187,7 +201,8 @@
     border-color: var(--border-accent);
     background: var(--accent-glow);
   }
-  .bear-focus {
+  .bear-focus,
+  .hi-row {
     display: flex;
     flex-direction: column;
     gap: 6px;
