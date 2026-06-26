@@ -11,7 +11,7 @@
 
   // Keep in sync with Board.svelte's MINZ / MAXZ.
   const MINZ = 0.35;
-  const MAXZ = 4;
+  const MAXZ = 8;
   const STEP = 0.25;
 </script>
 
