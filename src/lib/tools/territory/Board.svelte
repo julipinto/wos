@@ -179,6 +179,27 @@
   let flashTimer: ReturnType<typeof setTimeout> | undefined;
   // The cell under the cursor — drives the crosshair + the live coordinate badge.
   let hoverCell = $state<{ x: number; y: number } | null>(null);
+  // Id of the object being dragged (reactive) → drives the alignment guides.
+  let activeDrag = $state<string | null>(null);
+  // Smart guides: while dragging one object, draw a line wherever its left/centre/
+  // right edge lines up with another object's edge — Figma-style alignment hints.
+  const guides = $derived.by(() => {
+    if (!activeDrag) return { v: [], h: [] };
+    const o = objects.find((p) => p.id === activeDrag);
+    if (!o) return { v: [], h: [] };
+    const d = OBJECT_DEFS[o.type];
+    const myX = [o.x, o.x + d.w / 2, o.x + d.w];
+    const myY = [o.y, o.y + d.h / 2, o.y + d.h];
+    const v = new Set<number>();
+    const h = new Set<number>();
+    for (const p of objects) {
+      if (p.id === o.id) continue;
+      const pd = OBJECT_DEFS[p.type];
+      for (const ex of [p.x, p.x + pd.w / 2, p.x + pd.w]) if (myX.includes(ex)) v.add(ex);
+      for (const ey of [p.y, p.y + pd.h / 2, p.y + pd.h]) if (myY.includes(ey)) h.add(ey);
+    }
+    return { v: [...v], h: [...h] };
+  });
   // Coordinate badge text: prefer the hovered cell, else the single selection.
   const readout = $derived.by(() => {
     if (hoverCell) return `${hoverCell.x},${hoverCell.y}`;
@@ -426,6 +447,8 @@
           objects.filter((o) => selectedIds.includes(o.id)).map((o) => [o.id, { x: o.x, y: o.y }])
         );
         group = { start, cx: x, cy: y };
+      } else {
+        activeDrag = hit.id; // single-object move → show alignment guides
       }
     } else {
       pendingPlace = { x, y };
@@ -559,6 +582,7 @@
     group = null;
     marquee = null;
     moved = false;
+    activeDrag = null;
   }
 
   // Right-click an object → the page opens a context menu (duplicate / remove).
@@ -685,6 +709,12 @@
           {#if hoverCell && boardMode === 'edit'}
             <rect class="hover" x={hoverCell.x} y={hoverCell.y} width="1" height="1" />
           {/if}
+          {#each guides.v as gx (gx)}
+            <line class="guide" x1={gx} y1="0" x2={gx} y2={N} />
+          {/each}
+          {#each guides.h as gy (gy)}
+            <line class="guide" x1="0" y1={gy} x2={N} y2={gy} />
+          {/each}
           {#if flash}
             {#key flash.n}
               <rect
@@ -843,6 +873,12 @@
     fill: rgba(147, 212, 255, 0.12);
     stroke: rgba(147, 212, 255, 0.6);
     stroke-width: 0.06;
+    pointer-events: none;
+  }
+  .guide {
+    stroke: #f472b6;
+    stroke-width: 0.05;
+    stroke-dasharray: 0.4 0.3;
     pointer-events: none;
   }
   .flash {
