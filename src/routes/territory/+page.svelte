@@ -3,12 +3,11 @@
   import { i18n, fmt } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import Icon from '$lib/components/Icon.svelte';
-  import Segmented from '$lib/components/Segmented.svelte';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import Tutorial from '$lib/components/Tutorial.svelte';
   import ModeBar from '$lib/tools/territory/ModeBar.svelte';
-  import Palette from '$lib/tools/territory/Palette.svelte';
   import Controls from '$lib/tools/territory/Controls.svelte';
+  import Rail from '$lib/tools/territory/Rail.svelte';
   import Board from '$lib/tools/territory/Board.svelte';
   import Search from '$lib/tools/territory/Search.svelte';
   import Editor from '$lib/tools/territory/Editor.svelte';
@@ -437,44 +436,25 @@
     onSelect={setMode}
   />
 
-  <div class="viewbar">
-    <Segmented
-      value={boardMode}
-      ariaLabel={i18n.m.territory.boardMode.label}
-      options={[
-        { value: 'edit', label: `✏️ ${i18n.m.territory.boardMode.edit}` },
-        { value: 'view', label: `🖐 ${i18n.m.territory.boardMode.view}` }
-      ]}
-      onChange={(v) => setBoardMode(v as 'edit' | 'view')}
-    />
-    <Segmented
-      value={view}
-      ariaLabel={i18n.m.territory.view.label}
-      options={[
-        { value: 'flat', label: i18n.m.territory.view.flat },
-        { value: 'iso', label: i18n.m.territory.view.tilt }
-      ]}
-      onChange={(v) => setView(v as View)}
-    />
-    <div class="vb-actions">
-      {#if boardMode === 'edit'}
-        <button
-          class="help-btn glyph"
-          type="button"
-          onclick={undo}
-          disabled={!canUndo}
-          aria-label={i18n.m.territory.undo}
-          title={i18n.m.territory.undo}>↶</button
-        >
-        <button
-          class="help-btn glyph"
-          type="button"
-          onclick={redo}
-          disabled={!canRedo}
-          aria-label={i18n.m.territory.redo}
-          title={i18n.m.territory.redo}>↷</button
-        >
-      {/if}
+  <div class="topbar">
+    <Controls bind:zoom onFit={() => board?.fit()} />
+    <div class="tb-actions">
+      <button
+        class="help-btn glyph"
+        type="button"
+        onclick={undo}
+        disabled={!canUndo}
+        aria-label={i18n.m.territory.undo}
+        title={i18n.m.territory.undo}>↶</button
+      >
+      <button
+        class="help-btn glyph"
+        type="button"
+        onclick={redo}
+        disabled={!canRedo}
+        aria-label={i18n.m.territory.redo}
+        title={i18n.m.territory.redo}>↷</button
+      >
       <button
         class="help-btn"
         type="button"
@@ -485,39 +465,37 @@
     </div>
   </div>
 
-  {#if boardMode === 'edit'}
-    <Palette
-      types={activeMode.types}
-      {tool}
-      ariaLabel={i18n.m.territory.place}
-      nameOf={objName}
-      {count}
-      onPick={(t) => (tool = t)}
-    />
-  {/if}
-
-  <Controls
-    bind:zoom
-    bind:showLabels
-    bind:heatmap
-    bind:bearFocus
-    {labelField}
-    onLabelField={setLabelField}
-    onFit={() => board?.fit()}
-    {hasBears}
-    {bearCount}
-  />
-
-  {#if objects.length > 0}
-    <Search {objects} nameOf={objName} onPick={focusObject} onGoto={gotoCoord} />
-    <p class="obj-count">
-      {fmt(i18n.m.territory.objectsN, { n: objects.length })}{#if selectedIds.length > 0}
-        · {fmt(i18n.m.territory.selectedN, { n: selectedIds.length })}{/if}
-    </p>
-  {/if}
-
   <div class="stage">
+    <div class="rail-col">
+      <Rail
+        {boardMode}
+        onBoardMode={setBoardMode}
+        {view}
+        onView={setView}
+        types={activeMode.types}
+        {tool}
+        nameOf={objName}
+        {count}
+        onPick={(t) => (tool = t)}
+        bind:showLabels
+        {labelField}
+        onLabelField={setLabelField}
+        bind:heatmap
+        bind:bearFocus
+        {hasBears}
+        {bearCount}
+        connectivity={!!activeMode.connectivity}
+      />
+    </div>
+
     <div class="stage-board">
+      {#if objects.length > 0}
+        <Search {objects} nameOf={objName} onPick={focusObject} onGoto={gotoCoord} />
+        <p class="obj-count">
+          {fmt(i18n.m.territory.objectsN, { n: objects.length })}{#if selectedIds.length > 0}
+            · {fmt(i18n.m.territory.selectedN, { n: selectedIds.length })}{/if}
+        </p>
+      {/if}
       <Board
         bind:this={board}
         {objects}
@@ -569,14 +547,6 @@
         <p class="side-hint">{i18n.m.territory.selectHint}</p>
       {/if}
     </div>
-  </div>
-
-  <div class="legend">
-    <span class="leg"><span class="dot reach"></span>{i18n.m.territory.legend.reach}</span>
-    <span class="leg"><span class="dot terr"></span>{i18n.m.territory.legend.connected}</span>
-    {#if activeMode.connectivity}
-      <span class="leg"><span class="dot orphan"></span>{i18n.m.territory.legend.orphan}</span>
-    {/if}
   </div>
 
   <div class="footer">
@@ -694,17 +664,19 @@
     display: grid;
     gap: 14px;
   }
-  /* Desktop: board on the left, a sticky editor column on the right (Figma /
-     slush style) so editing a city doesn't push the page into a scroll. */
-  @media (min-width: 860px) {
+  /* Wide desktop: three columns — the left rail, the board, and a sticky editor
+     column on the right (Figma style) so editing a piece never scrolls the page.
+     Below this the rail collapses into a horizontal band above the board. */
+  @media (min-width: 1024px) {
     .wrap {
-      max-width: 980px;
+      max-width: 1240px;
     }
     .stage {
-      grid-template-columns: minmax(0, 1fr) 320px;
+      grid-template-columns: 200px minmax(0, 1fr) 300px;
       gap: 20px;
       align-items: start;
     }
+    .rail-col,
     .stage-side {
       position: sticky;
       top: 20px;
@@ -723,7 +695,7 @@
   .side-hint {
     display: none;
   }
-  @media (min-width: 860px) {
+  @media (min-width: 1024px) {
     .side-hint {
       display: block;
       margin: 0;
@@ -737,14 +709,14 @@
       border-radius: var(--r-card);
     }
   }
-  .viewbar {
+  .topbar {
     display: flex;
     align-items: center;
     gap: 12px;
     margin-bottom: 16px;
     flex-wrap: wrap;
   }
-  .vb-actions {
+  .tb-actions {
     margin-inline-start: auto;
     display: inline-flex;
     gap: 8px;
@@ -867,38 +839,6 @@
     inset: 0;
     opacity: 0;
     cursor: pointer;
-  }
-  .legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    margin-top: 14px;
-  }
-  .leg {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-dim);
-  }
-  .dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 3px;
-    flex-shrink: 0;
-  }
-  .dot.reach {
-    background: rgba(251, 191, 36, 0.35);
-    border: 1px solid rgba(251, 191, 36, 0.5);
-  }
-  .dot.terr {
-    background: rgba(147, 212, 255, 0.35);
-    border: 1px solid rgba(147, 212, 255, 0.5);
-  }
-  .dot.orphan {
-    background: rgba(251, 113, 133, 0.3);
-    border: 1px solid #fb7185;
   }
   .footer {
     display: flex;

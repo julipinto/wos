@@ -584,7 +584,13 @@
     "legend": {
       "reach": "Banner reach (7×7)",
       "connected": "Connected territory",
-      "orphan": "not connected (expires)"
+      "orphan": "not connected (expires)",
+      "title": "Legend",
+      "selected": "Selected"
+    },
+    "rail": {
+      "tools": "Tools",
+      "display": "Display"
     },
     "labels": "labels",
     "heatmap": "heatmap",
