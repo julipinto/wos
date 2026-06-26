@@ -52,8 +52,10 @@ export interface CollabSession {
   destroy: () => void;
 }
 
-const clone = <T>(o: T): T =>
-  typeof structuredClone === 'function' ? structuredClone(o) : JSON.parse(JSON.stringify(o));
+// JSON round-trip (not structuredClone): our objects come from Svelte 5 $state, and
+// those reactive proxies are NOT structured-cloneable (DataCloneError). JSON reads
+// through the proxy and yields the plain object Yjs needs to store.
+const clone = <T>(o: T): T => JSON.parse(JSON.stringify(o));
 const eq = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 
 export function startCollab(opts: CollabOpts): CollabSession {
@@ -111,6 +113,15 @@ export function startCollab(opts: CollabOpts): CollabSession {
   // The creator seeds the room with the local board (joiners receive it on sync).
   if (opts.seed) pushLocal();
 
+  // The 'status' event (signaling socket) proved unreliable across browsers, so we
+  // also treat "a peer/awareness is present" or "doc synced" as connected — if data
+  // is flowing we're live regardless of what the signaling event reported.
+  let signalingUp = false;
+  const refreshStatus = () => {
+    const live = signalingUp || aw.getStates().size > 1 || provider.connected;
+    opts.onStatus(live ? 'connected' : 'connecting');
+  };
+
   const emitPeers = () => {
     const states: PeerState[] = [];
     aw.getStates().forEach((s, id) => {
@@ -126,11 +137,17 @@ export function startCollab(opts: CollabOpts): CollabSession {
       });
     });
     opts.onPeers(states);
+    refreshStatus();
   };
   aw.on('change', emitPeers);
-  provider.on('status', (e: { connected: boolean }) =>
-    opts.onStatus(e.connected ? 'connected' : 'disconnected')
-  );
+  provider.on('status', (e: { connected: boolean }) => {
+    signalingUp = e.connected;
+    refreshStatus();
+  });
+  provider.on('synced', () => {
+    signalingUp = true;
+    refreshStatus();
+  });
   provider.on('peers', emitPeers);
   emitPeers();
 

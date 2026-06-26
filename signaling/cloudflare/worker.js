@@ -21,6 +21,7 @@ export class SignalingRoom {
     const [client, server] = Object.values(pair);
     this.state.acceptWebSocket(server); // hibernatable
     server.serializeAttachment([]); // this socket's subscribed topics
+    console.log('[conn] open · total sockets:', this.state.getWebSockets().length);
     return new Response(null, { status: 101, webSocket: client });
   }
 
@@ -37,23 +38,27 @@ export class SignalingRoom {
       const topics = new Set(ws.deserializeAttachment() || []);
       for (const t of msg.topics || []) if (typeof t === 'string') topics.add(t);
       ws.serializeAttachment([...topics]);
+      console.log('[subscribe]', msg.topics, '· sockets:', this.state.getWebSockets().length);
     } else if (msg.type === 'unsubscribe') {
       const topics = new Set(ws.deserializeAttachment() || []);
       for (const t of msg.topics || []) topics.delete(t);
       ws.serializeAttachment([...topics]);
     } else if (msg.type === 'publish' && msg.topic) {
       const data = JSON.stringify(msg);
+      let delivered = 0;
       for (const sock of this.state.getWebSockets()) {
         if (sock === ws) continue;
         const topics = sock.deserializeAttachment() || [];
         if (topics.includes(msg.topic)) {
           try {
             sock.send(data);
+            delivered++;
           } catch {
             /* socket going away */
           }
         }
       }
+      console.log('[publish]', msg.topic, '→ delivered:', delivered);
     } else if (msg.type === 'ping') {
       try {
         ws.send(JSON.stringify({ type: 'pong' }));
