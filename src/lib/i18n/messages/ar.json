@@ -659,6 +659,8 @@
     "duplicate": "تكرار",
     "objectsN": "{n} عناصر",
     "fit": "ملاءمة",
+    "jumpHq": "إلى المقر",
+    "jumpBear": "إلى فخ الدب",
     "search": {
       "label": "بحث",
       "placeholder": "ابحث بالاسم/التسمية أو x,y…",

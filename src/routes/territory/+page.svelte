@@ -241,6 +241,33 @@
     selectedIds = [];
     persist();
   }
+  // Arrow-key nudge: shift the whole selection by (dx,dy) cells, clamped to the
+  // 60×60 grid and rejected if it would collide with an unselected footprint.
+  const N = 60;
+  function nudge(dx: number, dy: number) {
+    const sel = selectedObjects();
+    if (!sel.length) return;
+    const ids = new Set(sel.map((o) => o.id));
+    const others = objects.filter((o) => !ids.has(o.id));
+    const next = sel.map((o) => {
+      const def = OBJECT_DEFS[o.type];
+      return {
+        o,
+        x: Math.min(Math.max(0, o.x + dx), N - def.w),
+        y: Math.min(Math.max(0, o.y + dy), N - def.h)
+      };
+    });
+    if (next.some((n) => collides(others, { ...n.o, x: n.x, y: n.y }, n.o.id))) return;
+    let changed = false;
+    for (const n of next) {
+      if (n.o.x !== n.x || n.o.y !== n.y) {
+        n.o.x = n.x;
+        n.o.y = n.y;
+        changed = true;
+      }
+    }
+    if (changed) persist();
+  }
 
   // ── Duplicate / copy-paste ──────────────────────────────────────────────
   const newId = (type: string) =>
@@ -295,6 +322,9 @@
     selectedIds = [];
     board?.focusCell(x + 0.5, y + 0.5);
   }
+  // Quick-jump targets for the top-bar presets.
+  const seedObj = $derived(objects.find((o) => OBJECT_DEFS[o.type].seed) ?? null);
+  const firstBear = $derived(objects.find((o) => o.type === 'bearTrap') ?? null);
 
   // Precompute the share link (off the current page URL, so it follows the host)
   // whenever the layout/mode changes. Compression is async, so doing it here and
@@ -415,6 +445,13 @@
         }
       } else if (e.key === 'Escape') {
         selectedIds = [];
+      } else if (e.key.startsWith('Arrow') && selectedIds.length) {
+        e.preventDefault();
+        const d = e.shiftKey ? 5 : 1;
+        if (e.key === 'ArrowUp') nudge(0, -d);
+        else if (e.key === 'ArrowDown') nudge(0, d);
+        else if (e.key === 'ArrowLeft') nudge(-d, 0);
+        else if (e.key === 'ArrowRight') nudge(d, 0);
       }
     };
     window.addEventListener('keydown', onKey);
@@ -439,6 +476,24 @@
   <div class="topbar">
     <Controls bind:zoom onFit={() => board?.fit()} />
     <div class="tb-actions">
+      {#if seedObj}
+        <button
+          class="help-btn glyph"
+          type="button"
+          onclick={() => seedObj && focusObject(seedObj)}
+          title={i18n.m.territory.jumpHq}
+          aria-label={i18n.m.territory.jumpHq}>⌂</button
+        >
+      {/if}
+      {#if firstBear}
+        <button
+          class="help-btn glyph"
+          type="button"
+          onclick={() => firstBear && focusObject(firstBear)}
+          title={i18n.m.territory.jumpBear}
+          aria-label={i18n.m.territory.jumpBear}>🐻</button
+        >
+      {/if}
       <button
         class="help-btn glyph"
         type="button"

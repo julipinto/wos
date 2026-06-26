@@ -659,6 +659,8 @@
     "duplicate": "duplicate",
     "objectsN": "{n} objects",
     "fit": "Fit",
+    "jumpHq": "Go to HQ",
+    "jumpBear": "Go to bear trap",
     "search": {
       "label": "Search",
       "placeholder": "Search name/label or x,y…",
