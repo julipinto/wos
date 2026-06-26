@@ -3,7 +3,7 @@
   import type { HTMLButtonAttributes } from 'svelte/elements';
 
   interface Props extends HTMLButtonAttributes {
-    variant?: 'primary' | 'secondary' | 'ghost';
+    variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
     size?: 'sm' | 'md';
     children: Snippet;
   }
@@ -64,6 +64,15 @@
     color: var(--text);
     background: var(--surface);
     border-color: transparent;
+  }
+  .variant-danger {
+    color: #fb7185;
+    border-color: rgba(251, 113, 133, 0.4);
+  }
+  .variant-danger:hover:not(:disabled) {
+    color: #fb7185;
+    background: rgba(251, 113, 133, 0.12);
+    border-color: rgba(251, 113, 133, 0.6);
   }
   .btn:disabled {
     opacity: 0.45;

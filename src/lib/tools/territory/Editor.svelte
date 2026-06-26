@@ -1,5 +1,6 @@
 <script lang="ts">
   import { i18n } from '$lib/i18n/index.svelte';
+  import Button from '$lib/components/Button.svelte';
   import Select from '$lib/components/Select.svelte';
   import NumberInput from '$lib/components/NumberInput.svelte';
   import type { PlacedObject } from './territory';
@@ -106,10 +107,10 @@
     {/if}
   </div>
   <div class="ed-actions">
-    <button class="ed-dup" type="button" onclick={onDuplicate}
-      >⧉ {i18n.m.territory.duplicate}</button
+    <Button variant="secondary" size="sm" onclick={onDuplicate}
+      >⧉ {i18n.m.territory.duplicate}</Button
     >
-    <button class="ed-remove" type="button" onclick={onRemove}>× {i18n.m.territory.remove}</button>
+    <Button variant="danger" size="sm" onclick={onRemove}>{i18n.m.territory.remove}</Button>
   </div>
 </div>
 
@@ -178,30 +179,6 @@
     margin-top: 12px;
     display: flex;
     gap: 8px;
-  }
-  .ed-dup {
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text-mid);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    padding: 7px 14px;
-    cursor: pointer;
-  }
-  .ed-dup:hover {
-    color: var(--accent);
-    border-color: var(--border-accent);
-  }
-  .ed-remove {
-    background: transparent;
-    border: 1px solid rgba(251, 113, 133, 0.4);
-    border-radius: var(--r-pill);
-    color: #fb7185;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    padding: 7px 14px;
-    cursor: pointer;
   }
   .bear-chips {
     display: flex;

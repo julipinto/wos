@@ -1,5 +1,6 @@
 <script lang="ts">
   import { i18n } from '$lib/i18n/index.svelte';
+  import Button from '$lib/components/Button.svelte';
   import type { CollabStatus, PeerState } from './collab';
 
   // Presence bar for live collaboration: a start button when solo, and when in a
@@ -42,7 +43,8 @@
 
 <div class="collab" class:active>
   {#if !active}
-    <button class="start" type="button" onclick={onStart}>👥 {i18n.m.territory.collab.start}</button
+    <Button variant="secondary" size="sm" onclick={onStart}
+      >👥 {i18n.m.territory.collab.start}</Button
     >
   {:else}
     <span class="status">
@@ -64,11 +66,11 @@
         <span class="avatar" style="background: {p.color}" title={p.name}>{initials(p.name)}</span>
       {/each}
     </span>
-    <button class="act" type="button" onclick={onCopy}>
+    <Button variant="secondary" size="sm" onclick={onCopy}>
       {copied ? '✓ ' + i18n.m.territory.collab.copied : '🔗 ' + i18n.m.territory.collab.copyLink}
-    </button>
-    <button class="act leave" type="button" onclick={onLeave}
-      >{i18n.m.territory.collab.leave}</button
+    </Button>
+    <Button variant="danger" size="sm" onclick={onLeave} style="margin-inline-start:auto"
+      >{i18n.m.territory.collab.leave}</Button
     >
   {/if}
 </div>
@@ -86,29 +88,6 @@
     background: var(--surface);
     border: 1px solid var(--border-accent);
     border-radius: var(--r-card);
-  }
-  .start,
-  .act {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text-mid);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    padding: 7px 14px;
-    cursor: pointer;
-    transition:
-      color 0.2s ease,
-      border-color 0.2s ease;
-  }
-  .start:hover,
-  .act:hover {
-    color: var(--accent);
-    border-color: var(--border-accent);
-  }
-  .act.leave:hover {
-    color: #fb7185;
-    border-color: rgba(251, 113, 133, 0.5);
   }
   .status {
     display: inline-flex;
@@ -178,8 +157,5 @@
   }
   .avatar:first-child {
     margin-inline-start: 0;
-  }
-  .act.leave {
-    margin-inline-start: auto;
   }
 </style>

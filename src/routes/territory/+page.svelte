@@ -18,6 +18,7 @@
   import NumberInput from '$lib/components/NumberInput.svelte';
   import Modal from '$lib/components/Modal.svelte';
   import Button from '$lib/components/Button.svelte';
+  import IconButton from '$lib/components/IconButton.svelte';
   import CollabBar from '$lib/tools/territory/CollabBar.svelte';
   import type { CollabSession, CollabStatus, PeerState } from '$lib/tools/territory/collab';
   import { TERRITORY_SLIDES } from '$lib/tools/territory/tutorial';
@@ -694,46 +695,28 @@
     <Controls bind:zoom onFit={() => board?.fit()} />
     <div class="tb-actions">
       {#if seedObj}
-        <button
-          class="help-btn glyph"
-          type="button"
-          onclick={() => seedObj && focusObject(seedObj)}
-          title={i18n.m.territory.jumpHq}
-          aria-label={i18n.m.territory.jumpHq}>⌂</button
+        <IconButton
+          label={i18n.m.territory.jumpHq}
+          size="sm"
+          onclick={() => seedObj && focusObject(seedObj)}>⌂</IconButton
         >
       {/if}
       {#if firstBear}
-        <button
-          class="help-btn glyph"
-          type="button"
-          onclick={() => firstBear && focusObject(firstBear)}
-          title={i18n.m.territory.jumpBear}
-          aria-label={i18n.m.territory.jumpBear}>🐻</button
+        <IconButton
+          label={i18n.m.territory.jumpBear}
+          size="sm"
+          onclick={() => firstBear && focusObject(firstBear)}>🐻</IconButton
         >
       {/if}
-      <button
-        class="help-btn glyph"
-        type="button"
-        onclick={undo}
-        disabled={!canUndo}
-        aria-label={i18n.m.territory.undo}
-        title={i18n.m.territory.undo}>↶</button
+      <IconButton label={i18n.m.territory.undo} size="sm" onclick={undo} disabled={!canUndo}
+        >↶</IconButton
       >
-      <button
-        class="help-btn glyph"
-        type="button"
-        onclick={redo}
-        disabled={!canRedo}
-        aria-label={i18n.m.territory.redo}
-        title={i18n.m.territory.redo}>↷</button
+      <IconButton label={i18n.m.territory.redo} size="sm" onclick={redo} disabled={!canRedo}
+        >↷</IconButton
       >
-      <button
-        class="help-btn"
-        type="button"
-        onclick={() => (helpOpen = true)}
-        aria-label={i18n.m.territory.help.title}
-        title={i18n.m.territory.help.title}><Icon name="circle-help" size={16} /></button
-      >
+      <IconButton label={i18n.m.territory.help.title} size="sm" onclick={() => (helpOpen = true)}>
+        <Icon name="circle-help" size={15} />
+      </IconButton>
     </div>
   </div>
 
@@ -827,15 +810,15 @@
             />
           </div>
           <div class="bulk-actions">
-            <button class="reset" type="button" onclick={duplicateSelected}>
+            <Button variant="secondary" size="sm" onclick={duplicateSelected}>
               ⧉ {i18n.m.territory.duplicate}
-            </button>
-            <button class="reset" type="button" onclick={removeSelected}>
-              × {i18n.m.territory.remove}
-            </button>
-            <button class="reset" type="button" onclick={() => (selectedIds = [])}>
+            </Button>
+            <Button variant="danger" size="sm" onclick={removeSelected}>
+              {i18n.m.territory.remove}
+            </Button>
+            <Button variant="ghost" size="sm" onclick={() => (selectedIds = [])}>
               {i18n.m.common.close}
-            </button>
+            </Button>
           </div>
         </div>
       {:else if selected}
@@ -865,31 +848,31 @@
   <div class="footer">
     <p class="hint">{i18n.m.territory.hint}</p>
     <div class="footer-actions">
-      <button
-        class="act"
-        type="button"
+      <Button
+        variant="secondary"
+        size="sm"
         onclick={doExport}
         disabled={objects.length === 0 || urlTooLong}
         title={urlTooLong ? i18n.m.territory.urlLong : ''}
       >
         <Icon name={copied ? 'check' : 'share-2'} size={13} />
         {copied ? i18n.m.territory.copied : i18n.m.territory.share}
-      </button>
-      <button class="act" type="button" onclick={doCopyCode} disabled={objects.length === 0}>
+      </Button>
+      <Button variant="secondary" size="sm" onclick={doCopyCode} disabled={objects.length === 0}>
         <Icon name={codeCopied ? 'check' : 'copy'} size={13} />
         {codeCopied ? i18n.m.territory.codeCopied : i18n.m.territory.copyCode}
-      </button>
-      <button class="act" type="button" onclick={doDownload} disabled={objects.length === 0}>
+      </Button>
+      <Button variant="secondary" size="sm" onclick={doDownload} disabled={objects.length === 0}>
         <Icon name="download" size={13} />
         {i18n.m.territory.download}
-      </button>
-      <button class="act" type="button" onclick={() => (importOpen = !importOpen)}>
+      </Button>
+      <Button variant="secondary" size="sm" onclick={() => (importOpen = !importOpen)}>
         <Icon name="upload" size={13} />
         {i18n.m.territory.import}
-      </button>
-      <button class="reset" type="button" onclick={reset} disabled={objects.length === 0}>
+      </Button>
+      <Button variant="ghost" size="sm" onclick={reset} disabled={objects.length === 0}>
         {i18n.m.common.reset}
-      </button>
+      </Button>
     </div>
     {#if urlTooLong}
       <p class="warn">⚠️ {i18n.m.territory.urlLong}</p>
@@ -905,10 +888,10 @@
         aria-label={i18n.m.territory.import}
       ></textarea>
       <div class="import-actions">
-        <button class="act" type="button" onclick={doImport} disabled={!importText.trim()}>
+        <Button variant="secondary" size="sm" onclick={doImport} disabled={!importText.trim()}>
           {i18n.m.territory.import}
-        </button>
-        <label class="act file-act">
+        </Button>
+        <label class="file-btn">
           <Icon name="upload" size={13} />
           {i18n.m.territory.fromFile}
           <input type="file" accept=".txt,text/plain" onchange={onImportFile} />
@@ -1174,33 +1157,6 @@
     display: inline-flex;
     gap: 8px;
   }
-  .help-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text-mid);
-    cursor: pointer;
-    transition:
-      color 0.2s ease,
-      border-color 0.2s ease;
-  }
-  .help-btn.glyph {
-    font-size: 17px;
-    line-height: 1;
-  }
-  .help-btn:hover:not(:disabled) {
-    color: var(--accent);
-    border-color: var(--border-accent);
-  }
-  .help-btn:disabled {
-    opacity: 0.35;
-    cursor: default;
-  }
   .group-bar {
     display: flex;
     align-items: center;
@@ -1269,30 +1225,6 @@
     flex-wrap: wrap;
     justify-content: flex-end;
   }
-  .act {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text-mid);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    padding: 8px 14px;
-    cursor: pointer;
-    transition:
-      color 0.2s ease,
-      border-color 0.2s ease;
-  }
-  .act:hover:not(:disabled) {
-    color: var(--text);
-    border-color: var(--border-accent);
-  }
-  .act:disabled {
-    opacity: 0.4;
-    cursor: default;
-  }
   .import-box {
     display: flex;
     gap: 8px;
@@ -1319,12 +1251,29 @@
     flex-direction: column;
     gap: 8px;
   }
-  .file-act {
+  .file-btn {
     position: relative;
     overflow: hidden;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
+    gap: 8px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    color: var(--text-mid);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    cursor: pointer;
   }
-  .file-act input[type='file'] {
+  .file-btn:hover {
+    color: var(--text);
+    border-color: var(--border-accent);
+  }
+  .file-btn input[type='file'] {
     position: absolute;
     inset: 0;
     opacity: 0;
@@ -1344,27 +1293,6 @@
     color: var(--text-dim);
     margin: 0;
   }
-  .reset {
-    flex-shrink: 0;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text-mid);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 8px 14px;
-    cursor: pointer;
-  }
-  .reset:hover:not(:disabled) {
-    color: var(--text);
-    border-color: var(--border-accent);
-  }
-  .reset:disabled {
-    opacity: 0.4;
-    cursor: default;
-  }
   @media (max-width: 540px) {
     .wrap {
       padding: 24px 18px 72px;
@@ -1377,13 +1305,8 @@
     .footer-actions {
       justify-content: stretch;
     }
-    .footer-actions .act {
+    .footer-actions :global(.btn) {
       flex: 1 1 auto;
-      justify-content: center;
-    }
-    .footer-actions .reset {
-      flex: 1 1 100%;
-      text-align: center;
     }
     /* Multi-select bar floats as a bottom sheet (like the editor) instead of
        pushing the page. */
