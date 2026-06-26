@@ -429,19 +429,31 @@
            in iso (positioned via the iso projection). -->
       {#if showLabels}
         {#each objects as o (o.id)}
-          {@const text = labelField === 'name' ? o.name : o.furnace}
-          {#if text}
+          {@const primary = labelField === 'name' ? o.name : o.furnace}
+          {#if primary || o.label}
             {@const def = OBJECT_DEFS[o.type]}
             {@const cx = o.x + def.w / 2}
             {@const cy = o.y + def.h / 2}
             {@const p = view === 'iso' ? isoPoint(cx, cy) : { x: cx, y: cy }}
-            <text
-              class="tile-label"
-              x={p.x}
-              y={p.y}
-              text-anchor="middle"
-              dominant-baseline="central">{text}</text
-            >
+            {@const both = !!primary && !!o.label}
+            {#if primary}
+              <text
+                class="tile-label"
+                x={p.x}
+                y={both ? p.y - 0.3 : p.y}
+                text-anchor="middle"
+                dominant-baseline="central">{primary}</text
+              >
+            {/if}
+            {#if o.label}
+              <text
+                class="tile-label tile-sub"
+                x={p.x}
+                y={both ? p.y + 0.32 : p.y}
+                text-anchor="middle"
+                dominant-baseline="central">{o.label}</text
+              >
+            {/if}
           {/if}
         {/each}
       {/if}
@@ -521,6 +533,11 @@
     stroke: rgba(0, 0, 0, 0.55);
     stroke-width: 0.06px;
     pointer-events: none;
+  }
+  /* custom annotation, kept alongside the name */
+  .tile-sub {
+    fill: #fbbf24;
+    font-size: 0.42px;
   }
   .bear-num {
     fill: #fff;

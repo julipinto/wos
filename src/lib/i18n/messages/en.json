@@ -597,7 +597,8 @@
       "name": "name",
       "furnace": "furnace",
       "power": "power",
-      "bear": "bear trap"
+      "bear": "bear trap",
+      "label": "label"
     },
     "maps": {
       "title": "saved maps",
