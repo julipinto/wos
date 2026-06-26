@@ -25,11 +25,13 @@
     labelField: 'furnace' | 'name';
     onLabelField: (f: 'furnace' | 'name') => void;
     heatmap: boolean;
+    colorByPrimary: boolean;
     highlight: string;
     highlightOptions: { value: string; label: string }[];
     bearFocus: number;
     hasBears: boolean;
     bearCount: number;
+    bearStats: { n: number; main: number; backup: number }[];
     connectivity: boolean;
   }
   let {
@@ -46,11 +48,13 @@
     labelField,
     onLabelField,
     heatmap = $bindable(),
+    colorByPrimary = $bindable(),
     highlight = $bindable(),
     highlightOptions,
     bearFocus = $bindable(),
     hasBears,
     bearCount,
+    bearStats,
     connectivity
   }: Props = $props();
 
@@ -116,6 +120,16 @@
       <button class="toggle" class:on={heatmap} type="button" onclick={() => (heatmap = !heatmap)}>
         {i18n.m.territory.heatmap}
       </button>
+      {#if hasBears && bearCount > 0}
+        <button
+          class="toggle"
+          class:on={colorByPrimary}
+          type="button"
+          onclick={() => (colorByPrimary = !colorByPrimary)}
+        >
+          {i18n.m.territory.colorByPrimary}
+        </button>
+      {/if}
     </div>
     {#if showLabels}
       <Segmented
@@ -151,6 +165,15 @@
           ]}
           onChange={(v) => (bearFocus = Number(v))}
         />
+        <ul class="bear-tally">
+          {#each bearStats as s (s.n)}
+            <li>
+              <span class="bt-trap">🐻 {s.n}</span>
+              <span class="bt-main">{s.main} {i18n.m.territory.bearMainShort}</span>
+              <span class="bt-backup">{s.backup} {i18n.m.territory.bearBackupShort}</span>
+            </li>
+          {/each}
+        </ul>
       </div>
     {/if}
   </section>
@@ -206,6 +229,30 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
+  }
+  .bear-tally {
+    list-style: none;
+    margin: 2px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 3px;
+  }
+  .bear-tally li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+  }
+  .bt-trap {
+    color: var(--text-mid);
+  }
+  .bt-main {
+    color: #fbbf24;
+  }
+  .bt-backup {
+    color: var(--text-dim);
+    margin-inline-start: auto;
   }
   .bf-label {
     color: var(--text-mid);

@@ -35,6 +35,7 @@
     heatmap: boolean;
     connectivity: boolean;
     highlight: string;
+    colorByPrimary: boolean;
     viewport?: { x: number; y: number; w: number; h: number };
     peers?: PeerState[];
     onContextMenu?: (id: string, x: number, y: number) => void;
@@ -55,6 +56,7 @@
     heatmap,
     connectivity,
     highlight,
+    colorByPrimary,
     viewport = $bindable(),
     peers = [],
     onContextMenu,
@@ -109,6 +111,21 @@
       })
       .filter((l) => l.primary || l.sub);
   });
+
+  // Per-trap colour palette (for the "colour by primary trap" display mode).
+  const TRAP_COLORS = ['#60a5fa', '#f472b6', '#34d399', '#fbbf24', '#a78bfa', '#22d3ee'];
+  const trapColor = (n: number) => TRAP_COLORS[(n - 1) % TRAP_COLORS.length];
+  // A city's colour by its primary trap (lowest, if several); slate if none set.
+  const cityColor = (o: PlacedObject) =>
+    o.bearMain?.length ? trapColor(o.bearMain[0]) : '#475569';
+  // Relative to the focused trap: is this object its primary, a backup, or off?
+  function bearRole(o: PlacedObject): 'on' | 'primary' | 'backup' | 'off' {
+    if (bearFocus === 0) return 'on';
+    if (o.type === 'bearTrap') return bearNum(o) === bearFocus ? 'primary' : 'off';
+    if (o.bearMain?.includes(bearFocus)) return 'primary';
+    if (o.bear?.includes(bearFocus)) return 'backup';
+    return 'off';
+  }
 
   // Heatmap: colour tagged objects by power, cool → hot, normalised to the max.
   const maxPower = $derived(Math.max(0, ...objects.map((o) => o.power ?? 0)));
@@ -712,23 +729,41 @@
             {@const def = OBJECT_DEFS[o.type]}
             {@const orphan = territory.orphaned.has(o.id)}
             {@const sel = selectedIds.includes(o.id)}
-            {@const lit = inFocus(o) && hiOk(o)}
-            {@const fillC = heatmap ? heatColor(o.power) : def.color}
-            {@const fillO = !lit ? 0.12 : orphan && !heatmap ? 0.25 : 0.85}
+            {@const role = hiOk(o) ? bearRole(o) : 'off'}
+            {@const shown = role !== 'off'}
+            {@const backup = role === 'backup'}
+            {@const fillC =
+              colorByPrimary && o.type === 'city'
+                ? cityColor(o)
+                : heatmap
+                  ? heatColor(o.power)
+                  : def.color}
+            {@const fillO = !shown
+              ? 0.12
+              : backup
+                ? 0.42
+                : orphan && !heatmap && !colorByPrimary
+                  ? 0.25
+                  : 0.85}
             {@const strokeC = sel
               ? '#ffffff'
-              : bearFocus > 0 && lit && o.type === 'bearTrap'
+              : backup
                 ? '#fbbf24'
-                : orphan
-                  ? '#fb7185'
-                  : 'rgba(0,0,0,0.3)'}
+                : bearFocus > 0 && shown && o.type === 'bearTrap'
+                  ? '#fbbf24'
+                  : orphan
+                    ? '#fb7185'
+                    : 'rgba(0,0,0,0.3)'}
             {@const strokeW = sel
               ? 0.16
-              : bearFocus > 0 && lit && o.type === 'bearTrap'
-                ? 0.18
-                : orphan
-                  ? 0.12
-                  : 0.05}
+              : backup
+                ? 0.1
+                : bearFocus > 0 && shown && o.type === 'bearTrap'
+                  ? 0.18
+                  : orphan
+                    ? 0.12
+                    : 0.05}
+            {@const strokeDash = backup ? '0.3 0.2' : undefined}
             {#if o.type === 'bearTrap'}
               <polygon
                 class="obj"
@@ -737,6 +772,7 @@
                 fill-opacity={fillO}
                 stroke={strokeC}
                 stroke-width={strokeW}
+                stroke-dasharray={strokeDash}
                 stroke-linejoin="round"
               />
             {:else}
@@ -751,6 +787,7 @@
                 fill-opacity={fillO}
                 stroke={strokeC}
                 stroke-width={strokeW}
+                stroke-dasharray={strokeDash}
               />
             {/if}
           {/each}
