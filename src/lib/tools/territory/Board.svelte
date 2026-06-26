@@ -132,6 +132,10 @@
   let group: { start: Map<string, { x: number; y: number }>; cx: number; cy: number } | null = null;
   // Marquee (rubber-band) rectangle in grid coords, while drag-selecting.
   let marquee = $state<{ x0: number; y0: number; x1: number; y1: number } | null>(null);
+  // A short pulse ring drawn where search/go-to last centred the view.
+  let flash = $state<{ x: number; y: number; n: number } | null>(null);
+  let flashN = 0;
+  let flashTimer: ReturnType<typeof setTimeout> | undefined;
   // Two-finger pan: tracks live pointers so a second finger pans the board even
   // in Edit mode (where one finger places / marquee-selects).
   const pointers = new Map<number, { x: number; y: number }>();
@@ -215,6 +219,22 @@
     if (!scroller) return;
     scroller.scrollLeft = contentCx * ratio - rect.width / 2;
     scroller.scrollTop = contentCy * ratio - rect.height / 2;
+  }
+
+  /** Centre the viewport on grid point (cx,cy) and pulse a ring there. Accepts
+   *  continuous coords so callers can pass an object's centre or a cell centre.
+   *  Exported → the page calls it from the search box. Works in iso (uses CTM). */
+  export function focusCell(cx: number, cy: number) {
+    if (!scroller || !plane) return;
+    const ctm = plane.getScreenCTM();
+    if (!ctm) return;
+    const p = new DOMPoint(cx, cy).matrixTransform(ctm);
+    const rect = scroller.getBoundingClientRect();
+    scroller.scrollLeft += p.x - rect.left - rect.width / 2;
+    scroller.scrollTop += p.y - rect.top - rect.height / 2;
+    flash = { x: cx, y: cy, n: ++flashN };
+    clearTimeout(flashTimer);
+    flashTimer = setTimeout(() => (flash = null), 1300);
   }
 
   onMount(() => {
@@ -505,6 +525,18 @@
                     : 0.05}
             />
           {/each}
+          {#if flash}
+            {#key flash.n}
+              <rect
+                class="flash"
+                x={flash.x - 1.5}
+                y={flash.y - 1.5}
+                width="3"
+                height="3"
+                rx="0.3"
+              />
+            {/key}
+          {/if}
           {#if marquee}
             <rect
               class="marquee"
@@ -651,6 +683,25 @@
     stroke-width: 0.08;
     stroke-dasharray: 0.3 0.2;
     pointer-events: none;
+  }
+  .flash {
+    fill: none;
+    stroke: #fbbf24;
+    pointer-events: none;
+    animation: flash-pulse 1.3s ease-out forwards;
+  }
+  @keyframes flash-pulse {
+    0% {
+      opacity: 0;
+      stroke-width: 0.45;
+    }
+    15% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      stroke-width: 0.1;
+    }
   }
   .tile-label {
     fill: #fff;
