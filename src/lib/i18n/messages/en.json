@@ -658,6 +658,8 @@
     "redo": "redo",
     "duplicate": "duplicate",
     "objectsN": "{n} objects",
+    "bulkEdit": "Edit all",
+    "convert": "Convert to",
     "fit": "Fit",
     "jumpHq": "Go to HQ",
     "jumpBear": "Go to bear trap",

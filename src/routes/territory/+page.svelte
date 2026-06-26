@@ -12,6 +12,8 @@
   import Search from '$lib/tools/territory/Search.svelte';
   import Editor from '$lib/tools/territory/Editor.svelte';
   import MapsPanel from '$lib/tools/territory/MapsPanel.svelte';
+  import Select from '$lib/components/Select.svelte';
+  import NumberInput from '$lib/components/NumberInput.svelte';
   import { TERRITORY_SLIDES } from '$lib/tools/territory/tutorial';
   import { readJson, writeJson } from '$lib/utils/storage';
   import {
@@ -232,6 +234,36 @@
     if (!o) return;
     if (v === '' || v === 0 || v === undefined) delete o[k];
     else o[k] = v;
+    persist();
+  }
+  // Bulk edit: apply a label/furnace/power across the whole multi-selection
+  // (furnace/power only land on cities). Empty/zero clears the tag, like setTag.
+  function bulkSet<K extends 'label' | 'furnace' | 'power'>(k: K, v: PlacedObject[K]) {
+    for (const o of selectedObjects()) {
+      if ((k === 'furnace' || k === 'power') && !OBJECT_DEFS[o.type].city) continue;
+      if (v === '' || v === 0 || v === undefined) delete o[k];
+      else o[k] = v;
+    }
+    persist();
+  }
+  // Convert a single object to another type in place, clamped to the grid and
+  // rejected if the new footprint would collide. City-only tags drop if it stops
+  // being a city.
+  function convertSelected(type: string) {
+    const o = selected;
+    if (!o || o.type === type) return;
+    const def = OBJECT_DEFS[type];
+    const x = Math.min(o.x, N - def.w);
+    const y = Math.min(o.y, N - def.h);
+    if (collides(objects, { ...o, type, x, y }, o.id)) return;
+    o.type = type;
+    o.x = x;
+    o.y = y;
+    if (!OBJECT_DEFS[type].city) {
+      delete o.furnace;
+      delete o.power;
+      delete o.bear;
+    }
     persist();
   }
   function removeSelected() {
@@ -574,15 +606,39 @@
           <span class="group-count"
             >{fmt(i18n.m.territory.selectedN, { n: selectedIds.length })}</span
           >
-          <button class="reset" type="button" onclick={duplicateSelected}>
-            ⧉ {i18n.m.territory.duplicate}
-          </button>
-          <button class="reset" type="button" onclick={removeSelected}>
-            × {i18n.m.territory.remove}
-          </button>
-          <button class="reset" type="button" onclick={() => (selectedIds = [])}>
-            {i18n.m.common.close}
-          </button>
+          <div class="bulk-fields">
+            <span class="bulk-title">{i18n.m.territory.bulkEdit}</span>
+            <input
+              class="bulk-input"
+              type="text"
+              placeholder={i18n.m.territory.tag.label}
+              aria-label={i18n.m.territory.tag.label}
+              oninput={(e) => bulkSet('label', e.currentTarget.value)}
+            />
+            <Select
+              value=""
+              options={furnaceOptions}
+              onChange={(v) => bulkSet('furnace', v)}
+              ariaLabel={i18n.m.territory.tag.furnace}
+            />
+            <NumberInput
+              value={0}
+              onChange={(n) => bulkSet('power', n)}
+              ariaLabel={i18n.m.territory.tag.power}
+              placeholder={i18n.m.territory.tag.power}
+            />
+          </div>
+          <div class="bulk-actions">
+            <button class="reset" type="button" onclick={duplicateSelected}>
+              ⧉ {i18n.m.territory.duplicate}
+            </button>
+            <button class="reset" type="button" onclick={removeSelected}>
+              × {i18n.m.territory.remove}
+            </button>
+            <button class="reset" type="button" onclick={() => (selectedIds = [])}>
+              {i18n.m.common.close}
+            </button>
+          </div>
         </div>
       {:else if selected}
         <Editor
@@ -592,8 +648,12 @@
           {hasBears}
           {bearCount}
           {furnaceOptions}
+          convertOptions={activeMode.types
+            .filter((t) => t !== selected.type)
+            .map((t) => ({ value: t, label: objName(OBJECT_DEFS[t].i18n) }))}
           {setTag}
           {toggleBear}
+          onConvert={convertSelected}
           onDuplicate={duplicateSelected}
           onRemove={removeSelected}
           onClose={() => (selectedIds = [])}
@@ -807,6 +867,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    flex-wrap: wrap;
     margin-top: 14px;
     padding: 10px 14px;
     background: var(--surface);
@@ -818,6 +879,42 @@
     font-size: 12px;
     color: var(--text);
     margin-inline-end: auto;
+  }
+  .bulk-fields {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex-basis: 100%;
+  }
+  .bulk-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .bulk-input {
+    min-width: 0;
+    flex: 1 1 120px;
+    box-sizing: border-box;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+  .bulk-input:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .bulk-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex-basis: 100%;
   }
   .warn {
     flex-basis: 100%;

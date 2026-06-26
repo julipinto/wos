@@ -12,8 +12,10 @@
     hasBears: boolean;
     bearCount: number;
     furnaceOptions: { value: string; label: string }[];
+    convertOptions: { value: string; label: string }[];
     setTag: (key: 'name' | 'label' | 'furnace' | 'power', value: string | number) => void;
     toggleBear: (n: number) => void;
+    onConvert: (type: string) => void;
     onDuplicate: () => void;
     onRemove: () => void;
     onClose: () => void;
@@ -25,8 +27,10 @@
     hasBears,
     bearCount,
     furnaceOptions,
+    convertOptions,
     setTag,
     toggleBear,
+    onConvert,
     onDuplicate,
     onRemove,
     onClose
@@ -55,6 +59,17 @@
         oninput={(e) => setTag('label', e.currentTarget.value)}
       />
     </label>
+    {#if convertOptions.length > 0}
+      <label class="ed-field">
+        <span class="field-label">{i18n.m.territory.convert}</span>
+        <Select
+          value=""
+          options={[{ value: '', label: '—' }, ...convertOptions]}
+          onChange={(v) => v && onConvert(v)}
+          ariaLabel={i18n.m.territory.convert}
+        />
+      </label>
+    {/if}
     {#if isCity}
       <label class="ed-field">
         <span class="field-label">{i18n.m.territory.tag.furnace}</span>
