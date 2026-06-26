@@ -28,6 +28,11 @@ export interface PeerState {
 
 export interface CollabOpts {
   room: string;
+  /** End-to-end encryption key (from the URL hash; never seen by signaling). */
+  password?: string;
+  /** True for the room creator (seeds the doc with the local board); joiners adopt
+   *  the room's state instead of pushing their own. */
+  seed: boolean;
   user: { name: string; color: string };
   getObjects: () => PlacedObject[];
   /** Apply the room's objects locally (must NOT trigger a push back). */
@@ -55,7 +60,24 @@ export function startCollab(opts: CollabOpts): CollabSession {
   const omap = doc.getMap<PlacedObject>('objects');
   opts.onStatus('connecting');
 
-  const provider = new WebrtcProvider(opts.room, doc, { signaling: [SIGNALING] });
+  const provider = new WebrtcProvider(opts.room, doc, {
+    signaling: [SIGNALING],
+    password: opts.password,
+    // STUN to discover public IPs; a free public TURN relay as a fallback for the
+    // ~10–20% of peers behind symmetric NAT / strict firewalls where direct P2P fails.
+    peerOpts: {
+      config: {
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          {
+            urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443'],
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+          }
+        ]
+      }
+    }
+  });
   const aw = provider.awareness;
   aw.setLocalStateField('user', opts.user);
 
@@ -85,11 +107,8 @@ export function startCollab(opts: CollabOpts): CollabSession {
     }, LOCAL_ORIGIN);
   }
 
-  // Seed the room with our board only if nobody got there first. We wait briefly
-  // so a joiner receives the established state instead of clobbering it.
-  const seedTimer = setTimeout(() => {
-    if (omap.size === 0) pushLocal();
-  }, 1500);
+  // The creator seeds the room with the local board (joiners receive it on sync).
+  if (opts.seed) pushLocal();
 
   const emitPeers = () => {
     const states: PeerState[] = [];
@@ -119,7 +138,6 @@ export function startCollab(opts: CollabOpts): CollabSession {
     setSelection: (ids: string[]) => aw.setLocalStateField('selection', ids),
     setCursor: (p) => aw.setLocalStateField('cursor', p),
     destroy: () => {
-      clearTimeout(seedTimer);
       aw.off('change', emitPeers);
       provider.destroy();
       doc.destroy();
