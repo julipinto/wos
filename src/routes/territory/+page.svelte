@@ -711,7 +711,10 @@
         {highlight}
         connectivity={!!activeMode.connectivity}
         bind:viewport
+        peers={collabPeers}
         onContextMenu={openContext}
+        onCursor={(p) => collabSession?.setCursor(p)}
+        onLiveSync={() => collabSession?.pushLocal()}
         onPersist={persist}
       />
       {#if objects.length > 0}

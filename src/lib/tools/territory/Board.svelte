@@ -8,6 +8,7 @@
     collides,
     type PlacedObject
   } from './territory';
+  import type { PeerState } from './collab';
 
   // The interactive canvas: renders the grid + objects and owns all pointer
   // interaction (place / select / move / marquee / pan). It mutates `objects`
@@ -26,7 +27,10 @@
     connectivity: boolean;
     highlight: string;
     viewport?: { x: number; y: number; w: number; h: number };
+    peers?: PeerState[];
     onContextMenu?: (id: string, x: number, y: number) => void;
+    onCursor?: (p: { x: number; y: number } | null) => void;
+    onLiveSync?: () => void;
     onPersist: () => void;
   }
   let {
@@ -43,7 +47,10 @@
     connectivity,
     highlight,
     viewport = $bindable(),
+    peers = [],
     onContextMenu,
+    onCursor,
+    onLiveSync,
     onPersist
   }: Props = $props();
 
@@ -90,19 +97,38 @@
   // Map an object's centre to a percent position inside the board box, view-aware
   // (the overlay div fills the same box the SVG renders into). Labels are HTML so
   // they get a constant, readable font size + a chip — never shrinking with zoom.
-  function labelPos(o: PlacedObject): { left: number; top: number } {
-    const def = OBJECT_DEFS[o.type];
-    const cx = o.x + def.w / 2;
-    const cy = o.y + def.h / 2;
+  // Map a continuous grid point → percent inside the board box (view-aware). Used
+  // by labels and by remote peer cursors (both are HTML over the board).
+  function gridToPct(gx: number, gy: number): { left: number; top: number } {
     if (view === 'iso') {
-      const p = isoPoint(cx, cy);
+      const p = isoPoint(gx, gy);
       return {
         left: ((p.x - ISO_VB.x) / ISO_VB.w) * 100,
         top: ((p.y - ISO_VB.y) / ISO_VB.h) * 100
       };
     }
-    return { left: (cx / N) * 100, top: (cy / N) * 100 };
+    return { left: (gx / N) * 100, top: (gy / N) * 100 };
   }
+  function labelPos(o: PlacedObject): { left: number; top: number } {
+    const def = OBJECT_DEFS[o.type];
+    return gridToPct(o.x + def.w / 2, o.y + def.h / 2);
+  }
+  // Other peers' selections → coloured halos (rendered in the transformed plane).
+  const remoteSel = $derived.by(() => {
+    const out: { key: string; color: string; x: number; y: number; w: number; h: number }[] = [];
+    for (const p of peers) {
+      if (p.self || !p.selection) continue;
+      for (const id of p.selection) {
+        const o = objects.find((x) => x.id === id);
+        if (!o) continue;
+        const d = OBJECT_DEFS[o.type];
+        out.push({ key: `${p.id}_${id}`, color: p.color, x: o.x, y: o.y, w: d.w, h: d.h });
+      }
+    }
+    return out;
+  });
+  // Other peers' live cursors (self excluded), positioned over the board.
+  const remoteCursors = $derived(peers.filter((p) => !p.self && p.cursor));
   // Font scales gently with zoom but is clamped — readable on the overview,
   // not cartoonish up close (mirrors wostools' clamp(min, k·cell, max)).
   const labelFont = $derived(Math.max(10, Math.min(22, 7 * zoom + 5)));
@@ -229,6 +255,30 @@
     pan = scroller
       ? { cx: e.clientX, cy: e.clientY, left: scroller.scrollLeft, top: scroller.scrollTop }
       : null;
+  }
+
+  // Throttle collab broadcasts to one per animation frame so a fast drag / move
+  // doesn't flood awareness updates.
+  let cursorPending: { x: number; y: number } | null = null;
+  let cursorScheduled = false;
+  function queueCursor(p: { x: number; y: number } | null) {
+    if (!onCursor) return;
+    cursorPending = p;
+    if (cursorScheduled) return;
+    cursorScheduled = true;
+    requestAnimationFrame(() => {
+      cursorScheduled = false;
+      onCursor?.(cursorPending);
+    });
+  }
+  let syncScheduled = false;
+  function queueSync() {
+    if (!onLiveSync || syncScheduled) return;
+    syncScheduled = true;
+    requestAnimationFrame(() => {
+      syncScheduled = false;
+      onLiveSync?.();
+    });
   }
 
   // ── Zoom (wheel-to-cursor / pinch / fit) ────────────────────────────────
@@ -457,11 +507,13 @@
   }
   function onPointerMove(e: PointerEvent) {
     if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    // Track the hovered cell for the crosshair + coordinate badge (mouse only;
-    // touch has no hover and would leave a stale cell highlighted).
+    // Track the hovered cell for the crosshair + coordinate badge, and broadcast
+    // the live cursor to peers (mouse only; touch has no hover).
     if (e.pointerType !== 'touch') {
-      const hc = cellFromEvent(e);
-      hoverCell = hc && hc.x >= 0 && hc.y >= 0 && hc.x < N && hc.y < N ? hc : null;
+      const pt = pointFromEvent(e);
+      const inBounds = !!pt && pt.x >= 0 && pt.y >= 0 && pt.x < N && pt.y < N;
+      hoverCell = inBounds ? { x: Math.floor(pt!.x), y: Math.floor(pt!.y) } : null;
+      queueCursor(inBounds ? { x: pt!.x, y: pt!.y } : null);
     }
     // Two-finger gesture (any mode): combined pinch-zoom + pan.
     if (twoPan && scroller && pointers.size >= 2) {
@@ -506,6 +558,7 @@
             moved = true;
           }
         }
+        if (moved) queueSync();
       }
       e.preventDefault();
       return;
@@ -523,6 +576,7 @@
         o.x = nx;
         o.y = ny;
         moved = true;
+        queueSync();
       }
       e.preventDefault();
       return;
@@ -643,7 +697,10 @@
         onpointermove={onPointerMove}
         onpointerup={onPointerUp}
         onpointercancel={onPointerUp}
-        onpointerleave={() => (hoverCell = null)}
+        onpointerleave={() => {
+          hoverCell = null;
+          queueCursor(null);
+        }}
         oncontextmenu={onContext}
         ondblclick={onGridRemove}
         role="application"
@@ -715,6 +772,17 @@
           {#each guides.h as gy (gy)}
             <line class="guide" x1="0" y1={gy} x2={N} y2={gy} />
           {/each}
+          {#each remoteSel as r (r.key)}
+            <rect
+              class="remote-sel"
+              x={r.x - 0.04}
+              y={r.y - 0.04}
+              width={r.w + 0.08}
+              height={r.h + 0.08}
+              rx="0.18"
+              style="stroke: {r.color}"
+            />
+          {/each}
           {#if flash}
             {#key flash.n}
               <rect
@@ -764,6 +832,19 @@
             <div class="tile-label" class:bear style="left: {pos.left}%; top: {pos.top}%">
               {#if l.primary}<span class="tl-name">{l.primary}</span>{/if}
               {#if l.sub}<span class="tl-sub">{l.sub}</span>{/if}
+            </div>
+          {/each}
+        </div>
+      {/if}
+      {#if remoteCursors.length}
+        <div class="cursor-layer">
+          {#each remoteCursors as p (p.id)}
+            {@const c = gridToPct(p.cursor!.x, p.cursor!.y)}
+            <div class="remote-cursor" style="left: {c.left}%; top: {c.top}%; --pc: {p.color}">
+              <svg viewBox="0 0 12 12" width="14" height="14" aria-hidden="true">
+                <path d="M1 1 L1 10 L4 7.5 L6 11 L7.5 10.2 L5.6 6.8 L9.5 6.6 Z" fill={p.color} />
+              </svg>
+              <span class="rc-name" style="background: {p.color}">{p.name}</span>
             </div>
           {/each}
         </div>
@@ -881,6 +962,12 @@
     stroke-dasharray: 0.4 0.3;
     pointer-events: none;
   }
+  .remote-sel {
+    fill: none;
+    stroke-width: 0.14;
+    opacity: 0.9;
+    pointer-events: none;
+  }
   .flash {
     fill: none;
     stroke: #fbbf24;
@@ -906,6 +993,37 @@
     inset: 0;
     pointer-events: none;
     z-index: 4;
+  }
+  /* Remote peer cursors live in their own overlay, above the labels. */
+  .cursor-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 7;
+  }
+  .remote-cursor {
+    position: absolute;
+    transform: translate(-2px, -2px);
+    transition:
+      left 0.08s linear,
+      top 0.08s linear;
+    will-change: left, top;
+  }
+  .remote-cursor svg {
+    display: block;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5));
+  }
+  .rc-name {
+    position: absolute;
+    left: 12px;
+    top: 10px;
+    padding: 1px 6px;
+    border-radius: 6px;
+    color: #0b1220;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
   }
   .tile-label {
     position: absolute;
