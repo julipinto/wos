@@ -1,6 +1,7 @@
 <script lang="ts">
   import { i18n } from '$lib/i18n/index.svelte';
   import Button from '$lib/components/Button.svelte';
+  import TextInput from '$lib/components/TextInput.svelte';
   import type { CollabStatus, PeerState } from './collab';
 
   // Presence bar for live collaboration: a start button when solo, and when in a
@@ -53,10 +54,10 @@
     </span>
     <label class="me" title={i18n.m.territory.collab.yourName}>
       <span class="avatar" style="background: {myColor}">{initials(myName)}</span>
-      <input
-        class="name-input"
+      <TextInput
+        style="width:9ch"
         value={myName}
-        maxlength="18"
+        maxlength={18}
         aria-label={i18n.m.territory.collab.yourName}
         onchange={(e) => onRename(e.currentTarget.value)}
       />
@@ -101,20 +102,6 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-  }
-  .name-input {
-    width: 9ch;
-    background: var(--bg-soft);
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    padding: 5px 9px;
-  }
-  .name-input:focus-visible {
-    outline: none;
-    border-color: var(--accent);
   }
   .dot {
     width: 8px;
