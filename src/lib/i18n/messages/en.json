@@ -688,6 +688,7 @@
       "enter": "Join",
       "joinFailed": "Couldn't connect — wrong password or empty room"
     },
+    "shareProject": "Share project",
     "export": {
       "button": "Export",
       "title": "Export image / data",

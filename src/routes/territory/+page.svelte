@@ -22,6 +22,7 @@
   import TextInput from '$lib/components/TextInput.svelte';
   import CollabBar from '$lib/tools/territory/CollabBar.svelte';
   import ExportDialog from '$lib/tools/territory/ExportDialog.svelte';
+  import ShareDialog from '$lib/tools/territory/ShareDialog.svelte';
   import type { CollabSession, CollabStatus, PeerState } from '$lib/tools/territory/collab';
   import { TERRITORY_SLIDES } from '$lib/tools/territory/tutorial';
   import { readJson, writeJson } from '$lib/utils/storage';
@@ -142,13 +143,13 @@
   let heatmap = $state(false);
   let colorByPrimary = $state(false); // colour cities by their primary bear trap
   let highlight = $state(''); // '' = off · a type · 'orphaned'
-  let importOpen = $state(false);
   let importText = $state('');
   let copied = $state(false);
   let mapName = $state('');
   const HELP_KEY = 'territory-help-seen-v1';
   let helpOpen = $state(false);
   let exportOpen = $state(false);
+  let shareOpen = $state(false);
   const exportTitle = $derived(
     `${(i18n.m.territory.modes as Record<string, string>)[activeMode.i18n]} — ${new Date().toLocaleDateString()}`
   );
@@ -589,9 +590,10 @@
     return !!parsed;
   }
   async function doImport() {
-    await parseAndApply(importText);
-    importText = '';
-    importOpen = false;
+    if (await parseAndApply(importText)) {
+      importText = '';
+      shareOpen = false;
+    }
   }
   // Download the layout as a .txt file — the no-length-limit way to share a big hive.
   function doDownload() {
@@ -610,7 +612,7 @@
     if (!file) return;
     const text = await file.text();
     input.value = ''; // let the same file be picked again later
-    if (await parseAndApply(text)) importOpen = false;
+    if (await parseAndApply(text)) shareOpen = false;
   }
 
   function closeHelp() {
@@ -871,23 +873,9 @@
   <div class="footer">
     <p class="hint">{i18n.m.territory.hint}</p>
     <div class="footer-actions">
-      <Button
-        variant="secondary"
-        size="sm"
-        onclick={doExport}
-        disabled={objects.length === 0 || urlTooLong}
-        title={urlTooLong ? i18n.m.territory.urlLong : ''}
-      >
-        <Icon name={copied ? 'check' : 'share-2'} size={13} />
-        {copied ? i18n.m.territory.copied : i18n.m.territory.share}
-      </Button>
-      <Button variant="secondary" size="sm" onclick={doCopyCode} disabled={objects.length === 0}>
-        <Icon name={codeCopied ? 'check' : 'copy'} size={13} />
-        {codeCopied ? i18n.m.territory.codeCopied : i18n.m.territory.copyCode}
-      </Button>
-      <Button variant="secondary" size="sm" onclick={doDownload} disabled={objects.length === 0}>
-        <Icon name="download" size={13} />
-        {i18n.m.territory.download}
+      <Button variant="secondary" size="sm" onclick={() => (shareOpen = true)}>
+        <Icon name="share-2" size={13} />
+        {i18n.m.territory.shareProject}
       </Button>
       <Button
         variant="secondary"
@@ -898,39 +886,11 @@
         <Icon name="image" size={13} />
         {i18n.m.territory.export.button}
       </Button>
-      <Button variant="secondary" size="sm" onclick={() => (importOpen = !importOpen)}>
-        <Icon name="upload" size={13} />
-        {i18n.m.territory.import}
-      </Button>
       <Button variant="ghost" size="sm" onclick={reset} disabled={objects.length === 0}>
         {i18n.m.common.reset}
       </Button>
     </div>
-    {#if urlTooLong}
-      <p class="warn">⚠️ {i18n.m.territory.urlLong}</p>
-    {/if}
   </div>
-
-  {#if importOpen}
-    <div class="import-box">
-      <textarea
-        bind:value={importText}
-        placeholder={i18n.m.territory.importHint}
-        rows="2"
-        aria-label={i18n.m.territory.import}
-      ></textarea>
-      <div class="import-actions">
-        <Button variant="secondary" size="sm" onclick={doImport} disabled={!importText.trim()}>
-          {i18n.m.territory.import}
-        </Button>
-        <label class="file-btn">
-          <Icon name="upload" size={13} />
-          {i18n.m.territory.fromFile}
-          <input type="file" accept=".txt,text/plain" onchange={onImportFile} />
-        </label>
-      </div>
-    </div>
-  {/if}
 
   <MapsPanel
     {mode}
@@ -992,6 +952,21 @@
       onClose={() => (ctx = null)}
     />
   {/if}
+
+  <ShareDialog
+    open={shareOpen}
+    onClose={() => (shareOpen = false)}
+    hasObjects={objects.length > 0}
+    {urlTooLong}
+    {copied}
+    {codeCopied}
+    onShare={doExport}
+    onCopyCode={doCopyCode}
+    onDownload={doDownload}
+    bind:importText
+    onImport={doImport}
+    {onImportFile}
+  />
 
   <ExportDialog
     open={exportOpen}
@@ -1225,74 +1200,12 @@
     flex-wrap: wrap;
     flex-basis: 100%;
   }
-  .warn {
-    flex-basis: 100%;
-    margin: 8px 0 0;
-    color: #fbbf24;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    line-height: 1.5;
-  }
   .footer-actions {
     display: flex;
     gap: 8px;
     flex-shrink: 0;
     flex-wrap: wrap;
     justify-content: flex-end;
-  }
-  .import-box {
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
-  }
-  .import-box textarea {
-    flex: 1;
-    box-sizing: border-box;
-    background: var(--bg-soft);
-    border: 1px solid var(--border);
-    border-radius: var(--r-card);
-    color: var(--text);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    padding: 8px 10px;
-    resize: vertical;
-  }
-  .import-box textarea:focus-visible {
-    outline: none;
-    border-color: var(--accent);
-  }
-  .import-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .file-btn {
-    position: relative;
-    overflow: hidden;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text-mid);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    padding: 8px 16px;
-    cursor: pointer;
-  }
-  .file-btn:hover {
-    color: var(--text);
-    border-color: var(--border-accent);
-  }
-  .file-btn input[type='file'] {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    cursor: pointer;
   }
   .footer {
     display: flex;
