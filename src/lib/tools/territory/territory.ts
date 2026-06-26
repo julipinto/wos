@@ -102,6 +102,9 @@ export interface PlacedObject {
   furnace?: string;
   power?: number;
   bear?: number[];
+  /** Of the joined `bear` traps, which are this city's PRIMARY commitment (the rest
+   *  are backups). Multiple allowed; must be a subset of `bear`. */
+  bearMain?: number[];
 }
 
 /** Furnace levels for tagging — plain in-game display: 1–30 then FC1–FC11. */
@@ -160,7 +163,8 @@ function encodeLayout(mode: string, objects: PlacedObject[]): string {
         ob.furnace ? FURNACE_LEVELS.indexOf(ob.furnace) + 1 : 0,
         ob.power ?? 0,
         ob.bear?.length ? ob.bear : 0,
-        ob.label ?? ''
+        ob.label ?? '',
+        ob.bearMain?.length ? ob.bearMain : 0
       );
     return base;
   });
@@ -204,7 +208,7 @@ export async function importLayout(code: string): Promise<ImportedLayout | null>
     const objects: PlacedObject[] = [];
     for (const row of rows) {
       if (!Array.isArray(row)) continue;
-      const [t, x, y, name, fur, power, bear, label] = row;
+      const [t, x, y, name, fur, power, bear, label, bearMain] = row;
       // type + furnace may be strings (old) or indices (compact).
       const type = typeof t === 'number' ? TYPE_ORDER[t] : t;
       if (typeof type !== 'string' || !allowed.has(type)) continue;
@@ -227,6 +231,14 @@ export async function importLayout(code: string): Promise<ImportedLayout | null>
           ? [bear]
           : [];
       if (bears.length) ob.bear = [...new Set(bears)].sort((a, b) => a - b);
+      // Primary traps — a subset of `bear`; ignore any that aren't joined.
+      if (ob.bear && Array.isArray(bearMain)) {
+        const joined = ob.bear;
+        const mains = [...new Set(bearMain.filter((n) => typeof n === 'number'))]
+          .filter((n) => joined.includes(n))
+          .sort((a, b) => a - b);
+        if (mains.length) ob.bearMain = mains;
+      }
       objects.push(ob);
     }
     return { mode: mode.id, objects };
