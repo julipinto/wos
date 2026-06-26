@@ -3,6 +3,7 @@
   import Button from '$lib/components/Button.svelte';
   import Select from '$lib/components/Select.svelte';
   import NumberInput from '$lib/components/NumberInput.svelte';
+  import TextInput from '$lib/components/TextInput.svelte';
   import type { PlacedObject } from './territory';
 
   // Tag editor for a single selected object (name always; furnace/power/bear for cities).
@@ -46,16 +47,14 @@
   <div class="ed-fields">
     <label class="ed-field">
       <span class="field-label">{i18n.m.territory.tag.name}</span>
-      <input
-        type="text"
+      <TextInput
         value={selected.name ?? ''}
         oninput={(e) => setTag('name', e.currentTarget.value)}
       />
     </label>
     <label class="ed-field">
       <span class="field-label">{i18n.m.territory.tag.label}</span>
-      <input
-        type="text"
+      <TextInput
         value={selected.label ?? ''}
         oninput={(e) => setTag('label', e.currentTarget.value)}
       />
@@ -152,21 +151,6 @@
     display: flex;
     flex-direction: column;
     gap: 5px;
-  }
-  .ed-field input {
-    width: 100%;
-    box-sizing: border-box;
-    background: var(--bg-soft);
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text);
-    font-family: var(--font-mono);
-    font-size: 14px;
-    padding: 10px 12px;
-  }
-  .ed-field input:focus-visible {
-    outline: none;
-    border-color: var(--accent);
   }
   .field-label {
     font-family: var(--font-mono);
