@@ -429,19 +429,25 @@
            in iso (positioned via the iso projection). -->
       {#if showLabels}
         {#each objects as o (o.id)}
-          {@const primary = labelField === 'name' ? o.name : o.furnace}
-          <!-- bear traps carry their own number, so skip name/label there -->
-          {#if (primary || o.label) && o.type !== 'bearTrap'}
+          <!-- bears have no furnace, so always show their name; cities follow the toggle -->
+          {@const primary =
+            o.type === 'bearTrap' ? o.name : labelField === 'name' ? o.name : o.furnace}
+          {#if primary || o.label}
             {@const def = OBJECT_DEFS[o.type]}
             {@const cx = o.x + def.w / 2}
             {@const cy = o.y + def.h / 2}
             {@const p = view === 'iso' ? isoPoint(cx, cy) : { x: cx, y: cy }}
             {@const both = !!primary && !!o.label}
+            <!-- bear traps already show a big centred number, so push their
+                 name/label below it instead of overlapping. -->
+            {@const bear = o.type === 'bearTrap'}
+            {@const yName = bear ? p.y + 0.85 : both ? p.y - 0.3 : p.y}
+            {@const yLabel = bear ? p.y + (primary ? 1.25 : 0.85) : both ? p.y + 0.32 : p.y}
             {#if primary}
               <text
                 class="tile-label"
                 x={p.x}
-                y={both ? p.y - 0.3 : p.y}
+                y={yName}
                 text-anchor="middle"
                 dominant-baseline="central">{primary}</text
               >
@@ -450,7 +456,7 @@
               <text
                 class="tile-label tile-sub"
                 x={p.x}
-                y={both ? p.y + 0.32 : p.y}
+                y={yLabel}
                 text-anchor="middle"
                 dominant-baseline="central">{o.label}</text
               >
