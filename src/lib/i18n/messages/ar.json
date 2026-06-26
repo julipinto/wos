@@ -650,7 +650,8 @@
     "selectHint": "اختر قطعة لتحريرها.",
     "undo": "تراجع",
     "redo": "إعادة",
-    "duplicate": "تكرار"
+    "duplicate": "تكرار",
+    "objectsN": "{n} عناصر"
   },
   "events": {
     "title": "تقويم الأحداث",

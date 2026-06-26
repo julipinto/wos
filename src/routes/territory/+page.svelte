@@ -487,6 +487,13 @@
     {bearCount}
   />
 
+  {#if objects.length > 0}
+    <p class="obj-count">
+      {fmt(i18n.m.territory.objectsN, { n: objects.length })}{#if selectedIds.length > 0}
+        · {fmt(i18n.m.territory.selectedN, { n: selectedIds.length })}{/if}
+    </p>
+  {/if}
+
   <div class="stage">
     <div class="stage-board">
       <Board
@@ -494,7 +501,7 @@
         bind:selectedIds
         bind:bearFocus
         {view}
-        {zoom}
+        bind:zoom
         {boardMode}
         {tool}
         {showLabels}
@@ -683,6 +690,12 @@
     .stage-side .group-bar {
       margin-top: 0;
     }
+  }
+  .obj-count {
+    margin: -4px 0 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
   }
   .side-hint {
     display: none;

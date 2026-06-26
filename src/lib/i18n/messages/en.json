@@ -650,7 +650,8 @@
     "selectHint": "Select a piece to edit its tags.",
     "undo": "undo",
     "redo": "redo",
-    "duplicate": "duplicate"
+    "duplicate": "duplicate",
+    "objectsN": "{n} objects"
   },
   "events": {
     "title": "event calendar",
