@@ -664,6 +664,16 @@
     "jumpHq": "К штабу",
     "jumpBear": "К ловушке",
     "highlight": "Подсветка",
+    "collab": {
+      "start": "Совместно",
+      "copyLink": "Копировать ссылку",
+      "copied": "Скопировано",
+      "leave": "Выйти",
+      "connecting": "Подключение…",
+      "connected": "В эфире",
+      "disconnected": "Не в сети",
+      "online": "В сети"
+    },
     "search": {
       "label": "Поиск",
       "placeholder": "Поиск по имени/метке или x,y…",

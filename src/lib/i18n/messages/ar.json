@@ -664,6 +664,16 @@
     "jumpHq": "إلى المقر",
     "jumpBear": "إلى فخ الدب",
     "highlight": "تمييز",
+    "collab": {
+      "start": "تعاون",
+      "copyLink": "نسخ الرابط",
+      "copied": "تم النسخ",
+      "leave": "مغادرة",
+      "connecting": "جارٍ الاتصال…",
+      "connected": "مباشر",
+      "disconnected": "غير متصل",
+      "online": "متصل"
+    },
     "search": {
       "label": "بحث",
       "placeholder": "ابحث بالاسم/التسمية أو x,y…",
