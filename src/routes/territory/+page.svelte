@@ -408,13 +408,15 @@
   let collabSession: CollabSession | null = null;
   let applyingRemote = false; // guards the remote→local apply from echoing back
 
-  async function startCollabSession(room: string) {
+  async function startCollabSession(room: string, key: string | undefined, seed: boolean) {
     if (collabSession) return;
     collabActive = true;
     collabStatus = 'connecting';
     const { startCollab: createCollab } = await import('$lib/tools/territory/collab');
     collabSession = createCollab({
       room,
+      password: key,
+      seed,
       user: me,
       getObjects: () => objects,
       applyRemote: (objs) => {
@@ -431,8 +433,13 @@
   }
   function startCollab() {
     const room = crypto.randomUUID();
-    history.replaceState(null, '', `${location.pathname}${location.search}#room=${room}`);
-    startCollabSession(room);
+    const key = crypto.randomUUID().replace(/-/g, ''); // E2E key — stays in the hash
+    history.replaceState(
+      null,
+      '',
+      `${location.pathname}${location.search}#room=${room}&key=${key}`
+    );
+    startCollabSession(room, key, true);
   }
   function copyCollabLink() {
     navigator.clipboard.writeText(location.href).then(() => {
@@ -541,9 +548,10 @@
   // A collab link (#room=ID) joins that live room instead.
   onMount(async () => {
     if (!readJson<boolean>(HELP_KEY)) helpOpen = true; // first visit → quick tour
-    const room = new URLSearchParams(location.hash.slice(1)).get('room');
+    const hashParams = new URLSearchParams(location.hash.slice(1));
+    const room = hashParams.get('room');
     if (room) {
-      startCollabSession(room);
+      startCollabSession(room, hashParams.get('key') ?? undefined, false);
       return;
     }
     const code = new URLSearchParams(location.search).get('t');
