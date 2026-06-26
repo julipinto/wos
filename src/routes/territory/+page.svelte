@@ -55,11 +55,68 @@
     return Array.isArray(raw) ? raw.filter((o) => allowed.has(o.type)) : [];
   }
   const objects = $state<PlacedObject[]>(loadLayout(initialMode));
-  const persist = () =>
-    writeJson(
-      layoutKey(mode),
-      objects.map((o) => ({ ...o }))
-    );
+
+  // ── Undo / redo (bounded) ───────────────────────────────────────────────
+  // History snapshots are kept off-reactive and capped, and rapid edits (e.g.
+  // typing a label) coalesce into one step, so the stack stays small.
+  const HIST_MAX = 50;
+  const COALESCE_MS = 400;
+  const cloneLayout = (a: PlacedObject[]) =>
+    a.map((o) => ({ ...o, bear: o.bear ? [...o.bear] : undefined }));
+  let undoStack: PlacedObject[][] = [];
+  let redoStack: PlacedObject[][] = [];
+  let lastSnap = cloneLayout(objects);
+  let lastPush = 0;
+  let canUndo = $state(false);
+  let canRedo = $state(false);
+  const refreshHist = () => {
+    canUndo = undoStack.length > 0;
+    canRedo = redoStack.length > 0;
+  };
+  const save = () => writeJson(layoutKey(mode), cloneLayout(objects));
+
+  function persist() {
+    const now = Date.now();
+    if (now - lastPush > COALESCE_MS) {
+      undoStack.push(lastSnap);
+      if (undoStack.length > HIST_MAX) undoStack.shift();
+      redoStack = [];
+    }
+    lastPush = now;
+    lastSnap = cloneLayout(objects);
+    refreshHist();
+    save();
+  }
+
+  function restoreHist(snap: PlacedObject[]) {
+    objects.splice(0, objects.length, ...cloneLayout(snap));
+    selectedIds = [];
+    lastSnap = cloneLayout(objects);
+    lastPush = 0;
+    save();
+  }
+  function undo() {
+    if (!undoStack.length) return;
+    redoStack.push(cloneLayout(objects));
+    if (redoStack.length > HIST_MAX) redoStack.shift();
+    restoreHist(undoStack.pop()!);
+    refreshHist();
+  }
+  function redo() {
+    if (!redoStack.length) return;
+    undoStack.push(cloneLayout(objects));
+    if (undoStack.length > HIST_MAX) undoStack.shift();
+    restoreHist(redoStack.pop()!);
+    refreshHist();
+  }
+  // Loading a different layout (mode switch / load / import) is a new document.
+  function clearHist() {
+    undoStack = [];
+    redoStack = [];
+    lastSnap = cloneLayout(objects);
+    lastPush = 0;
+    refreshHist();
+  }
 
   function setMode(m: string) {
     if (m === mode) return;
@@ -69,6 +126,7 @@
     selectedIds = [];
     bearFocus = 0;
     tool = modeById(m).types[0];
+    clearHist();
   }
 
   let tool = $state<TerritoryType>(modeById(initialMode).types[0]);
@@ -139,7 +197,8 @@
   function loadMap(id: string) {
     objects.splice(0, objects.length, ...savedMaps.objectsOf(mode, id));
     selectedIds = [];
-    persist();
+    save();
+    clearHist();
   }
 
   const furnaceOptions = [
@@ -228,7 +287,8 @@
     objects.splice(0, objects.length, ...parsed.objects);
     tool = modeById(mode).types[0];
     selectedIds = [];
-    persist();
+    save();
+    clearHist();
   }
   // Accept a full share link OR a raw code; apply if it parses.
   async function parseAndApply(text: string): Promise<boolean> {
@@ -275,6 +335,21 @@
     const parsed = await importLayout(code);
     if (parsed && parsed.objects.length) applyImport(parsed);
   });
+
+  // Ctrl/Cmd+Z = undo, Ctrl/Cmd+Shift+Z or Ctrl+Y = redo. Skip while typing in
+  // a field so the browser's own text undo still works there.
+  onMount(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || (e.key !== 'z' && e.key !== 'y')) return;
+      const el = document.activeElement?.tagName;
+      if (el === 'INPUT' || el === 'TEXTAREA') return;
+      e.preventDefault();
+      if (e.key === 'y' || e.shiftKey) redo();
+      else undo();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
 </script>
 
 <svelte:head>
@@ -310,13 +385,33 @@
       ]}
       onChange={(v) => setView(v as View)}
     />
-    <button
-      class="help-btn"
-      type="button"
-      onclick={() => (helpOpen = true)}
-      aria-label={i18n.m.territory.help.title}
-      title={i18n.m.territory.help.title}><Icon name="circle-help" size={16} /></button
-    >
+    <div class="vb-actions">
+      {#if boardMode === 'edit'}
+        <button
+          class="help-btn glyph"
+          type="button"
+          onclick={undo}
+          disabled={!canUndo}
+          aria-label={i18n.m.territory.undo}
+          title={i18n.m.territory.undo}>↶</button
+        >
+        <button
+          class="help-btn glyph"
+          type="button"
+          onclick={redo}
+          disabled={!canRedo}
+          aria-label={i18n.m.territory.redo}
+          title={i18n.m.territory.redo}>↷</button
+        >
+      {/if}
+      <button
+        class="help-btn"
+        type="button"
+        onclick={() => (helpOpen = true)}
+        aria-label={i18n.m.territory.help.title}
+        title={i18n.m.territory.help.title}><Icon name="circle-help" size={16} /></button
+      >
+    </div>
   </div>
 
   {#if boardMode === 'edit'}
@@ -558,8 +653,12 @@
     margin-bottom: 16px;
     flex-wrap: wrap;
   }
-  .help-btn {
+  .vb-actions {
     margin-inline-start: auto;
+    display: inline-flex;
+    gap: 8px;
+  }
+  .help-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -574,9 +673,17 @@
       color 0.2s ease,
       border-color 0.2s ease;
   }
-  .help-btn:hover {
+  .help-btn.glyph {
+    font-size: 17px;
+    line-height: 1;
+  }
+  .help-btn:hover:not(:disabled) {
     color: var(--accent);
     border-color: var(--border-accent);
+  }
+  .help-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
   }
   .group-bar {
     display: flex;

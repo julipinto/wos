@@ -430,7 +430,8 @@
       {#if showLabels}
         {#each objects as o (o.id)}
           {@const primary = labelField === 'name' ? o.name : o.furnace}
-          {#if primary || o.label}
+          <!-- bear traps carry their own number, so skip name/label there -->
+          {#if (primary || o.label) && o.type !== 'bearTrap'}
             {@const def = OBJECT_DEFS[o.type]}
             {@const cx = o.x + def.w / 2}
             {@const cy = o.y + def.h / 2}
@@ -482,6 +483,9 @@
     overflow: auto;
     border: 1px solid var(--border);
     border-radius: var(--r-card);
+    /* the board is square, so cap its height (it'd be as tall as it is wide on
+       desktop) and let it scroll within. */
+    height: 62vh;
   }
   /* On phones the 60×60 board is taller than the screen, which buried the
      controls above/below it. Bound it to a viewport you pan inside (Excalidraw

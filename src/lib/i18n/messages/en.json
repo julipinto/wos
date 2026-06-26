@@ -647,7 +647,9 @@
     },
     "download": "File",
     "fromFile": "From file",
-    "selectHint": "Select a piece to edit its tags."
+    "selectHint": "Select a piece to edit its tags.",
+    "undo": "undo",
+    "redo": "redo"
   },
   "events": {
     "title": "event calendar",
