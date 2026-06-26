@@ -139,10 +139,17 @@
   // Two-finger pan: tracks live pointers so a second finger pans the board even
   // in Edit mode (where one finger places / marquee-selects).
   const pointers = new Map<number, { x: number; y: number }>();
-  let twoPan: { cx: number; cy: number; left: number; top: number } | null = null;
+  // Pinch state: the last applied midpoint + finger distance, so each move zooms
+  // (distance ratio, anchored at the midpoint) and pans (midpoint travel) at once.
+  let twoPan: { dist: number; mx: number; my: number } | null = null;
+  let pinchBusy = false;
   const midpoint = () => {
     const p = [...pointers.values()];
     return { x: (p[0].x + p[1].x) / 2, y: (p[0].y + p[1].y) / 2 };
+  };
+  const pointDist = () => {
+    const p = [...pointers.values()];
+    return Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
   };
 
   function startPan(e: PointerEvent) {
@@ -175,6 +182,32 @@
   function onWheel(e: WheelEvent) {
     e.preventDefault();
     zoomAt(zoom * (e.deltaY < 0 ? 1.15 : 1 / 1.15), e.clientX, e.clientY);
+  }
+  /** Two-finger gesture: zoom by the finger-distance ratio (anchored at the
+   *  midpoint) and pan by the midpoint's travel, in one combined step. Guarded
+   *  so overlapping moves don't fight the post-relayout scroll correction. */
+  async function pinchMove() {
+    if (pinchBusy || !twoPan || !scroller) return;
+    pinchBusy = true;
+    const m = midpoint();
+    const dist = pointDist();
+    const rect = scroller.getBoundingClientRect();
+    const target = Math.min(MAXZ, Math.max(MINZ, +(zoom * (dist / (twoPan.dist || 1))).toFixed(3)));
+    const r = target / zoom;
+    const ax = m.x - rect.left;
+    const ay = m.y - rect.top;
+    const nextLeft = (scroller.scrollLeft + ax) * r - ax - (m.x - twoPan.mx);
+    const nextTop = (scroller.scrollTop + ay) * r - ay - (m.y - twoPan.my);
+    twoPan = { dist, mx: m.x, my: m.y };
+    if (target !== zoom) {
+      zoom = target;
+      await tick();
+    }
+    if (scroller) {
+      scroller.scrollLeft = nextLeft;
+      scroller.scrollTop = nextTop;
+    }
+    pinchBusy = false;
   }
 
   /** Fit the placed objects into view — uses the live CTM so it works in iso too. */
@@ -254,7 +287,7 @@
       moved = true;
       if (scroller) {
         const m = midpoint();
-        twoPan = { cx: m.x, cy: m.y, left: scroller.scrollLeft, top: scroller.scrollTop };
+        twoPan = { dist: pointDist(), mx: m.x, my: m.y };
       }
       e.preventDefault();
       return;
@@ -303,12 +336,10 @@
   }
   function onPointerMove(e: PointerEvent) {
     if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    // Two-finger pan (any mode): follow the midpoint of the two fingers.
+    // Two-finger gesture (any mode): combined pinch-zoom + pan.
     if (twoPan && scroller && pointers.size >= 2) {
-      const m = midpoint();
-      scroller.scrollLeft = twoPan.left - (m.x - twoPan.cx);
-      scroller.scrollTop = twoPan.top - (m.y - twoPan.cy);
       e.preventDefault();
+      pinchMove();
       return;
     }
     // Panning (view mode, dragging empty space).
@@ -642,6 +673,13 @@
     /* the board is square, so cap its height (it'd be as tall as it is wide on
        desktop) and let it scroll within. */
     height: 62vh;
+    /* Hide the scrollbars — panning is by drag / two-finger / wheel, so the bars
+       are just visual noise on the canvas. (Firefox / IE / WebKit.) */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .board-scroll::-webkit-scrollbar {
+    display: none;
   }
   /* On phones the 60×60 board is taller than the screen, which buried the
      controls above/below it. Bound it to a viewport you pan inside (Excalidraw
