@@ -24,6 +24,7 @@
     labelField: 'furnace' | 'name';
     heatmap: boolean;
     connectivity: boolean;
+    highlight: string;
     onPersist: () => void;
   }
   let {
@@ -38,6 +39,7 @@
     labelField,
     heatmap,
     connectivity,
+    highlight,
     onPersist
   }: Props = $props();
 
@@ -539,6 +541,12 @@
     if (o.type === 'bearTrap') return bearNum(o) === bearFocus;
     return o.bear?.includes(bearFocus) ?? false;
   }
+  // Highlight filter (rail): '' = off, 'orphaned' = unconnected banners, else a type.
+  function hiOk(o: PlacedObject): boolean {
+    if (!highlight) return true;
+    if (highlight === 'orphaned') return territory.orphaned.has(o.id);
+    return o.type === highlight;
+  }
 </script>
 
 <div class="board-wrap">
@@ -592,7 +600,7 @@
             {@const def = OBJECT_DEFS[o.type]}
             {@const orphan = territory.orphaned.has(o.id)}
             {@const sel = selectedIds.includes(o.id)}
-            {@const lit = inFocus(o)}
+            {@const lit = inFocus(o) && hiOk(o)}
             <rect
               class="obj"
               x={o.x + 0.08}

@@ -128,6 +128,7 @@
     objects.splice(0, objects.length, ...loadLayout(m));
     selectedIds = [];
     bearFocus = 0;
+    highlight = '';
     tool = modeById(m).types[0];
     clearHist();
     autoFit();
@@ -162,6 +163,7 @@
     writeJson(LABELBY_KEY, f);
   }
   let heatmap = $state(false);
+  let highlight = $state(''); // '' = off · a type · 'orphaned'
   let importOpen = $state(false);
   let importText = $state('');
   let copied = $state(false);
@@ -357,6 +359,14 @@
   // Quick-jump targets for the top-bar presets.
   const seedObj = $derived(objects.find((o) => OBJECT_DEFS[o.type].seed) ?? null);
   const firstBear = $derived(objects.find((o) => o.type === 'bearTrap') ?? null);
+  // Highlight filter options: off · each type · orphaned (when connectivity matters).
+  const highlightOptions = $derived([
+    { value: '', label: '—' },
+    ...activeMode.types.map((t) => ({ value: t, label: objName(OBJECT_DEFS[t].i18n) })),
+    ...(activeMode.connectivity
+      ? [{ value: 'orphaned', label: i18n.m.territory.legend.orphan }]
+      : [])
+  ]);
 
   // Precompute the share link (off the current page URL, so it follows the host)
   // whenever the layout/mode changes. Compression is async, so doing it here and
@@ -569,6 +579,8 @@
         onLabelField={setLabelField}
         bind:heatmap
         bind:bearFocus
+        bind:highlight
+        {highlightOptions}
         {hasBears}
         {bearCount}
         connectivity={!!activeMode.connectivity}
@@ -595,6 +607,7 @@
         {showLabels}
         {labelField}
         {heatmap}
+        {highlight}
         connectivity={!!activeMode.connectivity}
         onPersist={persist}
       />

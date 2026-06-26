@@ -663,6 +663,7 @@
     "fit": "Fit",
     "jumpHq": "Go to HQ",
     "jumpBear": "Go to bear trap",
+    "highlight": "Highlight",
     "search": {
       "label": "Search",
       "placeholder": "Search name/label or x,y…",
