@@ -35,6 +35,7 @@
     type TerritoryType
   } from '$lib/tools/territory/territory';
   import { savedMaps } from '$lib/tools/territory/maps.svelte';
+  import { createHistory } from '$lib/tools/territory/history.svelte';
 
   const VIEW_KEY = 'territory-view-v1';
   const MODE_KEY = 'territory-mode-v1';
@@ -66,68 +67,29 @@
   }
   const objects = $state<PlacedObject[]>(loadLayout(initialMode));
 
-  // ── Undo / redo (bounded) ───────────────────────────────────────────────
-  // History snapshots are kept off-reactive and capped, and rapid edits (e.g.
-  // typing a label) coalesce into one step, so the stack stays small.
-  const HIST_MAX = 50;
-  const COALESCE_MS = 400;
+  // ── Undo / redo (bounded) — logic lives in history.svelte.ts ─────────────
   const cloneLayout = (a: PlacedObject[]) =>
     a.map((o) => ({ ...o, bear: o.bear ? [...o.bear] : undefined }));
-  let undoStack: PlacedObject[][] = [];
-  let redoStack: PlacedObject[][] = [];
-  let lastSnap = cloneLayout(objects);
-  let lastPush = 0;
-  let canUndo = $state(false);
-  let canRedo = $state(false);
-  const refreshHist = () => {
-    canUndo = undoStack.length > 0;
-    canRedo = redoStack.length > 0;
-  };
   const save = () => writeJson(layoutKey(mode), cloneLayout(objects));
 
-  function persist() {
-    const now = Date.now();
-    if (now - lastPush > COALESCE_MS) {
-      undoStack.push(lastSnap);
-      if (undoStack.length > HIST_MAX) undoStack.shift();
-      redoStack = [];
+  const undoRedo = createHistory<PlacedObject[]>({
+    snapshot: () => cloneLayout(objects),
+    restore: (s) => {
+      objects.splice(0, objects.length, ...cloneLayout(s));
+      selectedIds = [];
+      save();
     }
-    lastPush = now;
-    lastSnap = cloneLayout(objects);
-    refreshHist();
+  });
+  const undo = () => undoRedo.undo();
+  const redo = () => undoRedo.redo();
+  // Loading a different layout (mode switch / load / import) is a new document.
+  const clearHist = () => undoRedo.reset();
+
+  function persist() {
+    undoRedo.record();
     save();
     // Mirror the change to the room (no-op when not collaborating).
     if (collabSession && !applyingRemote) collabSession.pushLocal();
-  }
-
-  function restoreHist(snap: PlacedObject[]) {
-    objects.splice(0, objects.length, ...cloneLayout(snap));
-    selectedIds = [];
-    lastSnap = cloneLayout(objects);
-    lastPush = 0;
-    save();
-  }
-  function undo() {
-    if (!undoStack.length) return;
-    redoStack.push(cloneLayout(objects));
-    if (redoStack.length > HIST_MAX) redoStack.shift();
-    restoreHist(undoStack.pop()!);
-    refreshHist();
-  }
-  function redo() {
-    if (!redoStack.length) return;
-    undoStack.push(cloneLayout(objects));
-    if (undoStack.length > HIST_MAX) undoStack.shift();
-    restoreHist(redoStack.pop()!);
-    refreshHist();
-  }
-  // Loading a different layout (mode switch / load / import) is a new document.
-  function clearHist() {
-    undoStack = [];
-    redoStack = [];
-    lastSnap = cloneLayout(objects);
-    lastPush = 0;
-    refreshHist();
   }
 
   function setMode(m: string) {
@@ -455,7 +417,7 @@
         objects.splice(0, objects.length, ...objs);
         selectedIds = selectedIds.filter((id) => objects.some((o) => o.id === id));
         save();
-        lastSnap = cloneLayout(objects); // keep undo baseline aligned with the room
+        undoRedo.rebase(); // keep the undo baseline aligned with the room
         applyingRemote = false;
       },
       onPeers: (p) => (collabPeers = p),
@@ -708,10 +670,10 @@
           onclick={() => firstBear && focusObject(firstBear)}>🐻</IconButton
         >
       {/if}
-      <IconButton label={i18n.m.territory.undo} size="sm" onclick={undo} disabled={!canUndo}
+      <IconButton label={i18n.m.territory.undo} size="sm" onclick={undo} disabled={!undoRedo.canUndo}
         >↶</IconButton
       >
-      <IconButton label={i18n.m.territory.redo} size="sm" onclick={redo} disabled={!canRedo}
+      <IconButton label={i18n.m.territory.redo} size="sm" onclick={redo} disabled={!undoRedo.canRedo}
         >↷</IconButton
       >
       <IconButton label={i18n.m.territory.help.title} size="sm" onclick={() => (helpOpen = true)}>
