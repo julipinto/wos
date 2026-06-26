@@ -584,7 +584,13 @@
     "legend": {
       "reach": "Alcance del banner (7×7)",
       "connected": "Territorio conectado",
-      "orphan": "sin conexión (expira)"
+      "orphan": "sin conexión (expira)",
+      "title": "Leyenda",
+      "selected": "Seleccionado"
+    },
+    "rail": {
+      "tools": "Herramientas",
+      "display": "Visualización"
     },
     "labels": "etiquetas",
     "heatmap": "mapa de calor",

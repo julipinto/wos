@@ -1,0 +1,213 @@
+<script lang="ts">
+  import { i18n } from '$lib/i18n/index.svelte';
+  import Segmented from '$lib/components/Segmented.svelte';
+  import Palette from './Palette.svelte';
+  import Legend from './Legend.svelte';
+
+  // The left rail: a vertical, labelled toolbar that gathers every board control
+  // into scannable sections — Tools (edit/view, projection), Place (the object
+  // palette), and Display (labels / heatmap / bear focus + the legend). Keeps the
+  // canvas uncluttered (the page top-bar keeps only zoom + history).
+  interface Props {
+    boardMode: 'edit' | 'view';
+    onBoardMode: (b: 'edit' | 'view') => void;
+    view: 'flat' | 'iso';
+    onView: (v: 'flat' | 'iso') => void;
+    // palette
+    types: string[];
+    tool: string;
+    nameOf: (key: string) => string;
+    count: (type: string) => number;
+    onPick: (type: string) => void;
+    // display
+    showLabels: boolean;
+    labelField: 'furnace' | 'name';
+    onLabelField: (f: 'furnace' | 'name') => void;
+    heatmap: boolean;
+    bearFocus: number;
+    hasBears: boolean;
+    bearCount: number;
+    connectivity: boolean;
+  }
+  let {
+    boardMode,
+    onBoardMode,
+    view,
+    onView,
+    types,
+    tool,
+    nameOf,
+    count,
+    onPick,
+    showLabels = $bindable(),
+    labelField,
+    onLabelField,
+    heatmap = $bindable(),
+    bearFocus = $bindable(),
+    hasBears,
+    bearCount,
+    connectivity
+  }: Props = $props();
+
+  const legendLabels = $derived({
+    title: i18n.m.territory.legend.title,
+    connected: i18n.m.territory.legend.connected,
+    coverage: i18n.m.territory.legend.reach,
+    orphaned: i18n.m.territory.legend.orphan,
+    selected: i18n.m.territory.legend.selected,
+    bearFocus: i18n.m.territory.bearFocus
+  });
+</script>
+
+<div class="rail">
+  <section class="rail-sec">
+    <span class="rail-h">{i18n.m.territory.rail.tools}</span>
+    <Segmented
+      value={boardMode}
+      ariaLabel={i18n.m.territory.boardMode.label}
+      options={[
+        { value: 'edit', label: `✏️ ${i18n.m.territory.boardMode.edit}` },
+        { value: 'view', label: `🖐 ${i18n.m.territory.boardMode.view}` }
+      ]}
+      onChange={(v) => onBoardMode(v as 'edit' | 'view')}
+    />
+    <Segmented
+      value={view}
+      ariaLabel={i18n.m.territory.view.label}
+      options={[
+        { value: 'flat', label: i18n.m.territory.view.flat },
+        { value: 'iso', label: i18n.m.territory.view.tilt }
+      ]}
+      onChange={(v) => onView(v as 'flat' | 'iso')}
+    />
+  </section>
+
+  {#if boardMode === 'edit'}
+    <section class="rail-sec">
+      <span class="rail-h">{i18n.m.territory.place}</span>
+      <Palette
+        {types}
+        {tool}
+        {nameOf}
+        {count}
+        {onPick}
+        ariaLabel={i18n.m.territory.place}
+        vertical
+      />
+    </section>
+  {/if}
+
+  <section class="rail-sec">
+    <span class="rail-h">{i18n.m.territory.rail.display}</span>
+    <div class="rail-toggles">
+      <button
+        class="toggle"
+        class:on={showLabels}
+        type="button"
+        onclick={() => (showLabels = !showLabels)}
+      >
+        {i18n.m.territory.labels}
+      </button>
+      <button class="toggle" class:on={heatmap} type="button" onclick={() => (heatmap = !heatmap)}>
+        {i18n.m.territory.heatmap}
+      </button>
+    </div>
+    {#if showLabels}
+      <Segmented
+        value={labelField}
+        options={[
+          { value: 'furnace', label: i18n.m.territory.labelFurnace },
+          { value: 'name', label: i18n.m.territory.labelName }
+        ]}
+        onChange={(v) => onLabelField(v as 'furnace' | 'name')}
+      />
+    {/if}
+    {#if hasBears && bearCount > 0}
+      <div class="bear-focus">
+        <span class="bf-label">🐻 {i18n.m.territory.bearFocus}</span>
+        <Segmented
+          value={String(bearFocus)}
+          ariaLabel={i18n.m.territory.bearFocus}
+          options={[
+            { value: '0', label: i18n.m.territory.bearAll },
+            ...Array.from({ length: bearCount }, (_, i) => ({
+              value: String(i + 1),
+              label: String(i + 1)
+            }))
+          ]}
+          onChange={(v) => (bearFocus = Number(v))}
+        />
+      </div>
+    {/if}
+  </section>
+
+  <section class="rail-sec">
+    <Legend {types} {nameOf} {connectivity} labels={legendLabels} />
+  </section>
+</div>
+
+<style>
+  .rail {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .rail-sec {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .rail-h {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .rail-toggles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .toggle {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    color: var(--text-mid);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition:
+      color 0.2s ease,
+      border-color 0.2s ease;
+  }
+  .toggle.on {
+    color: var(--accent);
+    border-color: var(--border-accent);
+    background: var(--accent-glow);
+  }
+  .bear-focus {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .bf-label {
+    color: var(--text-mid);
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+  /* On wide screens the rail is a fixed-width left column; below that it becomes
+     a horizontal band above the board so nothing is cramped on phones. */
+  @media (max-width: 1023px) {
+    .rail {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 14px 20px;
+      align-items: flex-start;
+    }
+    .rail-sec {
+      flex: 0 1 auto;
+    }
+  }
+</style>

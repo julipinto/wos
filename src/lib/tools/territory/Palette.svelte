@@ -9,11 +9,12 @@
     nameOf: (i18nKey: string) => string;
     count: (type: string) => number;
     onPick: (type: string) => void;
+    vertical?: boolean;
   }
-  let { types, tool, ariaLabel, nameOf, count, onPick }: Props = $props();
+  let { types, tool, ariaLabel, nameOf, count, onPick, vertical = false }: Props = $props();
 </script>
 
-<div class="palette" role="toolbar" aria-label={ariaLabel}>
+<div class="palette" class:vertical role="toolbar" aria-label={ariaLabel}>
   {#each types as t (t)}
     {@const def = OBJECT_DEFS[t]}
     <button
@@ -36,6 +37,19 @@
     flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 18px;
+  }
+  /* Vertical variant for the left rail: full-width stacked tools, no bottom gap. */
+  .palette.vertical {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 6px;
+    margin-bottom: 0;
+  }
+  .palette.vertical .tool {
+    width: 100%;
+  }
+  .palette.vertical .tool-count {
+    margin-inline-start: auto;
   }
   .tool {
     display: flex;
@@ -70,17 +84,17 @@
   /* Phone: one swipeable row instead of wrapping into several (which ate the
      vertical space and pushed the canvas / controls around). */
   @media (max-width: 540px) {
-    .palette {
+    .palette:not(.vertical) {
       flex-wrap: nowrap;
       overflow-x: auto;
       scrollbar-width: none;
       margin-bottom: 12px;
       -webkit-overflow-scrolling: touch;
     }
-    .palette::-webkit-scrollbar {
+    .palette:not(.vertical)::-webkit-scrollbar {
       display: none;
     }
-    .tool {
+    .palette:not(.vertical) .tool {
       flex: 0 0 auto;
     }
   }
