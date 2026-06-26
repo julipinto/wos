@@ -46,6 +46,16 @@ describe('territory connectivity', () => {
     expect(r.orphaned.size).toBe(0);
   });
 
+  it('touching coverage connects without overlapping (1-cell gap does not)', () => {
+    // a overlaps the HQ; b's 7×7 (cols 8..14) abuts a's (cols 1..7) — they touch
+    // at col 7↔8 with no shared cell, so b connects.
+    const r = computeTerritory([hq(0, 0), banner('a', 4, 4), banner('b', 11, 4)]);
+    expect(r.connected.has('b')).toBe(true);
+    // a one-cell gap (cols 9..15 vs 1..7) leaves it orphaned.
+    const r2 = computeTerritory([hq(0, 0), banner('a', 4, 4), banner('gap', 12, 4)]);
+    expect(r2.orphaned.has('gap')).toBe(true);
+  });
+
   it('no HQ means every banner is orphaned', () => {
     const r = computeTerritory([banner('a', 5, 5), banner('b', 6, 6)]);
     expect(r.connected.size).toBe(0);

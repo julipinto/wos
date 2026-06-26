@@ -276,8 +276,20 @@ export interface TerritoryResult {
   orphaned: Set<string>;
 }
 
+/** Every cell within Chebyshev distance 1 of the given cells (the cells + their 8 neighbours). */
+function dilate(cells: Iterable<string>): Set<string> {
+  const out = new Set<string>();
+  for (const c of cells) {
+    const [x, y] = c.split(',').map(Number);
+    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) out.add(key(x + dx, y + dy));
+  }
+  return out;
+}
+
 /**
- * Flood-fill territory from the HQ through overlapping banner coverage.
+ * Flood-fill territory from the HQ through banner coverage. A banner connects
+ * when its 7×7 coverage TOUCHES (is adjacent to) — not only overlaps — the HQ or
+ * an already-connected banner's area: in-game, banners just need to abut.
  */
 export function computeTerritory(objects: PlacedObject[]): TerritoryResult {
   const seed = new Set<string>();
@@ -288,26 +300,24 @@ export function computeTerritory(objects: PlacedObject[]): TerritoryResult {
   const cov = new Map(banners.map((b) => [b.id, coverageCells(b)]));
   const connected = new Set<string>();
 
+  // `reach` = HQ + connected coverage; `halo` is it dilated by one cell, so a
+  // banner whose coverage falls inside the halo is touching (or overlapping).
+  const reach = new Set(seed);
+  let halo = dilate(reach);
   let changed = true;
   while (changed) {
     changed = false;
     for (const b of banners) {
       if (connected.has(b.id)) continue;
-      const cells = cov.get(b.id)!;
-      const touchesSeed = cells.some((c) => seed.has(c));
-      const touchesConnected =
-        !touchesSeed &&
-        banners.some((o) => connected.has(o.id) && cov.get(o.id)!.some((c) => cells.includes(c)));
-      if (touchesSeed || touchesConnected) {
+      if (cov.get(b.id)!.some((c) => halo.has(c))) {
         connected.add(b.id);
+        for (const c of cov.get(b.id)!) reach.add(c);
         changed = true;
       }
     }
+    if (changed) halo = dilate(reach);
   }
 
-  const cells = new Set(seed);
-  for (const b of banners) if (connected.has(b.id)) for (const c of cov.get(b.id)!) cells.add(c);
-
   const orphaned = new Set(banners.filter((b) => !connected.has(b.id)).map((b) => b.id));
-  return { cells, connected, orphaned };
+  return { cells: reach, connected, orphaned };
 }
