@@ -32,6 +32,7 @@
   import download from '@iconify-icons/lucide/download';
   import globe from '@iconify-icons/lucide/globe';
   import gripVertical from '@iconify-icons/lucide/grip-vertical';
+  import image from '@iconify-icons/lucide/image';
   import languages from '@iconify-icons/lucide/languages';
   import lightbulb from '@iconify-icons/lucide/lightbulb';
   import minus from '@iconify-icons/lucide/minus';
@@ -63,6 +64,7 @@
     download,
     globe,
     'grip-vertical': gripVertical,
+    image,
     languages,
     lightbulb,
     minus,

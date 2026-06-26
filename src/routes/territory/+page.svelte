@@ -21,6 +21,7 @@
   import IconButton from '$lib/components/IconButton.svelte';
   import TextInput from '$lib/components/TextInput.svelte';
   import CollabBar from '$lib/tools/territory/CollabBar.svelte';
+  import ExportDialog from '$lib/tools/territory/ExportDialog.svelte';
   import type { CollabSession, CollabStatus, PeerState } from '$lib/tools/territory/collab';
   import { TERRITORY_SLIDES } from '$lib/tools/territory/tutorial';
   import { readJson, writeJson } from '$lib/utils/storage';
@@ -147,6 +148,10 @@
   let mapName = $state('');
   const HELP_KEY = 'territory-help-seen-v1';
   let helpOpen = $state(false);
+  let exportOpen = $state(false);
+  const exportTitle = $derived(
+    `${(i18n.m.territory.modes as Record<string, string>)[activeMode.i18n]} — ${new Date().toLocaleDateString()}`
+  );
 
   // A confirm dialog (e.g. before overwriting a saved map).
   let confirmMsg = $state('');
@@ -884,6 +889,15 @@
         <Icon name="download" size={13} />
         {i18n.m.territory.download}
       </Button>
+      <Button
+        variant="secondary"
+        size="sm"
+        onclick={() => (exportOpen = true)}
+        disabled={objects.length === 0}
+      >
+        <Icon name="image" size={13} />
+        {i18n.m.territory.export.button}
+      </Button>
       <Button variant="secondary" size="sm" onclick={() => (importOpen = !importOpen)}>
         <Icon name="upload" size={13} />
         {i18n.m.territory.import}
@@ -978,6 +992,15 @@
       onClose={() => (ctx = null)}
     />
   {/if}
+
+  <ExportDialog
+    open={exportOpen}
+    onClose={() => (exportOpen = false)}
+    {objects}
+    connectivity={!!activeMode.connectivity}
+    defaultTitle={exportTitle}
+    {objName}
+  />
 
   <ConfirmDialog
     open={!!confirmAction}
