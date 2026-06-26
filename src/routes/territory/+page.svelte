@@ -16,6 +16,8 @@
   import MapsPanel from '$lib/tools/territory/MapsPanel.svelte';
   import Select from '$lib/components/Select.svelte';
   import NumberInput from '$lib/components/NumberInput.svelte';
+  import Modal from '$lib/components/Modal.svelte';
+  import Button from '$lib/components/Button.svelte';
   import CollabBar from '$lib/tools/territory/CollabBar.svelte';
   import type { CollabSession, CollabStatus, PeerState } from '$lib/tools/territory/collab';
   import { TERRITORY_SLIDES } from '$lib/tools/territory/tutorial';
@@ -924,44 +926,37 @@
     onLoad={loadMap}
   />
 
-  {#if collabCreateOpen || joinPrompt}
-    <div
-      class="collab-modal-bg"
-      role="presentation"
-      onclick={(e) => {
-        if (e.target === e.currentTarget) {
-          collabCreateOpen = false;
-          joinPrompt = null;
-        }
-      }}
-    >
-      <div class="collab-modal" role="dialog">
-        <span class="cm-title">
-          {collabCreateOpen
-            ? i18n.m.territory.collab.start
-            : i18n.m.territory.collab.passwordRequired}
-        </span>
-        <input
-          class="cm-input"
-          type="text"
-          bind:value={collabPassInput}
-          placeholder={collabCreateOpen
-            ? i18n.m.territory.collab.passwordOptional
-            : i18n.m.territory.collab.password}
-          autocomplete="off"
-          onkeydown={(e) =>
-            e.key === 'Enter' && (collabCreateOpen ? confirmCreate() : confirmJoin())}
-        />
-        <button
-          class="cm-go"
-          type="button"
-          onclick={collabCreateOpen ? confirmCreate : confirmJoin}
-        >
-          {collabCreateOpen ? i18n.m.territory.collab.createRoom : i18n.m.territory.collab.enter}
-        </button>
-      </div>
+  <Modal
+    open={collabCreateOpen || !!joinPrompt}
+    onClose={() => {
+      collabCreateOpen = false;
+      joinPrompt = null;
+    }}
+    label={collabCreateOpen
+      ? i18n.m.territory.collab.start
+      : i18n.m.territory.collab.passwordRequired}
+  >
+    <div class="cm">
+      <span class="cm-title">
+        {collabCreateOpen
+          ? i18n.m.territory.collab.start
+          : i18n.m.territory.collab.passwordRequired}
+      </span>
+      <input
+        class="cm-input"
+        type="text"
+        bind:value={collabPassInput}
+        placeholder={collabCreateOpen
+          ? i18n.m.territory.collab.passwordOptional
+          : i18n.m.territory.collab.password}
+        autocomplete="off"
+        onkeydown={(e) => e.key === 'Enter' && (collabCreateOpen ? confirmCreate() : confirmJoin())}
+      />
+      <Button variant="primary" size="sm" onclick={collabCreateOpen ? confirmCreate : confirmJoin}>
+        {collabCreateOpen ? i18n.m.territory.collab.createRoom : i18n.m.territory.collab.enter}
+      </Button>
     </div>
-  {/if}
+  </Modal>
 
   {#if toasts.length}
     <div class="toasts">
@@ -1109,28 +1104,11 @@
     margin-bottom: 16px;
     flex-wrap: wrap;
   }
-  /* Create / join collab dialog. */
-  .collab-modal-bg {
-    position: fixed;
-    inset: 0;
-    z-index: 90;
-    background: rgba(0, 0, 0, 0.55);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-  }
-  .collab-modal {
+  /* Create / join collab dialog (inside the shared Modal). */
+  .cm {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    width: 100%;
-    max-width: 320px;
-    background: var(--bg-soft);
-    border: 1px solid var(--border-accent);
-    border-radius: var(--r-card);
-    padding: 18px;
-    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
   }
   .cm-title {
     font-family: var(--font-mono);
@@ -1151,19 +1129,6 @@
   .cm-input:focus-visible {
     outline: none;
     border-color: var(--accent);
-  }
-  .cm-go {
-    background: var(--accent-glow);
-    border: 1px solid var(--border-accent);
-    border-radius: var(--r-pill);
-    color: var(--accent);
-    font-family: var(--font-mono);
-    font-size: 12px;
-    padding: 9px 14px;
-    cursor: pointer;
-  }
-  .cm-go:hover {
-    color: var(--text);
   }
   /* Transient join/leave notifications, bottom-centre. */
   .toasts {

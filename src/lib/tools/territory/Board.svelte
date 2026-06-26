@@ -94,9 +94,6 @@
   const ISO_VIEWBOX = `${ISO_VB.x} ${ISO_VB.y} ${ISO_VB.w} ${ISO_VB.h}`;
   const viewBox = $derived(view === 'iso' ? ISO_VIEWBOX : `0 0 ${N} ${N}`);
 
-  // Map an object's centre to a percent position inside the board box, view-aware
-  // (the overlay div fills the same box the SVG renders into). Labels are HTML so
-  // they get a constant, readable font size + a chip — never shrinking with zoom.
   // Map a continuous grid point → percent inside the board box (view-aware). Used
   // by labels and by remote peer cursors (both are HTML over the board).
   function gridToPct(gx: number, gy: number): { left: number; top: number } {
