@@ -10,6 +10,7 @@
     bearFocus: number;
     labelField: 'furnace' | 'name';
     onLabelField: (f: 'furnace' | 'name') => void;
+    onFit: () => void;
     hasBears: boolean;
     bearCount: number;
   }
@@ -20,9 +21,15 @@
     bearFocus = $bindable(),
     labelField,
     onLabelField,
+    onFit,
     hasBears,
     bearCount
   }: Props = $props();
+
+  // Keep in sync with Board.svelte's MINZ / MAXZ.
+  const MINZ = 0.35;
+  const MAXZ = 4;
+  const STEP = 0.25;
 </script>
 
 <div class="controls">
@@ -30,17 +37,24 @@
     <button
       class="ctl"
       type="button"
-      onclick={() => (zoom = Math.max(1, +(zoom - 0.5).toFixed(1)))}
-      disabled={zoom <= 1}
+      onclick={() => (zoom = Math.max(MINZ, +(zoom - STEP).toFixed(2)))}
+      disabled={zoom <= MINZ}
       aria-label="zoom out">−</button
     >
     <span class="zoom-val">{Math.round(zoom * 100)}%</span>
     <button
       class="ctl"
       type="button"
-      onclick={() => (zoom = Math.min(3, +(zoom + 0.5).toFixed(1)))}
-      disabled={zoom >= 3}
+      onclick={() => (zoom = Math.min(MAXZ, +(zoom + STEP).toFixed(2)))}
+      disabled={zoom >= MAXZ}
       aria-label="zoom in">+</button
+    >
+    <button
+      class="ctl fit"
+      type="button"
+      onclick={onFit}
+      title={i18n.m.territory.fit}
+      aria-label={i18n.m.territory.fit}>⊡</button
     >
   </div>
   <button

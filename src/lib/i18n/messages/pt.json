@@ -652,6 +652,7 @@
     "redo": "refazer",
     "duplicate": "duplicar",
     "objectsN": "{n} objetos",
+    "fit": "Enquadrar",
     "search": {
       "label": "Buscar",
       "placeholder": "Buscar nome/etiqueta ou x,y…",

@@ -652,6 +652,7 @@
     "redo": "redo",
     "duplicate": "duplicate",
     "objectsN": "{n} objects",
+    "fit": "Fit",
     "search": {
       "label": "Search",
       "placeholder": "Search name/label or x,y…",
