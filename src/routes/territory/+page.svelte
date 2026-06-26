@@ -758,9 +758,8 @@
           >
           <div class="bulk-fields">
             <span class="bulk-title">{i18n.m.territory.bulkEdit}</span>
-            <input
+            <TextInput
               class="bulk-input"
-              type="text"
               placeholder={i18n.m.territory.tag.label}
               aria-label={i18n.m.territory.tag.label}
               oninput={(e) => bulkSet('label', e.currentTarget.value)}
@@ -1142,21 +1141,10 @@
     text-transform: uppercase;
     color: var(--text-dim);
   }
-  .bulk-input {
+  /* Just the flex sizing — TextInput (passed this class) brings its own styling. */
+  .bulk-fields :global(.bulk-input) {
     min-width: 0;
     flex: 1 1 120px;
-    box-sizing: border-box;
-    background: var(--bg-soft);
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text);
-    font-family: var(--font-mono);
-    font-size: 13px;
-    padding: 8px 12px;
-  }
-  .bulk-input:focus-visible {
-    outline: none;
-    border-color: var(--accent);
   }
   .bulk-actions {
     display: flex;

@@ -1,6 +1,8 @@
 <script lang="ts">
   import { i18n } from '$lib/i18n/index.svelte';
   import Icon from '$lib/components/Icon.svelte';
+  import Button from '$lib/components/Button.svelte';
+  import TextInput from '$lib/components/TextInput.svelte';
   import { savedMaps } from './maps.svelte';
 
   // Collapsible panel of named, per-mode saved layouts.
@@ -28,20 +30,20 @@
   {#if open}
     <div class="maps-body">
       <div class="maps-save">
-        <input
-          type="text"
+        <TextInput
+          style="flex:1"
           bind:value={mapName}
           placeholder={i18n.m.territory.maps.name}
           aria-label={i18n.m.territory.maps.name}
         />
-        <button
-          class="act"
-          type="button"
+        <Button
+          variant="secondary"
+          size="sm"
           onclick={onSave}
           disabled={!mapName.trim() || !hasObjects}
         >
           {i18n.m.territory.maps.save}
-        </button>
+        </Button>
       </div>
       {#if list.length === 0}
         <p class="maps-empty">{i18n.m.territory.maps.empty}</p>
@@ -127,21 +129,6 @@
   .maps-save {
     display: flex;
     gap: 8px;
-  }
-  .maps-save input {
-    flex: 1;
-    box-sizing: border-box;
-    background: var(--bg-soft);
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text);
-    font-family: var(--font-mono);
-    font-size: 13px;
-    padding: 8px 12px;
-  }
-  .maps-save input:focus-visible {
-    outline: none;
-    border-color: var(--accent);
   }
   .maps-empty {
     font-family: var(--font-mono);
@@ -230,29 +217,5 @@
   .map-del:hover {
     color: #fb7185;
     border-color: rgba(251, 113, 133, 0.4);
-  }
-  .act {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text-mid);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    padding: 8px 14px;
-    cursor: pointer;
-    transition:
-      color 0.2s ease,
-      border-color 0.2s ease;
-  }
-  .act:hover:not(:disabled) {
-    color: var(--text);
-    border-color: var(--border-accent);
-  }
-  .act:disabled {
-    opacity: 0.4;
-    cursor: default;
   }
 </style>
