@@ -9,10 +9,13 @@ import * as Y from 'yjs';
 import { WebrtcProvider } from 'y-webrtc';
 import type { PlacedObject } from './territory';
 
-// Build-time signaling URL (set VITE_SIGNALING_URL when building for production);
-// falls back to a local relay in dev (run: node signaling/server.js).
+// Signaling URL: an override via VITE_SIGNALING_URL wins; otherwise dev uses a
+// local relay (run: node signaling/server.js) and production uses our deployed
+// Cloudflare Worker (Durable Object) — see signaling/cloudflare/.
 const env = import.meta.env as Record<string, string | undefined>;
-const SIGNALING = env.VITE_SIGNALING_URL || 'ws://localhost:4444';
+const PROD_SIGNALING = 'wss://wos-territory-signaling.aragaopintojuli.workers.dev';
+const SIGNALING =
+  env.VITE_SIGNALING_URL || (import.meta.env.DEV ? 'ws://localhost:4444' : PROD_SIGNALING);
 const LOCAL_ORIGIN = 'local';
 
 export type CollabStatus = 'connecting' | 'connected' | 'disconnected';
