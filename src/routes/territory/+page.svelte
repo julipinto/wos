@@ -644,6 +644,7 @@
   // A shared layout link (?t=CODE) loads on open — into its embedded mode.
   // A collab link (#room=ID) joins that live room instead.
   onMount(async () => {
+    savedMaps.reload(); // ensure saved maps reflect localStorage on the client
     if (!readJson<boolean>(HELP_KEY)) helpOpen = true; // first visit → quick tour
     const hashParams = new URLSearchParams(location.hash.slice(1));
     const room = hashParams.get('room');

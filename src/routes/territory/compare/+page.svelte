@@ -31,6 +31,9 @@
   // Seeded from the planner ("compare this saved map with the current board"):
   // before = the saved map, after = the live layout. One-shot, then cleared.
   onMount(() => {
+    // Re-read saved maps now that we're on the client (the module's init-time
+    // read may have run during prerender, before localStorage existed).
+    savedMaps.reload();
     const raw = sessionStorage.getItem('territory-compare-seed');
     if (!raw) return;
     sessionStorage.removeItem('territory-compare-seed');
