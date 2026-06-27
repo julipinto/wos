@@ -18,6 +18,7 @@ export async function toXlsx(
   worksheet.columns = [
     { header: 'Name', key: 'name', width: 20 },
     { header: 'ID', key: 'uid', width: 16 },
+    { header: 'Farm', key: 'farm', width: 8 },
     { header: 'Type', key: 'type', width: 14 },
     { header: 'Furnace', key: 'furnace', width: 10 },
     { header: 'Power', key: 'power', width: 14 },
@@ -34,6 +35,7 @@ export async function toXlsx(
     worksheet.addRow({
       name: o.name ?? '',
       uid: o.uid ?? '',
+      farm: o.farm ? 'yes' : '',
       type: typeName(o.type),
       furnace: o.furnace ?? '',
       power: o.power ?? '',

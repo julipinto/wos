@@ -107,6 +107,8 @@ export interface PlacedObject {
   bearMain?: number[];
   /** The player's in-game user ID (cities) — optional, shown only on demand. */
   uid?: string;
+  /** Marks a city as a farm / support alt-account (some players run several). */
+  farm?: boolean;
 }
 
 /** Furnace levels for tagging — plain in-game display: 1–30 then FC1–FC11. */
@@ -165,7 +167,8 @@ function encodeLayout(mode: string, objects: PlacedObject[]): string {
       (ob.power ?? 0) > 0 ||
       (ob.bear?.length ?? 0) > 0 ||
       ob.label ||
-      ob.uid
+      ob.uid ||
+      ob.farm
     )
       base.push(
         ob.name ?? '',
@@ -174,7 +177,8 @@ function encodeLayout(mode: string, objects: PlacedObject[]): string {
         ob.bear?.length ? ob.bear : 0,
         ob.label ?? '',
         ob.bearMain?.length ? ob.bearMain : 0,
-        ob.uid ?? ''
+        ob.uid ?? '',
+        ob.farm ? 1 : 0
       );
     return base;
   });
@@ -218,7 +222,7 @@ export async function importLayout(code: string): Promise<ImportedLayout | null>
     const objects: PlacedObject[] = [];
     for (const row of rows) {
       if (!Array.isArray(row)) continue;
-      const [t, x, y, name, fur, power, bear, label, bearMain, uid] = row;
+      const [t, x, y, name, fur, power, bear, label, bearMain, uid, farm] = row;
       // type + furnace may be strings (old) or indices (compact).
       const type = typeof t === 'number' ? TYPE_ORDER[t] : t;
       if (typeof type !== 'string' || !allowed.has(type)) continue;
@@ -250,6 +254,7 @@ export async function importLayout(code: string): Promise<ImportedLayout | null>
         if (mains.length) ob.bearMain = mains;
       }
       if (uid) ob.uid = String(uid);
+      if (farm) ob.farm = true;
       objects.push(ob);
     }
     return { mode: mode.id, objects };

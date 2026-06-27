@@ -629,7 +629,9 @@
       "furnace": "furnace",
       "power": "power",
       "bear": "bear trap",
-      "label": "label"
+      "label": "label",
+      "account": "account",
+      "farm": "Farm account"
     },
     "maps": {
       "title": "saved maps",

@@ -16,6 +16,7 @@
     furnaceOptions: { value: string; label: string }[];
     convertOptions: { value: string; label: string }[];
     setTag: (key: 'name' | 'label' | 'furnace' | 'power' | 'uid', value: string | number) => void;
+    toggleFarm: () => void;
     toggleBear: (n: number) => void;
     toggleBearMain: (n: number) => void;
     onConvert: (type: string) => void;
@@ -32,6 +33,7 @@
     furnaceOptions,
     convertOptions,
     setTag,
+    toggleFarm,
     toggleBear,
     toggleBearMain,
     onConvert,
@@ -80,6 +82,18 @@
           oninput={(e) => setTag('uid', e.currentTarget.value)}
         />
       </label>
+      <div class="ed-field ed-field-wide">
+        <span class="field-label">{i18n.m.territory.tag.account}</span>
+        <button
+          type="button"
+          class="farm-toggle"
+          class:on={selected.farm}
+          aria-pressed={!!selected.farm}
+          onclick={toggleFarm}
+        >
+          🌾 {i18n.m.territory.tag.farm}
+        </button>
+      </div>
       <label class="ed-field">
         <span class="field-label">{i18n.m.territory.tag.furnace}</span>
         <Select
@@ -171,6 +185,26 @@
     display: flex;
     flex-direction: column;
     gap: 5px;
+  }
+  .ed-field-wide {
+    grid-column: 1 / -1;
+  }
+  /* Farm / support-account pill — off by default, amber when on. */
+  .farm-toggle {
+    align-self: flex-start;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    color: var(--text-mid);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 7px 12px;
+    cursor: pointer;
+  }
+  .farm-toggle.on {
+    color: #fbbf24;
+    border-color: rgba(251, 191, 36, 0.5);
+    background: rgba(251, 191, 36, 0.12);
   }
   .field-label {
     font-family: var(--font-mono);
