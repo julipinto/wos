@@ -11,9 +11,19 @@
     showClose?: boolean;
     /** Wider modal — for the tutorial. */
     wide?: boolean;
+    /** Extra-wide modal — for the export dialog's two-column layout. */
+    xwide?: boolean;
   }
 
-  let { open, onClose, label, children, showClose = true, wide = false }: Props = $props();
+  let {
+    open,
+    onClose,
+    label,
+    children,
+    showClose = true,
+    wide = false,
+    xwide = false
+  }: Props = $props();
 
   function onBackdrop(e: MouseEvent) {
     if (e.target === e.currentTarget) onClose();
@@ -37,7 +47,7 @@
     }}
     tabindex="-1"
   >
-    <div class="modal" class:wide>
+    <div class="modal" class:wide class:xwide>
       {#if showClose}
         <button class="modal-close" aria-label="Close" onclick={onClose}>
           <Icon name="x" size={14} />
@@ -72,6 +82,9 @@
   }
   .modal.wide {
     max-width: 520px;
+  }
+  .modal.xwide {
+    max-width: 680px;
   }
   .modal-close {
     position: absolute;

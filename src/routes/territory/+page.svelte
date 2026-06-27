@@ -1007,14 +1007,29 @@
         svg: TERRITORY_SLIDES[2]()
       },
       {
-        title: i18n.m.territory.tour.selectTitle,
-        caption: i18n.m.territory.tour.selectCaption,
+        title: i18n.m.territory.tour.tagTitle,
+        caption: i18n.m.territory.tour.tagCaption,
         svg: TERRITORY_SLIDES[3]()
       },
       {
         title: i18n.m.territory.tour.bearsTitle,
         caption: i18n.m.territory.tour.bearsCaption,
         svg: TERRITORY_SLIDES[4]()
+      },
+      {
+        title: i18n.m.territory.tour.insightsTitle,
+        caption: i18n.m.territory.tour.insightsCaption,
+        svg: TERRITORY_SLIDES[5]()
+      },
+      {
+        title: i18n.m.territory.tour.collabTitle,
+        caption: i18n.m.territory.tour.collabCaption,
+        svg: TERRITORY_SLIDES[6]()
+      },
+      {
+        title: i18n.m.territory.tour.shareExportTitle,
+        caption: i18n.m.territory.tour.shareExportCaption,
+        svg: TERRITORY_SLIDES[7]()
       }
     ]}
   />
