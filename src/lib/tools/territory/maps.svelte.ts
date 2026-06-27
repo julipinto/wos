@@ -47,6 +47,12 @@ export const savedMaps = {
   all(mode: string): SavedMap[] {
     return [...ensure(mode)].sort((a, b) => b.savedAt - a.savedAt);
   },
+  /** Re-read every mode from storage. Call once on the client (e.g. onMount) so
+   *  pages that loaded before localStorage was available — or were prerendered —
+   *  pick up the persisted maps. */
+  reload(): void {
+    for (const m of MODES) cache[m.id] = read(m.id);
+  },
   /** Save (or overwrite a same-named map) under `name` for a mode. */
   save(mode: string, name: string, objects: PlacedObject[]): void {
     const trimmed = name.trim();
