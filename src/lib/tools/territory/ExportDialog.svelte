@@ -105,7 +105,7 @@
   const x = i18n.m.territory.export;
 </script>
 
-<Modal {open} {onClose} label={x.title}>
+<Modal {open} {onClose} xwide label={x.title}>
   <div class="ex">
     <span class="ex-h">{x.title}</span>
 
@@ -201,7 +201,8 @@
     display: flex;
     flex-direction: column;
     gap: 14px;
-    min-width: min(78vw, 640px);
+    /* Fit inside the xwide Modal's content box (680px − 2×28px padding). */
+    min-width: min(82vw, 600px);
   }
   .ex-h {
     font-family: var(--font-mono);

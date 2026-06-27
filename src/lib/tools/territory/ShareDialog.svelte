@@ -99,7 +99,8 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
-    min-width: min(80vw, 460px);
+    /* Stay within Modal's content box (420px − 2×28px padding) so nothing spills. */
+    min-width: min(78vw, 360px);
   }
   .sd-h {
     font-family: var(--font-mono);
