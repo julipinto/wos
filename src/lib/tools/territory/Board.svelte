@@ -604,8 +604,10 @@
         .map((o) => o.id);
     } else if (dragId) {
       // Moved in edit = an object was dragged (persist); moved in view = just a
-      // pan (do nothing). A clean tap selects the piece in either mode.
-      if (!moved) selectedIds = [dragId];
+      // pan (do nothing). A clean tap selects the piece — or, if it's already the
+      // sole selection, toggles it off so you can leave the selection by tapping it.
+      if (!moved)
+        selectedIds = selectedIds.length === 1 && selectedIds[0] === dragId ? [] : [dragId];
       else if (boardMode === 'edit') onPersist();
     } else if (pendingPlace && !moved && boardMode === 'edit') {
       const def = OBJECT_DEFS[tool];
