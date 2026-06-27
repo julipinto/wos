@@ -641,7 +641,8 @@
       "empty": "Aún no hay mapas guardados.",
       "update": "actualizar",
       "overwrite": "¿Sobrescribir el mapa “{name}”?",
-      "updateHint": "Sobrescribir este mapa con el tablero actual"
+      "updateHint": "Sobrescribir este mapa con el tablero actual",
+      "compareHint": "Comparar este mapa con el tablero actual"
     },
     "share": "Compartir",
     "modes": {

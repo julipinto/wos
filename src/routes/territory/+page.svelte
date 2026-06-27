@@ -192,6 +192,13 @@
     clearHist();
     autoFit();
   }
+  // Compare a saved map (the "before" baseline) against the current board ("after").
+  // Hand both layouts to the compare screen via sessionStorage (avoids huge URLs).
+  function compareMap(id: string) {
+    const seed = { before: savedMaps.objectsOf(mode, id), after: cloneLayout(objects) };
+    sessionStorage.setItem('territory-compare-seed', JSON.stringify(seed));
+    goto(`${base}/territory/compare`);
+  }
 
   const furnaceOptions = [
     { value: '', label: '—' },
@@ -918,6 +925,7 @@
     onSave={saveMap}
     onUpdate={updateMap}
     onLoad={loadMap}
+    onCompare={compareMap}
   />
 
   <Modal
