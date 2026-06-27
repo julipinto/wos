@@ -105,6 +105,8 @@ export interface PlacedObject {
   /** Of the joined `bear` traps, which are this city's PRIMARY commitment (the rest
    *  are backups). Multiple allowed; must be a subset of `bear`. */
   bearMain?: number[];
+  /** The player's in-game user ID (cities) — optional, shown only on demand. */
+  uid?: string;
 }
 
 /** Furnace levels for tagging — plain in-game display: 1–30 then FC1–FC11. */
@@ -157,14 +159,22 @@ function encodeLayout(mode: string, objects: PlacedObject[]): string {
   );
   const o = objects.map((ob) => {
     const base: (string | number | number[])[] = [TYPE_ORDER.indexOf(ob.type), ob.x, ob.y];
-    if (ob.name || ob.furnace || (ob.power ?? 0) > 0 || (ob.bear?.length ?? 0) > 0 || ob.label)
+    if (
+      ob.name ||
+      ob.furnace ||
+      (ob.power ?? 0) > 0 ||
+      (ob.bear?.length ?? 0) > 0 ||
+      ob.label ||
+      ob.uid
+    )
       base.push(
         ob.name ?? '',
         ob.furnace ? FURNACE_LEVELS.indexOf(ob.furnace) + 1 : 0,
         ob.power ?? 0,
         ob.bear?.length ? ob.bear : 0,
         ob.label ?? '',
-        ob.bearMain?.length ? ob.bearMain : 0
+        ob.bearMain?.length ? ob.bearMain : 0,
+        ob.uid ?? ''
       );
     return base;
   });
@@ -208,7 +218,7 @@ export async function importLayout(code: string): Promise<ImportedLayout | null>
     const objects: PlacedObject[] = [];
     for (const row of rows) {
       if (!Array.isArray(row)) continue;
-      const [t, x, y, name, fur, power, bear, label, bearMain] = row;
+      const [t, x, y, name, fur, power, bear, label, bearMain, uid] = row;
       // type + furnace may be strings (old) or indices (compact).
       const type = typeof t === 'number' ? TYPE_ORDER[t] : t;
       if (typeof type !== 'string' || !allowed.has(type)) continue;
@@ -239,6 +249,7 @@ export async function importLayout(code: string): Promise<ImportedLayout | null>
           .sort((a, b) => a - b);
         if (mains.length) ob.bearMain = mains;
       }
+      if (uid) ob.uid = String(uid);
       objects.push(ob);
     }
     return { mode: mode.id, objects };

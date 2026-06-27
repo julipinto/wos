@@ -21,6 +21,7 @@
 
   // Image options.
   let labels = $state(true);
+  let ids = $state(false); // city user IDs — off by default (opt-in)
   let coverage = $state(true);
   let grid = $state(true);
   let legend = $state(true);
@@ -40,6 +41,7 @@
   function opts(cellPx: number): ImageOpts {
     return {
       labels,
+      ids,
       coverage,
       grid,
       legend,
@@ -114,6 +116,9 @@
         <div class="ex-toggles">
           <button class="tg" class:on={labels} type="button" onclick={() => (labels = !labels)}
             >{x.optLabels}</button
+          >
+          <button class="tg" class:on={ids} type="button" onclick={() => (ids = !ids)}
+            >{x.optIds}</button
           >
           <button
             class="tg"

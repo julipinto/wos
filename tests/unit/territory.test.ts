@@ -121,13 +121,14 @@ describe('import / export', () => {
   it('round-trips primary traps (bearMain), dropping any not joined', async () => {
     const objs: PlacedObject[] = [
       hq(10, 10),
-      { id: 'c1', type: 'city', x: 12, y: 12, bear: [1, 3], bearMain: [3] },
+      { id: 'c1', type: 'city', x: 12, y: 12, bear: [1, 3], bearMain: [3], uid: '12345678' },
       // bearMain referencing an unjoined trap (2) must be discarded
       { id: 'c2', type: 'city', x: 14, y: 14, bear: [1], bearMain: [1, 2] }
     ];
     const back = (await importLayout(await exportLayout('hive', objs)))!;
     const cities = back.objects.filter((o) => o.type === 'city');
     expect(cities[0].bearMain).toEqual([3]);
+    expect(cities[0].uid).toBe('12345678');
     expect(cities[1].bearMain).toEqual([1]);
   });
   it('reads an older single-number bear field as an array', async () => {

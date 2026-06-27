@@ -600,6 +600,7 @@
     "copied": "Скопировано!",
     "importHint": "Вставьте ссылку или код",
     "tag": {
+      "id": "ID",
       "name": "имя",
       "furnace": "печь",
       "power": "сила",
@@ -700,6 +701,7 @@
       "copied": "Скопировано",
       "titleField": "Заголовок (необязательно)",
       "optLabels": "имена",
+      "optIds": "ID",
       "optPrimary": "цвет по ловушке",
       "optCoverage": "покрытие",
       "optGrid": "сетка + коорд.",

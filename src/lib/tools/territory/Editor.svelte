@@ -15,7 +15,7 @@
     bearCount: number;
     furnaceOptions: { value: string; label: string }[];
     convertOptions: { value: string; label: string }[];
-    setTag: (key: 'name' | 'label' | 'furnace' | 'power', value: string | number) => void;
+    setTag: (key: 'name' | 'label' | 'furnace' | 'power' | 'uid', value: string | number) => void;
     toggleBear: (n: number) => void;
     toggleBearMain: (n: number) => void;
     onConvert: (type: string) => void;
@@ -73,6 +73,13 @@
       </label>
     {/if}
     {#if isCity}
+      <label class="ed-field">
+        <span class="field-label">{i18n.m.territory.tag.id}</span>
+        <TextInput
+          value={selected.uid ?? ''}
+          oninput={(e) => setTag('uid', e.currentTarget.value)}
+        />
+      </label>
       <label class="ed-field">
         <span class="field-label">{i18n.m.territory.tag.furnace}</span>
         <Select

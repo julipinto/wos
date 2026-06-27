@@ -600,6 +600,7 @@
     "copied": "Copiado!",
     "importHint": "Cole um link ou código",
     "tag": {
+      "id": "ID",
       "name": "nome",
       "furnace": "fornalha",
       "power": "poder",
@@ -700,6 +701,7 @@
       "copied": "Copiado",
       "titleField": "Título (opcional)",
       "optLabels": "nomes",
+      "optIds": "IDs",
       "optPrimary": "cor por trap",
       "optCoverage": "cobertura",
       "optGrid": "grade + coords",
