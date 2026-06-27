@@ -13,8 +13,18 @@
     onSave: () => void;
     onUpdate: (id: string, name: string) => void;
     onLoad: (id: string) => void;
+    /** Open the compare screen: this saved map (before) vs the current board (after). */
+    onCompare: (id: string) => void;
   }
-  let { mode, hasObjects, mapName = $bindable(), onSave, onUpdate, onLoad }: Props = $props();
+  let {
+    mode,
+    hasObjects,
+    mapName = $bindable(),
+    onSave,
+    onUpdate,
+    onLoad,
+    onCompare
+  }: Props = $props();
 
   let open = $state(false);
   const list = $derived(savedMaps.all(mode));
@@ -63,6 +73,16 @@
                 title={i18n.m.territory.maps.updateHint}
               >
                 {i18n.m.territory.maps.update}
+              </button>
+              <button
+                class="map-cmp"
+                type="button"
+                onclick={() => onCompare(m.id)}
+                disabled={!hasObjects}
+                title={i18n.m.territory.maps.compareHint}
+                aria-label={i18n.m.territory.maps.compareHint}
+              >
+                <Icon name="git-compare" size={14} />
               </button>
               <button
                 class="map-del"
@@ -198,6 +218,30 @@
     border-color: var(--border-accent);
   }
   .map-upd:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+  .map-cmp {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    color: var(--text-mid);
+    cursor: pointer;
+    transition:
+      color 0.2s ease,
+      border-color 0.2s ease;
+  }
+  .map-cmp:hover:not(:disabled) {
+    color: var(--accent);
+    border-color: var(--border-accent);
+  }
+  .map-cmp:disabled {
     opacity: 0.4;
     cursor: default;
   }

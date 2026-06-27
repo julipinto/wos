@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { base } from '$app/paths';
   import { i18n } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
@@ -26,6 +27,21 @@
   let afterObjs = $state<PlacedObject[] | null>(null);
   let beforeErr = $state(false);
   let afterErr = $state(false);
+
+  // Seeded from the planner ("compare this saved map with the current board"):
+  // before = the saved map, after = the live layout. One-shot, then cleared.
+  onMount(() => {
+    const raw = sessionStorage.getItem('territory-compare-seed');
+    if (!raw) return;
+    sessionStorage.removeItem('territory-compare-seed');
+    try {
+      const seed = JSON.parse(raw);
+      if (Array.isArray(seed.before)) beforeObjs = seed.before as PlacedObject[];
+      if (Array.isArray(seed.after)) afterObjs = seed.after as PlacedObject[];
+    } catch {
+      /* malformed seed — ignore, start blank */
+    }
+  });
 
   async function load(side: 'before' | 'after') {
     const text = side === 'before' ? beforeText : afterText;

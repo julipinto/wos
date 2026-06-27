@@ -641,7 +641,8 @@
       "empty": "No saved maps yet.",
       "update": "update",
       "overwrite": "Overwrite the map “{name}”?",
-      "updateHint": "Overwrite this map with the current board"
+      "updateHint": "Overwrite this map with the current board",
+      "compareHint": "Compare this map with the current board"
     },
     "share": "Share",
     "modes": {
