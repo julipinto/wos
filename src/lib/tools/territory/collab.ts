@@ -127,13 +127,15 @@ export function startCollab(opts: CollabOpts): CollabSession {
   const emitPeers = () => {
     const states: PeerState[] = [];
     aw.getStates().forEach((s, id) => {
-      const u = s.user as { name: string; color: string } | undefined;
+      const u = s.user as { name?: string; color?: string } | undefined;
       if (!u) return;
       states.push({
         id,
         self: id === aw.clientID,
-        name: u.name,
-        color: u.color,
+        // Never trust the remote shape — a peer that connected a beat before its
+        // name propagated (or an older client) must not crash avatar rendering.
+        name: typeof u.name === 'string' && u.name.trim() ? u.name : 'anon',
+        color: typeof u.color === 'string' && u.color ? u.color : '#94a3b8',
         selection: s.selection as string[] | undefined,
         cursor: s.cursor as { x: number; y: number } | null | undefined
       });

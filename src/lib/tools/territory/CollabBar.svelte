@@ -33,13 +33,14 @@
 
   // Show only OTHER peers as avatars (you have the name input); cap the row.
   const others = $derived(peers.filter((p) => !p.self));
-  const initials = (name: string) =>
-    name
+  const initials = (name: string | undefined) =>
+    (name ?? '')
       .split(/[\s-]+/)
       .map((p) => p[0])
+      .filter(Boolean)
       .join('')
       .slice(0, 2)
-      .toUpperCase();
+      .toUpperCase() || '?';
 </script>
 
 <div class="collab" class:active>
