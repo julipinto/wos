@@ -44,7 +44,7 @@
       <span class="sd-sec-h">{i18n.m.territory.share}</span>
       <div class="sd-row">
         <Button
-          variant="primary"
+          variant={urlTooLong ? 'secondary' : 'primary'}
           size="sm"
           onclick={onShare}
           disabled={!hasObjects || urlTooLong}
@@ -53,7 +53,12 @@
           <Icon name={copied ? 'check' : 'share-2'} size={13} />
           {copied ? i18n.m.territory.copied : i18n.m.territory.share}
         </Button>
-        <Button variant="secondary" size="sm" onclick={onCopyCode} disabled={!hasObjects}>
+        <Button
+          variant={urlTooLong ? 'primary' : 'secondary'}
+          size="sm"
+          onclick={onCopyCode}
+          disabled={!hasObjects}
+        >
           <Icon name={codeCopied ? 'check' : 'copy'} size={13} />
           {codeCopied ? i18n.m.territory.codeCopied : i18n.m.territory.copyCode}
         </Button>
