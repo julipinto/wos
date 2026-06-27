@@ -117,12 +117,33 @@ export function renderHive(canvas: HTMLCanvasElement, objects: PlacedObject[], o
     return { n, main, backup };
   });
 
-  // Types present (for the legend).
+  // Legend entries. When colouring by primary trap, cities are shown as the per-
+  // trap colours (not the generic "city" swatch) so the legend matches the board.
   const typesPresent = [...new Set(objects.map((o) => o.type))];
+  const byTrap = opts.colorByPrimary && traps.length > 0;
+  const legendEntries: { color: string; label: string }[] = [];
+  for (const ty of typesPresent) {
+    if (ty === 'city' && byTrap) continue;
+    legendEntries.push({
+      color: OBJECT_DEFS[ty].color,
+      label: opts.typeName(OBJECT_DEFS[ty].i18n)
+    });
+  }
+  if (byTrap) {
+    for (let n = 1; n <= traps.length; n++)
+      legendEntries.push({ color: trapColor(n), label: `🐻 ${n}` });
+    legendEntries.push({ color: '#64748b', label: '—' });
+  }
+  if (opts.connectivity)
+    legendEntries.push(
+      { color: 'rgba(147,212,255,0.6)', label: 'territory' },
+      { color: 'rgba(251,191,36,0.6)', label: 'coverage' }
+    );
 
   const titleH = opts.title ? Math.round(cell * 1.4) : 0;
   const lineH = Math.round(cell * 0.7);
-  const legendH = opts.legend ? lineH + Math.ceil((typesPresent.length + 3) / 3) * lineH : 0;
+  const legendH =
+    opts.legend && legendEntries.length ? Math.ceil(legendEntries.length / 3) * lineH + gap : 0;
   const tableH = opts.table && tally.length ? lineH + tally.length * lineH : 0;
 
   const W = boardW + pad * 2;
@@ -252,24 +273,15 @@ export function renderHive(canvas: HTMLCanvasElement, objects: PlacedObject[], o
 
   // Legend
   let panelY = oy + boardH + gap;
-  if (opts.legend) {
+  if (opts.legend && legendEntries.length) {
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.font = `600 ${Math.round(cell * 0.34)}px sans-serif`;
     const sw = Math.round(cell * 0.45);
     let ly = panelY + lineH / 2;
-    const entries: { color: string; label: string }[] = typesPresent.map((ty) => ({
-      color: OBJECT_DEFS[ty].color,
-      label: opts.typeName(OBJECT_DEFS[ty].i18n ?? ty)
-    }));
-    if (opts.connectivity)
-      entries.push(
-        { color: 'rgba(147,212,255,0.6)', label: 'territory' },
-        { color: 'rgba(251,191,36,0.6)', label: 'coverage' }
-      );
     const colW = Math.round((boardW - pad) / 3);
     let col = 0;
-    for (const e of entries) {
+    for (const e of legendEntries) {
       const ex = pad + col * colW;
       ctx.fillStyle = e.color;
       roundRect(ctx, ex, ly - sw / 2, sw, sw, sw * 0.25);
