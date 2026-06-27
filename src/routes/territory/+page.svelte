@@ -756,7 +756,7 @@
         {tool}
         nameOf={objName}
         {count}
-        onPick={(t) => (tool = t)}
+        onPick={(t) => (tool = tool === t ? '' : t)}
         bind:showLabels
         {labelField}
         onLabelField={setLabelField}

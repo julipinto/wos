@@ -611,15 +611,19 @@
       else if (boardMode === 'edit') onPersist();
     } else if (pendingPlace && !moved && boardMode === 'edit') {
       const def = OBJECT_DEFS[tool];
-      const candidate: PlacedObject = {
-        id: `${tool}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        type: tool,
-        x: Math.min(pendingPlace.x, N - def.w),
-        y: Math.min(pendingPlace.y, N - def.h)
-      };
-      if (!collides(objects, candidate)) {
-        objects.push(candidate);
-        onPersist();
+      if (def) {
+        const candidate: PlacedObject = {
+          id: `${tool}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          type: tool,
+          x: Math.min(pendingPlace.x, N - def.w),
+          y: Math.min(pendingPlace.y, N - def.h)
+        };
+        if (!collides(objects, candidate)) {
+          objects.push(candidate);
+          onPersist();
+        }
+      } else {
+        selectedIds = []; // no active tool → tapping empty clears the selection
       }
     } else if (!moved && boardMode === 'view') {
       selectedIds = []; // tapping empty space in view mode clears the selection
@@ -687,6 +691,7 @@
         {viewBox}
         class="grid"
         class:view={boardMode === 'view'}
+        class:notool={boardMode === 'edit' && !OBJECT_DEFS[tool]}
         onpointerdown={onPointerDown}
         onpointermove={onPointerMove}
         onpointerup={onPointerUp}
@@ -793,7 +798,7 @@
               />
             {/if}
           {/each}
-          {#if hoverCell && boardMode === 'edit'}
+          {#if hoverCell && boardMode === 'edit' && OBJECT_DEFS[tool]}
             <rect class="hover" x={hoverCell.x} y={hoverCell.y} width="1" height="1" />
           {/if}
           {#each guides.v as gx (gx)}
@@ -963,6 +968,9 @@
      element) would still scroll the page — pin it off across the whole svg. */
   .grid :global(*) {
     touch-action: none;
+  }
+  .grid.notool {
+    cursor: default; /* Edit with no tool picked: empty space just deselects */
   }
   .grid.view {
     cursor: grab; /* View: empty space = pan */
