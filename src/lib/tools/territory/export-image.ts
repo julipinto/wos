@@ -10,6 +10,7 @@ const trapColor = (n: number) => TRAP_COLORS[(n - 1) % TRAP_COLORS.length];
 
 export interface ImageOpts {
   labels: boolean;
+  ids: boolean;
   coverage: boolean;
   grid: boolean;
   legend: boolean;
@@ -251,23 +252,39 @@ export function renderHive(canvas: HTMLCanvasElement, objects: PlacedObject[], o
     }
   }
 
-  // Labels (names) — centred, clamped, with an outline for contrast.
-  if (opts.labels) {
+  // Labels (name) and/or the city's user ID — centred, outlined; stacked if both.
+  if (opts.labels || opts.ids) {
     const fs = Math.max(9, Math.min(cell * 0.5, 22));
-    ctx.font = `700 ${Math.round(fs)}px sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.lineWidth = Math.max(2, fs * 0.22);
     for (const o of objects) {
-      const name = o.name || (o.type === 'bearTrap' ? '' : o.furnace) || '';
-      if (!name || o.type === 'bearTrap') continue;
+      if (o.type === 'bearTrap') continue;
+      const name = opts.labels ? o.name || o.furnace || '' : '';
+      const id = opts.ids && o.type === 'city' ? o.uid || '' : '';
+      if (!name && !id) continue;
       const d = OBJECT_DEFS[o.type];
       const cx = gx(o.x) + (d.w * cell) / 2;
       const cy = gy(o.y) + (d.h * cell) / 2;
-      ctx.strokeStyle = t.outline;
-      ctx.fillStyle = t.text;
-      ctx.strokeText(name, cx, cy);
-      ctx.fillText(name, cx, cy);
+      const both = !!name && !!id;
+      if (name) {
+        ctx.font = `700 ${Math.round(fs)}px sans-serif`;
+        ctx.lineWidth = Math.max(2, fs * 0.22);
+        ctx.strokeStyle = t.outline;
+        ctx.fillStyle = t.text;
+        const ny = both ? cy - fs * 0.5 : cy;
+        ctx.strokeText(name, cx, ny);
+        ctx.fillText(name, cx, ny);
+      }
+      if (id) {
+        const ifs = fs * 0.82;
+        ctx.font = `600 ${Math.round(ifs)}px sans-serif`;
+        ctx.lineWidth = Math.max(2, ifs * 0.22);
+        ctx.strokeStyle = t.outline;
+        ctx.fillStyle = t.dim;
+        const iy = both ? cy + ifs * 0.6 : cy;
+        ctx.strokeText(id, cx, iy);
+        ctx.fillText(id, cx, iy);
+      }
     }
   }
 

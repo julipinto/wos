@@ -600,6 +600,7 @@
     "copied": "Copied!",
     "importHint": "Paste a link or code",
     "tag": {
+      "id": "ID",
       "name": "name",
       "furnace": "furnace",
       "power": "power",
@@ -700,6 +701,7 @@
       "copied": "Copied",
       "titleField": "Title (optional)",
       "optLabels": "names",
+      "optIds": "IDs",
       "optPrimary": "colour by trap",
       "optCoverage": "coverage",
       "optGrid": "grid + coords",

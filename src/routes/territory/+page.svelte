@@ -250,7 +250,10 @@
     persist();
   }
 
-  function setTag<K extends 'name' | 'label' | 'furnace' | 'power'>(k: K, v: PlacedObject[K]) {
+  function setTag<K extends 'name' | 'label' | 'furnace' | 'power' | 'uid'>(
+    k: K,
+    v: PlacedObject[K]
+  ) {
     const o = selected;
     if (!o) return;
     if (v === '' || v === 0 || v === undefined) delete o[k];
