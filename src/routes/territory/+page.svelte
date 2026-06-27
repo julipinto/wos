@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount, tick } from 'svelte';
+  import { goto } from '$app/navigation';
+  import { base } from '$app/paths';
   import { i18n, fmt } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import Icon from '$lib/components/Icon.svelte';
@@ -898,6 +900,10 @@
       >
         <Icon name="image" size={13} />
         {i18n.m.territory.export.button}
+      </Button>
+      <Button variant="ghost" size="sm" onclick={() => goto(`${base}/territory/compare`)}>
+        <Icon name="git-compare" size={13} />
+        {i18n.m.territory.compare.link}
       </Button>
       <Button variant="ghost" size="sm" onclick={reset} disabled={objects.length === 0}>
         {i18n.m.common.reset}

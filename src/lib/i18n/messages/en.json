@@ -727,6 +727,43 @@
       "placeholder": "Search name/label or x,y…",
       "goto": "go to",
       "none": "No matches"
+    },
+    "compare": {
+      "link": "Compare",
+      "title": "compare hives",
+      "sub": "Diff two layouts (before → after) and highlight every change.",
+      "before": "Before",
+      "after": "After",
+      "paste": "Paste a link or code",
+      "import": "Import",
+      "fromFile": "From file",
+      "clear": "Clear",
+      "swap": "Swap",
+      "invalid": "Couldn't read that code",
+      "pieces": "pieces",
+      "pickMap": "Saved map…",
+      "or": "or",
+      "openPlanner": "Open planner",
+      "changes": "Changes",
+      "added": "added",
+      "removed": "removed",
+      "moved": "moved",
+      "changed": "changed",
+      "unchanged": "unchanged",
+      "identical": "The two layouts are identical.",
+      "bothNeeded": "Load both sides to see the differences.",
+      "fields": {
+        "pos": "position",
+        "power": "power",
+        "furnace": "furnace",
+        "bear": "bear traps",
+        "primary": "primary",
+        "farm": "farm",
+        "name": "name",
+        "uid": "ID",
+        "label": "label",
+        "type": "type"
+      }
     }
   },
   "events": {

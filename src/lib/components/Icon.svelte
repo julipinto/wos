@@ -30,6 +30,7 @@
   import copy from '@iconify-icons/lucide/copy';
   import crown from '@iconify-icons/lucide/crown';
   import download from '@iconify-icons/lucide/download';
+  import gitCompare from '@iconify-icons/lucide/git-compare';
   import globe from '@iconify-icons/lucide/globe';
   import gripVertical from '@iconify-icons/lucide/grip-vertical';
   import image from '@iconify-icons/lucide/image';
@@ -62,6 +63,7 @@
     copy,
     crown,
     download,
+    'git-compare': gitCompare,
     globe,
     'grip-vertical': gripVertical,
     image,
