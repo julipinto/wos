@@ -727,6 +727,43 @@
       "placeholder": "Buscar nome/etiqueta ou x,y…",
       "goto": "ir para",
       "none": "Nenhum resultado"
+    },
+    "compare": {
+      "link": "Comparar",
+      "title": "comparar hives",
+      "sub": "Compare dois layouts (antes → depois) e destaque cada mudança.",
+      "before": "Antes",
+      "after": "Depois",
+      "paste": "Cole um link ou código",
+      "import": "Importar",
+      "fromFile": "Do arquivo",
+      "clear": "Limpar",
+      "swap": "Trocar",
+      "invalid": "Não consegui ler esse código",
+      "pieces": "peças",
+      "pickMap": "Mapa salvo…",
+      "or": "ou",
+      "openPlanner": "Abrir planejador",
+      "changes": "Mudanças",
+      "added": "adicionada",
+      "removed": "removida",
+      "moved": "moveu",
+      "changed": "mudou",
+      "unchanged": "igual",
+      "identical": "Os dois layouts são idênticos.",
+      "bothNeeded": "Carregue os dois lados para ver as diferenças.",
+      "fields": {
+        "pos": "posição",
+        "power": "poder",
+        "furnace": "fornalha",
+        "bear": "bear traps",
+        "primary": "principal",
+        "farm": "farm",
+        "name": "nome",
+        "uid": "ID",
+        "label": "rótulo",
+        "type": "tipo"
+      }
     }
   },
   "events": {

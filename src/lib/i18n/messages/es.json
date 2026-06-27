@@ -727,6 +727,43 @@
       "placeholder": "Buscar nombre/etiqueta o x,y…",
       "goto": "ir a",
       "none": "Sin resultados"
+    },
+    "compare": {
+      "link": "Comparar",
+      "title": "comparar colmenas",
+      "sub": "Compara dos diseños (antes → después) y resalta cada cambio.",
+      "before": "Antes",
+      "after": "Después",
+      "paste": "Pega un enlace o código",
+      "import": "Importar",
+      "fromFile": "Desde archivo",
+      "clear": "Limpiar",
+      "swap": "Intercambiar",
+      "invalid": "No se pudo leer ese código",
+      "pieces": "piezas",
+      "pickMap": "Mapa guardado…",
+      "or": "o",
+      "openPlanner": "Abrir planificador",
+      "changes": "Cambios",
+      "added": "añadida",
+      "removed": "eliminada",
+      "moved": "movió",
+      "changed": "cambió",
+      "unchanged": "igual",
+      "identical": "Los dos diseños son idénticos.",
+      "bothNeeded": "Carga ambos lados para ver las diferencias.",
+      "fields": {
+        "pos": "posición",
+        "power": "poder",
+        "furnace": "horno",
+        "bear": "trampas de oso",
+        "primary": "principal",
+        "farm": "farm",
+        "name": "nombre",
+        "uid": "ID",
+        "label": "etiqueta",
+        "type": "tipo"
+      }
     }
   },
   "events": {
