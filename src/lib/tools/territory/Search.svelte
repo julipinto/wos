@@ -37,6 +37,17 @@
       .slice(0, 20);
   });
 
+  // Keyboard navigation: a flat list of rows (the coord jump, or the results),
+  // an active index, and the DOM nodes to scroll into view.
+  const rowCount = $derived(coord ? 1 : results.length);
+  let active = $state(0);
+  const rowEls: HTMLButtonElement[] = [];
+  // Reset the highlight to the top whenever the query changes.
+  $effect(() => {
+    q.trim(); // track the query so this re-runs on each keystroke
+    active = 0;
+  });
+
   function pick(o: PlacedObject) {
     onPick(o);
     q = '';
@@ -48,10 +59,26 @@
     q = '';
     open = false;
   }
+  function pickActive() {
+    if (coord) goto();
+    else if (results[active]) pick(results[active]);
+  }
+  function move(delta: number) {
+    if (rowCount === 0) return;
+    open = true;
+    active = (active + delta + rowCount) % rowCount;
+    rowEls[active]?.scrollIntoView({ block: 'nearest' });
+  }
   function onKey(e: KeyboardEvent) {
-    if (e.key === 'Enter') {
-      if (coord) goto();
-      else if (results.length) pick(results[0]);
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      move(1);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      move(-1);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      pickActive();
     } else if (e.key === 'Escape') {
       open = false;
       (e.currentTarget as HTMLInputElement).blur();
@@ -75,16 +102,33 @@
     >
   {/if}
   {#if open && q.trim()}
-    <div class="search-drop">
+    <div class="search-drop" role="listbox">
       {#if coord}
-        <button class="search-row" type="button" onclick={goto}>
+        <button
+          class="search-row"
+          class:active={active === 0}
+          type="button"
+          role="option"
+          aria-selected={active === 0}
+          bind:this={rowEls[0]}
+          onclick={goto}
+        >
           <span class="row-co">→ {coord.x},{coord.y}</span>
           <span class="row-type">{i18n.m.territory.search.goto}</span>
         </button>
       {:else if results.length}
-        {#each results as o (o.id)}
+        {#each results as o, i (o.id)}
           {@const def = OBJECT_DEFS[o.type]}
-          <button class="search-row" type="button" onclick={() => pick(o)}>
+          <button
+            class="search-row"
+            class:active={active === i}
+            type="button"
+            role="option"
+            aria-selected={active === i}
+            bind:this={rowEls[i]}
+            onmousemove={() => (active = i)}
+            onclick={() => pick(o)}
+          >
             <span class="row-dot" style="background:{def.color}"></span>
             <span class="row-name">{o.name || o.label}</span>
             {#if o.name && o.label}<span class="row-label">{o.label}</span>{/if}
@@ -169,7 +213,8 @@
     padding: 8px 10px;
     cursor: pointer;
   }
-  .search-row:hover {
+  .search-row:hover,
+  .search-row.active {
     background: var(--surface);
   }
   .row-dot {
