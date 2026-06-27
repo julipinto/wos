@@ -481,8 +481,10 @@
     } else if (hit) {
       dragId = hit.id;
       dragOff = { x: x - hit.x, y: y - hit.y };
-      // If the grabbed object is part of a multi-selection, move the whole group.
-      if (selectedIds.length > 1 && selectedIds.includes(hit.id)) {
+      // If the grabbed object is part of a multi-selection, move the whole group —
+      // unless Ctrl/Cmd is held, which means "toggle this piece out/into the
+      // selection" and is resolved as a click on pointerup.
+      if (!(e.ctrlKey || e.metaKey) && selectedIds.length > 1 && selectedIds.includes(hit.id)) {
         const start = new Map(
           objects.filter((o) => selectedIds.includes(o.id)).map((o) => [o.id, { x: o.x, y: o.y }])
         );
@@ -603,12 +605,18 @@
         })
         .map((o) => o.id);
     } else if (dragId) {
+      const id = dragId;
       // Moved in edit = an object was dragged (persist); moved in view = just a
       // pan (do nothing). A clean tap selects the piece — or, if it's already the
       // sole selection, toggles it off so you can leave the selection by tapping it.
-      if (!moved)
-        selectedIds = selectedIds.length === 1 && selectedIds[0] === dragId ? [] : [dragId];
-      else if (boardMode === 'edit') onPersist();
+      // Ctrl/Cmd+click toggles just this piece in/out of the selection (multi-select).
+      if (!moved) {
+        if (e.ctrlKey || e.metaKey)
+          selectedIds = selectedIds.includes(id)
+            ? selectedIds.filter((s) => s !== id)
+            : [...selectedIds, id];
+        else selectedIds = selectedIds.length === 1 && selectedIds[0] === id ? [] : [id];
+      } else if (boardMode === 'edit') onPersist();
     } else if (pendingPlace && !moved && boardMode === 'edit') {
       const def = OBJECT_DEFS[tool];
       if (def) {
