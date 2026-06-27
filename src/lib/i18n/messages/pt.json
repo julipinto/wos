@@ -629,7 +629,9 @@
       "furnace": "fornalha",
       "power": "poder",
       "bear": "armadilha",
-      "label": "label"
+      "label": "label",
+      "account": "conta",
+      "farm": "Conta farm"
     },
     "maps": {
       "title": "mapas salvos",

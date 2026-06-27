@@ -112,6 +112,10 @@
       .filter((l) => l.primary || l.sub);
   });
 
+  // Farm / support-account cities get a small 🌾 badge, always shown (independent
+  // of the labels toggle) so alt accounts stay identifiable at a glance.
+  const farmCities = $derived(objects.filter((o) => o.farm && o.type === 'city'));
+
   // Per-trap colour palette (for the "colour by primary trap" display mode).
   const TRAP_COLORS = ['#60a5fa', '#f472b6', '#34d399', '#fbbf24', '#a78bfa', '#22d3ee'];
   const trapColor = (n: number) => TRAP_COLORS[(n - 1) % TRAP_COLORS.length];
@@ -879,6 +883,15 @@
           {/each}
         </div>
       {/if}
+      {#if farmCities.length}
+        <div class="farm-layer" style="font-size: {labelFont}px">
+          {#each farmCities as o (o.id)}
+            {@const pos = gridToPct(view, o.x + OBJECT_DEFS[o.type].w - 0.5, o.y + 0.5)}
+            <span class="farm-mark" style="left: {pos.left}%; top: {pos.top}%" title="farm">🌾</span
+            >
+          {/each}
+        </div>
+      {/if}
       {#if remoteCursors.length}
         <div class="cursor-layer">
           {#each remoteCursors as p (p.id)}
@@ -1039,6 +1052,20 @@
     inset: 0;
     pointer-events: none;
     z-index: 4;
+  }
+  /* Farm badges — between the objects and the labels, always on. */
+  .farm-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .farm-mark {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    line-height: 1;
+    font-size: 0.9em;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
   }
   /* Remote peer cursors live in their own overlay, above the labels. */
   .cursor-layer {

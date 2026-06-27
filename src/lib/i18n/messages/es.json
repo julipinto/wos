@@ -629,7 +629,9 @@
       "furnace": "horno",
       "power": "poder",
       "bear": "trampa de oso",
-      "label": "etiqueta"
+      "label": "etiqueta",
+      "account": "cuenta",
+      "farm": "Cuenta farm"
     },
     "maps": {
       "title": "mapas guardados",

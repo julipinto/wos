@@ -250,6 +250,15 @@
     persist();
   }
 
+  // Toggle the farm / support-account flag on the selected city.
+  function toggleFarm() {
+    const o = selected;
+    if (!o) return;
+    if (o.farm) delete o.farm;
+    else o.farm = true;
+    persist();
+  }
+
   function setTag<K extends 'name' | 'label' | 'furnace' | 'power' | 'uid'>(
     k: K,
     v: PlacedObject[K]
@@ -860,6 +869,7 @@
             .filter((t) => t !== selected.type)
             .map((t) => ({ value: t, label: objName(OBJECT_DEFS[t].i18n) }))}
           {setTag}
+          {toggleFarm}
           {toggleBear}
           {toggleBearMain}
           onConvert={convertSelected}
