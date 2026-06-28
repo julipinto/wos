@@ -480,6 +480,33 @@
   // Whether a host peer has been seen this session — so we can close the room for
   // guests once the host leaves (but not before they've ever connected).
   let hostSeen = false;
+  // The current room id (for the sessionStorage host marker below).
+  let currentRoom = '';
+  // sessionStorage marker so the HOST survives a page refresh (F5): it remembers
+  // "I created room X (secret …)" only for this tab, so reloading rejoins as host
+  // (not as a guest, which would falsely trip the "host left → close" logic).
+  const hostKey = (room: string) => `territory-host-${room}`;
+  const rememberHost = (room: string, secret: string) => {
+    try {
+      sessionStorage.setItem(hostKey(room), secret);
+    } catch {
+      /* sessionStorage may be unavailable (privacy mode) — non-fatal */
+    }
+  };
+  const forgetHost = (room: string) => {
+    try {
+      sessionStorage.removeItem(hostKey(room));
+    } catch {
+      /* ignore */
+    }
+  };
+  const recallHostSecret = (room: string): string | null => {
+    try {
+      return sessionStorage.getItem(hostKey(room));
+    } catch {
+      return null;
+    }
+  };
   let collabSession: CollabSession | null = null;
   let applyingRemote = false; // guards the remote→local apply from echoing back
 
@@ -513,6 +540,7 @@
 
   async function startCollabSession(room: string, key: string | undefined, seed: boolean) {
     if (collabSession) return;
+    currentRoom = room;
     collabActive = true;
     collabStatus = 'connecting';
     // A joiner waits for the room's layout; show the overlay until it arrives, with
@@ -563,10 +591,12 @@
     const base = `${location.pathname}${location.search}`;
     if (pw) {
       history.replaceState(null, '', `${base}#room=${room}&pw=1`);
+      rememberHost(room, pw); // survive F5 (the password isn't in the link)
       startCollabSession(room, pw, true);
     } else {
       const key = crypto.randomUUID().replace(/-/g, ''); // E2E key — stays in the hash
       history.replaceState(null, '', `${base}#room=${room}&key=${key}`);
+      rememberHost(room, key);
       startCollabSession(room, key, true);
     }
   }
@@ -592,6 +622,8 @@
   function leaveCollab() {
     const wasGuest = collabGuest;
     const backup = guestBackup;
+    if (currentRoom) forgetHost(currentRoom); // explicit leave → no longer the host
+    currentRoom = '';
     collabSession?.destroy();
     collabSession = null;
     collabActive = false;
@@ -722,6 +754,12 @@
     const hashParams = new URLSearchParams(location.hash.slice(1));
     const room = hashParams.get('room');
     if (room) {
+      // This tab created the room and is just refreshing → rejoin as the host.
+      const hostSecret = recallHostSecret(room);
+      if (hostSecret !== null) {
+        startCollabSession(room, hostSecret || undefined, true);
+        return;
+      }
       const key = hashParams.get('key');
       if (key) startCollabSession(room, key, false);
       else if (hashParams.get('pw'))
@@ -796,6 +834,7 @@
     copied={collabCopied}
     myName={me.name}
     myColor={me.color}
+    iAmHost={collabActive && !collabGuest}
     onStart={openCreate}
     onCopy={copyCollabLink}
     onLeave={leaveCollab}

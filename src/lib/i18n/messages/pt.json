@@ -722,7 +722,8 @@
       "enter": "Entrar",
       "joinFailed": "Não conectou — senha errada ou sala vazia",
       "joining": "Conectando à hive compartilhada…",
-      "hostLeft": "O host encerrou a sessão"
+      "hostLeft": "O host encerrou a sessão",
+      "host": "Host"
     },
     "shareProject": "Compartilhar projeto",
     "search": {
