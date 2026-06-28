@@ -143,13 +143,28 @@
     if (m.length === 1) return trapColor(m[0]);
     return '#475569';
   };
-  // Distinct multi-primary combos present → one SVG gradient def each (banded).
+  // A city's backup traps (joined but not primary) — drawn as a thin bottom strip.
+  const backupsOf = (o: PlacedObject) => {
+    const main = new Set(o.bearMain ?? []);
+    return (o.bear ?? []).filter((b) => !main.has(b));
+  };
+  // Strip colour for the secondary/backup trap(s): single colour or banded gradient.
+  const stripFill = (o: PlacedObject) => {
+    const b = backupsOf(o);
+    if (b.length > 1) return `url(#bgrad-${b.join('-')})`;
+    if (b.length === 1) return trapColor(b[0]);
+    return '';
+  };
+  // Distinct multi-trap combos (primary bodies + backup strips) → one gradient each.
   const multiCombos = $derived.by(() => {
     if (!colorByPrimary) return [];
     const seen = new Map<string, number[]>();
     for (const o of objects) {
+      if (o.type !== 'city') continue;
       const m = o.bearMain;
-      if (o.type === 'city' && m && m.length > 1) seen.set(m.join('-'), m);
+      if (m && m.length > 1) seen.set(m.join('-'), m);
+      const bk = backupsOf(o);
+      if (bk.length > 1) seen.set(bk.join('-'), bk);
     }
     return [...seen.values()];
   });
@@ -850,6 +865,21 @@
                 stroke-width={strokeW}
                 stroke-dasharray={strokeDash}
               />
+              <!-- Thin bottom strip = the secondary/backup trap colour (by-trap mode). -->
+              {#if colorByPrimary && o.type === 'city' && backupsOf(o).length}
+                <rect
+                  class="obj"
+                  x={o.x + 0.18}
+                  y={o.y + def.h - 0.08 - 0.16}
+                  width={def.w - 0.36}
+                  height="0.16"
+                  rx="0.05"
+                  fill={stripFill(o)}
+                  fill-opacity={fillO}
+                  stroke="rgba(0,0,0,0.3)"
+                  stroke-width="0.02"
+                />
+              {/if}
             {/if}
           {/each}
           {#if hoverCell && boardMode === 'edit' && OBJECT_DEFS[tool]}
