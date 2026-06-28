@@ -136,7 +136,8 @@ export function renderHive(canvas: HTMLCanvasElement, objects: PlacedObject[], o
   const byTrap = opts.colorByPrimary && traps.length > 0;
   const legendEntries: { color: string; label: string }[] = [];
   for (const ty of typesPresent) {
-    if (ty === 'city' && byTrap) continue;
+    // When colouring by trap, cities + traps show as the per-trap 🐻 swatches.
+    if (byTrap && (ty === 'city' || ty === 'bearTrap')) continue;
     legendEntries.push({
       color: OBJECT_DEFS[ty].color,
       label: opts.typeName(OBJECT_DEFS[ty].i18n)
@@ -201,6 +202,36 @@ export function renderHive(canvas: HTMLCanvasElement, objects: PlacedObject[], o
       quad(x, y, 1, 1);
       ctx.fill();
     } else ctx.fillRect(gx(x), gy(y), cell, cell);
+  };
+
+  // Object fill in "colour by primary trap" mode — matches the live board:
+  // traps take their own trap colour, a city with several primaries gets a banded
+  // gradient of those colours, a single-primary city its colour, else slate.
+  const footprintX = (o: PlacedObject, dw: number, dh: number): [number, number] => {
+    if (!iso) return [gx(o.x), gx(o.x + dw)];
+    const xs = [SX(o.x, o.y), SX(o.x + dw, o.y), SX(o.x + dw, o.y + dh), SX(o.x, o.y + dh)];
+    return [Math.min(...xs), Math.max(...xs)];
+  };
+  const fillFor = (
+    o: PlacedObject,
+    dw: number,
+    dh: number,
+    color: string
+  ): string | CanvasGradient => {
+    if (!opts.colorByPrimary) return color;
+    if (o.type === 'bearTrap') return trapColor(trapNo.get(o.id) ?? 1);
+    if (o.type !== 'city') return color;
+    const m = o.bearMain ?? [];
+    if (m.length > 1) {
+      const [lx, rx] = footprintX(o, dw, dh);
+      const g = ctx.createLinearGradient(lx, 0, rx, 0);
+      m.forEach((tt, i) => {
+        g.addColorStop(i / m.length, trapColor(tt));
+        g.addColorStop((i + 1) / m.length, trapColor(tt));
+      });
+      return g;
+    }
+    return cityPrimary(o);
   };
 
   // Floor
@@ -270,8 +301,7 @@ export function renderHive(canvas: HTMLCanvasElement, objects: PlacedObject[], o
   // Objects
   for (const o of objects) {
     const d = OBJECT_DEFS[o.type];
-    const fill = opts.colorByPrimary && o.type === 'city' ? cityPrimary(o) : d.color;
-    ctx.fillStyle = fill;
+    ctx.fillStyle = fillFor(o, d.w, d.h, d.color);
     ctx.strokeStyle = 'rgba(0,0,0,0.35)';
     ctx.lineWidth = Math.max(1, cell * 0.04);
     if (iso) {
