@@ -39,6 +39,7 @@ export interface PeerState {
   editor: boolean; // may edit the shared map (host, or not marked read-only)
   selection?: string[];
   cursor?: { x: number; y: number } | null;
+  viewport?: { x: number; y: number; w: number; h: number }; // visible region (for follow)
 }
 
 export interface CollabOpts {
@@ -67,6 +68,8 @@ export interface CollabSession {
   setSelection: (ids: string[]) => void;
   /** Broadcast this peer's live cursor in grid coords (null to hide). Throttled. */
   setCursor: (p: { x: number; y: number } | null) => void;
+  /** Broadcast this peer's visible region (so others can follow). Throttled. */
+  setViewport: (vp: { x: number; y: number; w: number; h: number }) => void;
   /** Update this peer's display name / colour (after the user edits it). */
   setUser: (user: CollabUser) => void;
   /** Host only: the peerIds restricted to read-only (everyone else may edit). */
@@ -192,7 +195,8 @@ export function startCollab(opts: CollabOpts): CollabSession {
         host,
         editor: host || !viewers.includes(peerId),
         selection: s.selection as string[] | undefined,
-        cursor: s.cursor as { x: number; y: number } | null | undefined
+        cursor: s.cursor as { x: number; y: number } | null | undefined,
+        viewport: s.viewport as { x: number; y: number; w: number; h: number } | undefined
       });
     });
     opts.onPeers(states);
@@ -239,10 +243,24 @@ export function startCollab(opts: CollabOpts): CollabSession {
     }
   };
 
+  // Viewport broadcast, throttled (it changes rapidly while panning/zooming).
+  let vpTimer: ReturnType<typeof setTimeout> | null = null;
+  let pendingVp: { x: number; y: number; w: number; h: number } | null = null;
+  const setViewport = (vp: { x: number; y: number; w: number; h: number }) => {
+    pendingVp = vp;
+    if (vpTimer) return;
+    aw.setLocalStateField('viewport', pendingVp);
+    vpTimer = setTimeout(() => {
+      vpTimer = null;
+      if (pendingVp) aw.setLocalStateField('viewport', pendingVp);
+    }, 120);
+  };
+
   return {
     pushLocal,
     setSelection: (ids: string[]) => aw.setLocalStateField('selection', ids),
     setCursor,
+    setViewport,
     setUser: (user) => aw.setLocalStateField('user', user),
     setViewers: (peerIds: string[]) => aw.setLocalStateField('viewers', peerIds),
     setKicked: (peerIds: string[]) => aw.setLocalStateField('kicked', peerIds),
@@ -250,6 +268,7 @@ export function startCollab(opts: CollabOpts): CollabSession {
     redo: () => undoManager.redo(),
     destroy: () => {
       if (cursorTimer) clearTimeout(cursorTimer);
+      if (vpTimer) clearTimeout(vpTimer);
       aw.off('change', emitPeers);
       undoManager.destroy();
       provider.destroy();

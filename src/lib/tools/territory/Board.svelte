@@ -80,14 +80,30 @@
   }
   // Other peers' selections → coloured halos (rendered in the transformed plane).
   const remoteSel = $derived.by(() => {
-    const out: { key: string; color: string; x: number; y: number; w: number; h: number }[] = [];
+    const out: {
+      key: string;
+      name: string;
+      color: string;
+      x: number;
+      y: number;
+      w: number;
+      h: number;
+    }[] = [];
     for (const p of peers) {
       if (p.self || !p.selection) continue;
       for (const id of p.selection) {
         const o = objects.find((x) => x.id === id);
         if (!o) continue;
         const d = OBJECT_DEFS[o.type];
-        out.push({ key: `${p.id}_${id}`, color: p.color, x: o.x, y: o.y, w: d.w, h: d.h });
+        out.push({
+          key: `${p.id}_${id}`,
+          name: p.name,
+          color: p.color,
+          x: o.x,
+          y: o.y,
+          w: d.w,
+          h: d.h
+        });
       }
     }
     return out;
@@ -892,6 +908,16 @@
           {/each}
         </div>
       {/if}
+      {#if remoteSel.length}
+        <div class="sel-name-layer">
+          {#each remoteSel as r (r.key)}
+            {@const c = gridToPct(view, r.x + r.w / 2, r.y)}
+            <span class="sel-name" style="left: {c.left}%; top: {c.top}%; background: {r.color}"
+              >{r.name}</span
+            >
+          {/each}
+        </div>
+      {/if}
       {#if remoteCursors.length}
         <div class="cursor-layer">
           {#each remoteCursors as p (p.id)}
@@ -1066,6 +1092,26 @@
     line-height: 1;
     font-size: 0.9em;
     filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
+  }
+  /* Who has each piece selected ("X editing City Y") — a small name tag at the
+     top of the piece, upright (not skewed by iso). */
+  .sel-name-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 6;
+  }
+  .sel-name {
+    position: absolute;
+    transform: translate(-50%, -130%);
+    padding: 1px 6px;
+    border-radius: 6px;
+    color: #0b1220;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
   }
   /* Remote peer cursors live in their own overlay, above the labels. */
   .cursor-layer {
