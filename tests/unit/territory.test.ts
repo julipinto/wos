@@ -5,6 +5,7 @@ import {
   footprintCells,
   exportLayout,
   importLayout,
+  normalizeObject,
   collides,
   type PlacedObject
 } from '../../src/lib/tools/territory/territory';
@@ -76,6 +77,34 @@ describe('territory connectivity', () => {
     expect(r.connected.size).toBe(0);
     expect(r.orphaned.size).toBe(2);
     expect(r.cells.size).toBe(0);
+  });
+});
+
+describe('normalizeObject', () => {
+  it('coerces a legacy numeric bear into an array (no "not iterable" crash)', () => {
+    const o = { id: 'x', type: 'city', x: 1, y: 1, bear: 2 } as unknown as PlacedObject;
+    const n = normalizeObject(o);
+    expect(n.bear).toEqual([2]);
+    expect([...(n.bear ?? [])]).toEqual([2]); // spreadable
+  });
+  it('drops junk bear/bearMain and keeps clean arrays sorted/deduped', () => {
+    const o = {
+      id: 'x',
+      type: 'city',
+      x: 1,
+      y: 1,
+      bear: [3, 1, 1] as number[],
+      bearMain: [2, 1] as number[]
+    } as PlacedObject;
+    const n = normalizeObject(o);
+    expect(n.bear).toEqual([1, 3]);
+    expect(n.bearMain).toEqual([1]); // 2 isn't joined → dropped
+  });
+  it('removes a non-iterable bearMain and an empty/garbage bear', () => {
+    const o = { id: 'x', type: 'city', x: 1, y: 1, bearMain: 5 } as unknown as PlacedObject;
+    const n = normalizeObject(o);
+    expect(n.bear).toBeUndefined();
+    expect(n.bearMain).toBeUndefined();
   });
 });
 

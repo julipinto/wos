@@ -117,6 +117,37 @@ export const FURNACE_LEVELS: string[] = [
   ...Array.from({ length: 11 }, (_, i) => `FC${i + 1}`)
 ];
 
+/**
+ * Sanitise an object's bear/bearMain tags to clean number arrays. Legacy stored
+ * layouts (and untrusted remote/imported data) can carry `bear` as a raw number
+ * — spreading or `.includes`-ing that downstream throws ("bear is not iterable")
+ * and blanked the planner. Run any externally-sourced objects through this.
+ */
+export function normalizeObject(o: PlacedObject): PlacedObject {
+  const out: PlacedObject = { ...o };
+  const rawBear: unknown = o.bear;
+  const bears = Array.isArray(rawBear)
+    ? rawBear.filter((n) => typeof n === 'number' && n > 0)
+    : typeof rawBear === 'number' && rawBear > 0
+      ? [rawBear]
+      : [];
+  if (bears.length) out.bear = [...new Set(bears)].sort((a, b) => a - b);
+  else delete out.bear;
+
+  const rawMain: unknown = o.bearMain;
+  if (out.bear && Array.isArray(rawMain)) {
+    const joined = out.bear;
+    const mains = [...new Set(rawMain.filter((n) => typeof n === 'number'))]
+      .filter((n) => joined.includes(n as number))
+      .sort((a, b) => (a as number) - (b as number)) as number[];
+    if (mains.length) out.bearMain = mains;
+    else delete out.bearMain;
+  } else {
+    delete out.bearMain;
+  }
+  return out;
+}
+
 const key = (x: number, y: number) => `${x},${y}`;
 
 // --- Import / export (share a layout as a copyable code) -------------------

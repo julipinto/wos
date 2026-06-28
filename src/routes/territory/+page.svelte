@@ -35,6 +35,7 @@
     FURNACE_LEVELS,
     exportLayout,
     importLayout,
+    normalizeObject,
     collides,
     type PlacedObject,
     type TerritoryType
@@ -68,7 +69,11 @@
   function loadLayout(m: string): PlacedObject[] {
     const raw = readJson<PlacedObject[]>(layoutKey(m));
     const allowed = new Set(modeById(m).types);
-    return Array.isArray(raw) ? raw.filter((o) => allowed.has(o.type)) : [];
+    // normalizeObject sanitises legacy/odd bear tags (e.g. a raw number) that
+    // would otherwise throw "bear is not iterable" when cloned/rendered.
+    return Array.isArray(raw)
+      ? raw.filter((o) => o && allowed.has(o.type)).map(normalizeObject)
+      : [];
   }
   const objects = $state<PlacedObject[]>(loadLayout(initialMode));
 
@@ -76,8 +81,8 @@
   const cloneLayout = (a: PlacedObject[]) =>
     a.map((o) => ({
       ...o,
-      bear: o.bear ? [...o.bear] : undefined,
-      bearMain: o.bearMain ? [...o.bearMain] : undefined
+      bear: Array.isArray(o.bear) ? [...o.bear] : undefined,
+      bearMain: Array.isArray(o.bearMain) ? [...o.bearMain] : undefined
     }));
   const save = () => writeJson(layoutKey(mode), cloneLayout(objects));
 
@@ -186,7 +191,7 @@
     );
   }
   function loadMap(id: string) {
-    objects.splice(0, objects.length, ...savedMaps.objectsOf(mode, id));
+    objects.splice(0, objects.length, ...savedMaps.objectsOf(mode, id).map(normalizeObject));
     selectedIds = [];
     save();
     clearHist();
@@ -195,7 +200,10 @@
   // Compare a saved map (the "before" baseline) against the current board ("after").
   // Hand both layouts to the compare screen via sessionStorage (avoids huge URLs).
   function compareMap(id: string) {
-    const seed = { before: savedMaps.objectsOf(mode, id), after: cloneLayout(objects) };
+    const seed = {
+      before: savedMaps.objectsOf(mode, id).map(normalizeObject),
+      after: cloneLayout(objects)
+    };
     sessionStorage.setItem('territory-compare-seed', JSON.stringify(seed));
     goto(`${base}/territory/compare`);
   }
@@ -488,7 +496,7 @@
       getObjects: () => objects,
       applyRemote: (objs) => {
         applyingRemote = true;
-        objects.splice(0, objects.length, ...objs);
+        objects.splice(0, objects.length, ...objs.map(normalizeObject));
         selectedIds = selectedIds.filter((id) => objects.some((o) => o.id === id));
         save();
         undoRedo.rebase(); // keep the undo baseline aligned with the room
@@ -596,7 +604,7 @@
   function applyImport(parsed: { mode: string; objects: PlacedObject[] }) {
     mode = parsed.mode;
     writeJson(MODE_KEY, mode);
-    objects.splice(0, objects.length, ...parsed.objects);
+    objects.splice(0, objects.length, ...parsed.objects.map(normalizeObject));
     tool = modeById(mode).types[0];
     selectedIds = [];
     save();
