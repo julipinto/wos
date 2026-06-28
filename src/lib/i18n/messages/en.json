@@ -723,7 +723,13 @@
       "joinFailed": "Couldn't connect — wrong password or empty room",
       "joining": "Connecting to the shared hive…",
       "hostLeft": "The host ended the session",
-      "host": "Host"
+      "host": "Host",
+      "manage": "Manage",
+      "makeViewer": "Make view-only",
+      "makeEditor": "Allow editing",
+      "remove": "Remove from room",
+      "kicked": "The host removed you from the room",
+      "readOnly": "View only — the host hasn’t given you edit access"
     },
     "shareProject": "Share project",
     "search": {

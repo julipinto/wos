@@ -116,6 +116,7 @@
   const clearHist = () => undoRedo.reset();
 
   function persist() {
+    if (!iAmEditor) return; // a read-only guest can't mutate the shared map
     undoRedo.record();
     save();
     // Mirror the change to the room (no-op when not collaborating).
@@ -149,6 +150,7 @@
     readJson<'edit' | 'view'>(BOARDMODE_KEY) === 'view' ? 'view' : 'edit'
   );
   function setBoardMode(b: 'edit' | 'view') {
+    if (b === 'edit' && !iAmEditor) return; // read-only guests stay in View
     boardMode = b;
     writeJson(BOARDMODE_KEY, b);
     if (b === 'view') selectedIds = [];
@@ -451,12 +453,20 @@
 
   // ── Live collaboration (P2P via Yjs/WebRTC; lazy-loaded) ─────────────────
   const COLLAB_USER_KEY = 'territory-collab-user-v1';
-  function loadUser(): { name: string; color: string } {
-    const saved = readJson<{ name: string; color: string }>(COLLAB_USER_KEY);
-    if (saved?.name) return saved;
+  function loadUser(): { id: string; name: string; color: string } {
+    const saved = readJson<{ id?: string; name: string; color: string }>(COLLAB_USER_KEY);
+    // A stable id (persisted) keeps a peer's identity across reconnects, so a brief
+    // network drop doesn't read as someone leaving + a new person joining, and so
+    // host permissions stick to the right person.
+    const id = saved?.id || crypto.randomUUID();
+    if (saved?.name) {
+      if (!saved.id) writeJson(COLLAB_USER_KEY, { ...saved, id }); // migrate older saves
+      return { id, name: saved.name, color: saved.color };
+    }
     const colors = ['#60a5fa', '#f472b6', '#34d399', '#fbbf24', '#a78bfa', '#fb7185', '#22d3ee'];
     const animals = ['Fox', 'Bear', 'Wolf', 'Owl', 'Lynx', 'Seal', 'Hawk', 'Yeti', 'Crane'];
     const u = {
+      id,
       name: `${animals[Math.floor(Math.random() * animals.length)]}-${Math.floor(100 + Math.random() * 900)}`,
       color: colors[Math.floor(Math.random() * colors.length)]
     };
@@ -468,12 +478,20 @@
   let collabStatus = $state<CollabStatus>('disconnected');
   let collabPeers = $state<PeerState[]>([]);
   let collabCopied = $state(false);
+  // Host-controlled permissions (peerIds). viewers = forced read-only; kicked = removed.
+  let collabViewers = $state<string[]>([]);
+  let collabKicked = $state<string[]>([]);
   // True for a JOINER until the room's shared layout first syncs in — lets us cover
   // the board with a "connecting" state instead of flashing this device's old hive.
   let collabJoining = $state(false);
   // True for the whole session when we JOINED someone else's room (vs created our
   // own). A guest's edits sync to the host but never persist over its own hive.
   let collabGuest = $state(false);
+  // May this client edit the shared map? Solo and the host always can; a guest can
+  // unless the host marked it read-only.
+  const iAmEditor = $derived(
+    !collabActive || !collabGuest || (collabPeers.find((p) => p.self)?.editor ?? true)
+  );
   // The guest's own layout, stashed on join and restored on leave.
   let guestBackup: PlacedObject[] | null = null;
   let joinFallback: ReturnType<typeof setTimeout> | null = null;
@@ -569,8 +587,24 @@
         collabJoining = false; // shared layout received → reveal the board
       },
       onPeers: (p) => (collabPeers = p),
-      onStatus: (s) => (collabStatus = s)
+      onStatus: (s) => (collabStatus = s),
+      onKicked: () => {
+        pushToast(i18n.m.territory.collab.kicked, '#fb7185');
+        setTimeout(leaveCollab, 0);
+      }
     });
+  }
+  // Host: toggle a guest read-only ⟷ editor.
+  function toggleEditor(peerId: string) {
+    collabViewers = collabViewers.includes(peerId)
+      ? collabViewers.filter((x) => x !== peerId)
+      : [...collabViewers, peerId];
+    collabSession?.setViewers(collabViewers);
+  }
+  // Host: remove a guest from the room.
+  function kickPeer(peerId: string) {
+    if (!collabKicked.includes(peerId)) collabKicked = [...collabKicked, peerId];
+    collabSession?.setKicked(collabKicked);
   }
   // Create / join dialogs (optional password). No password → the E2E key lives in
   // the link (anyone with the link joins). With a password → the link is clean
@@ -631,6 +665,8 @@
     collabStatus = 'disconnected';
     collabJoining = false;
     collabGuest = false;
+    collabViewers = [];
+    collabKicked = [];
     guestBackup = null;
     hostSeen = false;
     if (joinFallback) clearTimeout(joinFallback);
@@ -647,6 +683,13 @@
   // Broadcast this peer's selection (live highlight comes in the next phase).
   $effect(() => {
     if (collabSession) collabSession.setSelection(selectedIds);
+  });
+  // A read-only guest is forced into View (no editing).
+  $effect(() => {
+    if (collabActive && collabGuest && !iAmEditor && boardMode !== 'view') {
+      boardMode = 'view';
+      selectedIds = [];
+    }
   });
   // Close the room for a guest once the host leaves — the host owns the map, so
   // without it there's no source of truth to keep editing.
@@ -839,6 +882,8 @@
     onCopy={copyCollabLink}
     onLeave={leaveCollab}
     onRename={renamePeer}
+    onToggleEditor={toggleEditor}
+    onKick={kickPeer}
   />
 
   <div class="topbar">
@@ -881,6 +926,7 @@
       <Rail
         {boardMode}
         onBoardMode={setBoardMode}
+        canEdit={iAmEditor}
         {view}
         onView={setView}
         types={activeMode.types}
@@ -909,6 +955,9 @@
           <span class="join-spinner" aria-hidden="true"></span>
           <span class="join-text">{i18n.m.territory.collab.joining}</span>
         </div>
+      {/if}
+      {#if collabActive && collabGuest && !iAmEditor && !collabJoining}
+        <p class="readonly-banner">👁 {i18n.m.territory.collab.readOnly}</p>
       {/if}
       {#if objects.length > 0}
         <Search {objects} nameOf={objName} onPick={focusObject} onGoto={gotoCoord} />
@@ -1191,6 +1240,18 @@
   }
   .stage-board {
     position: relative;
+  }
+  /* Read-only banner for a guest the host hasn't given edit access. */
+  .readonly-banner {
+    margin: 0 0 10px;
+    padding: 7px 12px;
+    border-radius: var(--r-pill);
+    background: rgba(251, 191, 36, 0.12);
+    border: 1px solid rgba(251, 191, 36, 0.4);
+    color: #fbbf24;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-align: center;
   }
   /* "Connecting" cover for a joiner — hides this device's old hive until the
      room's shared layout syncs in. */

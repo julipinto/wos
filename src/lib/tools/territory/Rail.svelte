@@ -12,6 +12,8 @@
   interface Props {
     boardMode: 'edit' | 'view';
     onBoardMode: (b: 'edit' | 'view') => void;
+    /** False for a read-only collab guest — Edit + place tools are hidden. */
+    canEdit?: boolean;
     view: 'flat' | 'iso';
     onView: (v: 'flat' | 'iso') => void;
     // palette
@@ -37,6 +39,7 @@
   let {
     boardMode,
     onBoardMode,
+    canEdit = true,
     view,
     onView,
     types,
@@ -78,15 +81,17 @@
   <div class="rail-body" class:open>
     <section class="rail-sec">
       <span class="rail-h">{i18n.m.territory.rail.tools}</span>
-      <Segmented
-        value={boardMode}
-        ariaLabel={i18n.m.territory.boardMode.label}
-        options={[
-          { value: 'edit', label: `✏️ ${i18n.m.territory.boardMode.edit}` },
-          { value: 'view', label: `🖐 ${i18n.m.territory.boardMode.view}` }
-        ]}
-        onChange={(v) => onBoardMode(v as 'edit' | 'view')}
-      />
+      {#if canEdit}
+        <Segmented
+          value={boardMode}
+          ariaLabel={i18n.m.territory.boardMode.label}
+          options={[
+            { value: 'edit', label: `✏️ ${i18n.m.territory.boardMode.edit}` },
+            { value: 'view', label: `🖐 ${i18n.m.territory.boardMode.view}` }
+          ]}
+          onChange={(v) => onBoardMode(v as 'edit' | 'view')}
+        />
+      {/if}
       <Segmented
         value={view}
         ariaLabel={i18n.m.territory.view.label}

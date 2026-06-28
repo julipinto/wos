@@ -5,6 +5,10 @@
 // The model: a Y.Map keyed by object id holds each PlacedObject. Local edits are
 // reconciled into the map after every persist(); remote changes rebuild the local
 // objects array. Concurrent moves/edits merge conflict-free via the CRDT.
+//
+// Roles (cooperative, P2P — there is no authoritative server): the room creator is
+// the HOST. Permissions (who may edit, who's removed) are broadcast in the host's
+// awareness and keyed by a stable per-browser peerId so they survive reconnects.
 import * as Y from 'yjs';
 import { WebrtcProvider } from 'y-webrtc';
 import type { PlacedObject } from './territory';
@@ -18,12 +22,21 @@ const LOCAL_ORIGIN = 'local';
 
 export type CollabStatus = 'connecting' | 'connected' | 'disconnected';
 
+export interface CollabUser {
+  /** Stable identity for this browser (survives reconnects; keys permissions). */
+  id: string;
+  name: string;
+  color: string;
+}
+
 export interface PeerState {
-  id: number; // awareness clientID (stable key)
+  id: number; // awareness clientID (changes on reconnect)
+  peerId: string; // stable identity (CollabUser.id)
   self: boolean; // this client
   name: string;
   color: string;
   host: boolean; // the room creator (source of truth)
+  editor: boolean; // may edit the shared map (host, or not marked read-only)
   selection?: string[];
   cursor?: { x: number; y: number } | null;
 }
@@ -35,12 +48,14 @@ export interface CollabOpts {
   /** True for the room creator (seeds the doc with the local board); joiners adopt
    *  the room's state instead of pushing their own. */
   seed: boolean;
-  user: { name: string; color: string };
+  user: CollabUser;
   getObjects: () => PlacedObject[];
   /** Apply the room's objects locally (must NOT trigger a push back). */
   applyRemote: (objs: PlacedObject[]) => void;
   onPeers: (states: PeerState[]) => void;
   onStatus: (s: CollabStatus) => void;
+  /** Called once when the host marks THIS client as removed (kicked). */
+  onKicked?: () => void;
 }
 
 export interface CollabSession {
@@ -48,10 +63,14 @@ export interface CollabSession {
   pushLocal: () => void;
   /** Broadcast this peer's current selection (drives the remote selection halos). */
   setSelection: (ids: string[]) => void;
-  /** Broadcast this peer's live cursor in grid coords (null to hide). */
+  /** Broadcast this peer's live cursor in grid coords (null to hide). Throttled. */
   setCursor: (p: { x: number; y: number } | null) => void;
   /** Update this peer's display name / colour (after the user edits it). */
-  setUser: (user: { name: string; color: string }) => void;
+  setUser: (user: CollabUser) => void;
+  /** Host only: the peerIds restricted to read-only (everyone else may edit). */
+  setViewers: (peerIds: string[]) => void;
+  /** Host only: the peerIds removed from the room. */
+  setKicked: (peerIds: string[]) => void;
   destroy: () => void;
 }
 
@@ -60,6 +79,8 @@ export interface CollabSession {
 // through the proxy and yields the plain object Yjs needs to store.
 const clone = <T>(o: T): T => JSON.parse(JSON.stringify(o));
 const eq = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+const strArr = (v: unknown): string[] =>
+  Array.isArray(v) ? v.filter((x) => typeof x === 'string') : [];
 
 export function startCollab(opts: CollabOpts): CollabSession {
   const doc = new Y.Doc();
@@ -86,8 +107,8 @@ export function startCollab(opts: CollabOpts): CollabSession {
   });
   const aw = provider.awareness;
   aw.setLocalStateField('user', opts.user);
-  // The creator advertises itself as the room's host so guests can show a crown
-  // and close the room when the host leaves.
+  // The creator advertises itself as the room's host so guests can show a crown,
+  // close the room when the host leaves, and so the host's permission fields apply.
   if (opts.seed) aw.setLocalStateField('host', true);
 
   // A remote apply is in flight — don't bounce the resulting local change back.
@@ -128,25 +149,45 @@ export function startCollab(opts: CollabOpts): CollabSession {
     opts.onStatus(live ? 'connected' : 'connecting');
   };
 
+  let kickedFired = false;
   const emitPeers = () => {
+    const all = aw.getStates() as Map<number, Record<string, unknown>>;
+    // The host's permission fields drive everyone's editor flag + removals.
+    let hostState: Record<string, unknown> | undefined;
+    all.forEach((s) => {
+      if (s.host === true) hostState = s;
+    });
+    const viewers = strArr(hostState?.viewers);
+    const kicked = strArr(hostState?.kicked);
+
     const states: PeerState[] = [];
-    aw.getStates().forEach((s, id) => {
-      const u = s.user as { name?: string; color?: string } | undefined;
+    all.forEach((s, id) => {
+      const u = s.user as { id?: string; name?: string; color?: string } | undefined;
       if (!u) return;
+      const peerId = typeof u.id === 'string' && u.id ? u.id : `c${id}`;
+      const host = s.host === true;
       states.push({
         id,
+        peerId,
         self: id === aw.clientID,
         // Never trust the remote shape — a peer that connected a beat before its
         // name propagated (or an older client) must not crash avatar rendering.
         name: typeof u.name === 'string' && u.name.trim() ? u.name : 'anon',
         color: typeof u.color === 'string' && u.color ? u.color : '#94a3b8',
-        host: s.host === true,
+        host,
+        editor: host || !viewers.includes(peerId),
         selection: s.selection as string[] | undefined,
         cursor: s.cursor as { x: number; y: number } | null | undefined
       });
     });
     opts.onPeers(states);
     refreshStatus();
+
+    // If the host removed us, fire once so the page can leave the room.
+    if (!kickedFired && opts.seed === false && kicked.includes(opts.user.id)) {
+      kickedFired = true;
+      opts.onKicked?.();
+    }
   };
   aw.on('change', emitPeers);
   provider.on('status', (e: { connected: boolean }) => {
@@ -160,12 +201,38 @@ export function startCollab(opts: CollabOpts): CollabSession {
   provider.on('peers', emitPeers);
   emitPeers();
 
+  // Throttle cursor broadcasts so a fast-moving pointer (× many peers) doesn't
+  // flood awareness updates — leading edge + a trailing flush.
+  let cursorTimer: ReturnType<typeof setTimeout> | null = null;
+  let pendingCursor: { x: number; y: number } | null = null;
+  let hasPending = false;
+  const flushCursor = () => {
+    cursorTimer = null;
+    if (hasPending) {
+      aw.setLocalStateField('cursor', pendingCursor);
+      hasPending = false;
+      cursorTimer = setTimeout(flushCursor, 55);
+    }
+  };
+  const setCursor = (p: { x: number; y: number } | null) => {
+    if (cursorTimer) {
+      pendingCursor = p;
+      hasPending = true;
+    } else {
+      aw.setLocalStateField('cursor', p);
+      cursorTimer = setTimeout(flushCursor, 55);
+    }
+  };
+
   return {
     pushLocal,
     setSelection: (ids: string[]) => aw.setLocalStateField('selection', ids),
-    setCursor: (p) => aw.setLocalStateField('cursor', p),
+    setCursor,
     setUser: (user) => aw.setLocalStateField('user', user),
+    setViewers: (peerIds: string[]) => aw.setLocalStateField('viewers', peerIds),
+    setKicked: (peerIds: string[]) => aw.setLocalStateField('kicked', peerIds),
     destroy: () => {
+      if (cursorTimer) clearTimeout(cursorTimer);
       aw.off('change', emitPeers);
       provider.destroy();
       doc.destroy();

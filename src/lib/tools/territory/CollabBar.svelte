@@ -19,6 +19,10 @@
     onCopy: () => void;
     onLeave: () => void;
     onRename: (name: string) => void;
+    /** Host: flip a guest read-only ⟷ editor. */
+    onToggleEditor: (peerId: string) => void;
+    /** Host: remove a guest from the room. */
+    onKick: (peerId: string) => void;
   }
   let {
     active,
@@ -31,11 +35,14 @@
     onStart,
     onCopy,
     onLeave,
-    onRename
+    onRename,
+    onToggleEditor,
+    onKick
   }: Props = $props();
 
   // Show only OTHER peers as avatars (you have the name input); cap the row.
   const others = $derived(peers.filter((p) => !p.self));
+  let manageOpen = $state(false);
   const initials = (name: string | undefined) =>
     (name ?? '')
       .split(/[\s-]+/)
@@ -77,6 +84,41 @@
         </span>
       {/each}
     </span>
+    {#if iAmHost && others.length > 0}
+      <div class="manage-wrap">
+        <Button variant="secondary" size="sm" onclick={() => (manageOpen = !manageOpen)}>
+          ⚙ {i18n.m.territory.collab.manage}
+        </Button>
+        {#if manageOpen}
+          <div class="manage" role="menu">
+            {#each others as p (p.peerId)}
+              <div class="m-row">
+                <span class="m-dot" style="background: {p.color}"></span>
+                <span class="m-name">{p.name}</span>
+                <button
+                  class="m-btn"
+                  class:on={p.editor}
+                  type="button"
+                  title={p.editor
+                    ? i18n.m.territory.collab.makeViewer
+                    : i18n.m.territory.collab.makeEditor}
+                  onclick={() => onToggleEditor(p.peerId)}
+                >
+                  {p.editor ? '✏️' : '👁'}
+                </button>
+                <button
+                  class="m-kick"
+                  type="button"
+                  title={i18n.m.territory.collab.remove}
+                  aria-label={i18n.m.territory.collab.remove}
+                  onclick={() => onKick(p.peerId)}>✕</button
+                >
+              </div>
+            {/each}
+          </div>
+        {/if}
+      </div>
+    {/if}
     <Button variant="secondary" size="sm" onclick={onCopy}>
       {copied ? '✓ ' + i18n.m.territory.collab.copied : '🔗 ' + i18n.m.territory.collab.copyLink}
     </Button>
@@ -163,6 +205,73 @@
     font-size: 10px;
     line-height: 1;
     filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5));
+  }
+  /* Host "manage members" popover. */
+  .manage-wrap {
+    position: relative;
+  }
+  .manage {
+    position: absolute;
+    top: calc(100% + 6px);
+    inset-inline-start: 0;
+    z-index: 40;
+    min-width: 200px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-card);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .m-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 6px;
+  }
+  .m-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex: none;
+  }
+  .m-name {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .m-btn,
+  .m-kick {
+    flex: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .m-btn.on {
+    border-color: var(--border-accent);
+    background: var(--accent-glow);
+  }
+  .m-kick {
+    color: var(--text-dim);
+  }
+  .m-kick:hover {
+    color: #fb7185;
+    border-color: rgba(251, 113, 133, 0.4);
   }
   .avatar:first-child {
     margin-inline-start: 0;
