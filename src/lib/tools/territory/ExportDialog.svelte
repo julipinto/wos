@@ -30,6 +30,7 @@
   let title = $state(''); // empty → falls back to defaultTitle (shown as placeholder)
   let background = $state<'dark' | 'light'>('dark');
   let crop = $state<'hive' | 'grid'>('hive');
+  let view = $state<'flat' | 'iso'>('flat');
   let quality = $state<'sm' | 'md' | 'lg'>('md');
   const QUALITY_PX = { sm: 30, md: 45, lg: 64 };
 
@@ -50,6 +51,7 @@
       title: title.trim() || defaultTitle,
       background,
       crop,
+      view,
       cellPx,
       connectivity,
       typeName
@@ -161,6 +163,15 @@
             { value: 'grid', label: x.cropGrid }
           ]}
           onChange={(v) => (crop = v as 'hive' | 'grid')}
+        />
+        <Segmented
+          value={view}
+          ariaLabel={i18n.m.territory.view.label}
+          options={[
+            { value: 'flat', label: i18n.m.territory.view.flat },
+            { value: 'iso', label: i18n.m.territory.view.tilt }
+          ]}
+          onChange={(v) => (view = v as 'flat' | 'iso')}
         />
         <Segmented
           value={quality}
