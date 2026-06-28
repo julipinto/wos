@@ -13,6 +13,8 @@
     copied: boolean;
     myName: string;
     myColor: string;
+    /** Whether this client is the room host (crown on its own avatar). */
+    iAmHost: boolean;
     onStart: () => void;
     onCopy: () => void;
     onLeave: () => void;
@@ -25,6 +27,7 @@
     copied,
     myName,
     myColor,
+    iAmHost,
     onStart,
     onCopy,
     onLeave,
@@ -54,7 +57,10 @@
       {i18n.m.territory.collab[status]}
     </span>
     <label class="me" title={i18n.m.territory.collab.yourName}>
-      <span class="avatar" style="background: {myColor}">{initials(myName)}</span>
+      <span class="avatar" class:host={iAmHost} style="background: {myColor}">
+        {initials(myName)}
+        {#if iAmHost}<span class="crown" title={i18n.m.territory.collab.host}>👑</span>{/if}
+      </span>
       <TextInput
         style="width:9ch"
         value={myName}
@@ -65,7 +71,10 @@
     </label>
     <span class="peers" aria-label={i18n.m.territory.collab.online}>
       {#each others as p (p.id)}
-        <span class="avatar" style="background: {p.color}" title={p.name}>{initials(p.name)}</span>
+        <span class="avatar" class:host={p.host} style="background: {p.color}" title={p.name}>
+          {initials(p.name)}
+          {#if p.host}<span class="crown" title={i18n.m.territory.collab.host}>👑</span>{/if}
+        </span>
       {/each}
     </span>
     <Button variant="secondary" size="sm" onclick={onCopy}>
@@ -130,6 +139,7 @@
     align-items: center;
   }
   .avatar {
+    position: relative;
     width: 24px;
     height: 24px;
     border-radius: 50%;
@@ -142,6 +152,17 @@
     color: #0b1220;
     border: 2px solid var(--bg);
     margin-inline-start: -6px;
+  }
+  .avatar.host {
+    border-color: #fbbf24;
+  }
+  .crown {
+    position: absolute;
+    top: -9px;
+    inset-inline-end: -5px;
+    font-size: 10px;
+    line-height: 1;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5));
   }
   .avatar:first-child {
     margin-inline-start: 0;

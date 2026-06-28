@@ -722,7 +722,8 @@
       "enter": "Entrar",
       "joinFailed": "No se conectó — contraseña incorrecta o sala vacía",
       "joining": "Conectando a la colmena compartida…",
-      "hostLeft": "El anfitrión terminó la sesión"
+      "hostLeft": "El anfitrión terminó la sesión",
+      "host": "Anfitrión"
     },
     "shareProject": "Compartir proyecto",
     "search": {

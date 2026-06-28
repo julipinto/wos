@@ -722,7 +722,8 @@
       "enter": "Join",
       "joinFailed": "Couldn't connect — wrong password or empty room",
       "joining": "Connecting to the shared hive…",
-      "hostLeft": "The host ended the session"
+      "hostLeft": "The host ended the session",
+      "host": "Host"
     },
     "shareProject": "Share project",
     "search": {
