@@ -123,7 +123,7 @@
       {copied ? '✓ ' + i18n.m.territory.collab.copied : '🔗 ' + i18n.m.territory.collab.copyLink}
     </Button>
     <Button variant="danger" size="sm" onclick={onLeave} style="margin-inline-start:auto"
-      >{i18n.m.territory.collab.leave}</Button
+      >{iAmHost ? i18n.m.territory.collab.endSession : i18n.m.territory.collab.leave}</Button
     >
   {/if}
 </div>

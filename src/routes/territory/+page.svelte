@@ -606,6 +606,16 @@
     if (!collabKicked.includes(peerId)) collabKicked = [...collabKicked, peerId];
     collabSession?.setKicked(collabKicked);
   }
+  // Leaving: a host with guests confirms first (it ends the room for everyone);
+  // a guest (or a host alone) just leaves.
+  function requestLeave() {
+    const guests = collabPeers.filter((p) => !p.self).length;
+    if (!collabGuest && guests > 0) {
+      askConfirm(fmt(i18n.m.territory.collab.endSessionConfirm, { n: guests }), leaveCollab);
+    } else {
+      leaveCollab();
+    }
+  }
   // Create / join dialogs (optional password). No password → the E2E key lives in
   // the link (anyone with the link joins). With a password → the link is clean
   // (#room=ID&pw=1) and the password (shared out-of-band) is the secret.
@@ -880,7 +890,7 @@
     iAmHost={collabActive && !collabGuest}
     onStart={openCreate}
     onCopy={copyCollabLink}
-    onLeave={leaveCollab}
+    onLeave={requestLeave}
     onRename={renamePeer}
     onToggleEditor={toggleEditor}
     onKick={kickPeer}

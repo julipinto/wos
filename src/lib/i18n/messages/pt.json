@@ -729,7 +729,9 @@
       "makeEditor": "Permitir edição",
       "remove": "Remover da sala",
       "kicked": "O host removeu você da sala",
-      "readOnly": "Somente leitura — o host não te deu acesso de edição"
+      "readOnly": "Somente leitura — o host não te deu acesso de edição",
+      "endSession": "Encerrar sessão",
+      "endSessionConfirm": "Encerrar a sessão? Isso fecha a sala para {n} convidado(s)."
     },
     "shareProject": "Compartilhar projeto",
     "search": {
