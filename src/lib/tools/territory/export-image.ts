@@ -204,13 +204,24 @@ export function renderHive(canvas: HTMLCanvasElement, objects: PlacedObject[], o
     } else ctx.fillRect(gx(x), gy(y), cell, cell);
   };
 
-  // Object fill in "colour by primary trap" mode — matches the live board:
-  // traps take their own trap colour, a city with several primaries gets a banded
-  // gradient of those colours, a single-primary city its colour, else slate.
-  const footprintX = (o: PlacedObject, dw: number, dh: number): [number, number] => {
-    if (!iso) return [gx(o.x), gx(o.x + dw)];
-    const xs = [SX(o.x, o.y), SX(o.x + dw, o.y), SX(o.x + dw, o.y + dh), SX(o.x, o.y + dh)];
+  // "Colour by primary trap" helpers (match the live board). Screen-x extent of a
+  // footprint rect (for banded gradients) + a banded gradient builder.
+  const xExtent = (x: number, y: number, w: number, h: number): [number, number] => {
+    if (!iso) return [SX(x, y), SX(x + w, y)];
+    const xs = [SX(x, y), SX(x + w, y), SX(x + w, y + h), SX(x, y + h)];
     return [Math.min(...xs), Math.max(...xs)];
+  };
+  const bandGradient = (lx: number, rx: number, traps: number[]): CanvasGradient => {
+    const g = ctx.createLinearGradient(lx, 0, rx, 0);
+    traps.forEach((tt, i) => {
+      g.addColorStop(i / traps.length, trapColor(tt));
+      g.addColorStop((i + 1) / traps.length, trapColor(tt));
+    });
+    return g;
+  };
+  const backupsOf = (o: PlacedObject) => {
+    const main = new Set(o.bearMain ?? []);
+    return (o.bear ?? []).filter((b) => !main.has(b));
   };
   const fillFor = (
     o: PlacedObject,
@@ -222,16 +233,25 @@ export function renderHive(canvas: HTMLCanvasElement, objects: PlacedObject[], o
     if (o.type === 'bearTrap') return trapColor(trapNo.get(o.id) ?? 1);
     if (o.type !== 'city') return color;
     const m = o.bearMain ?? [];
-    if (m.length > 1) {
-      const [lx, rx] = footprintX(o, dw, dh);
-      const g = ctx.createLinearGradient(lx, 0, rx, 0);
-      m.forEach((tt, i) => {
-        g.addColorStop(i / m.length, trapColor(tt));
-        g.addColorStop((i + 1) / m.length, trapColor(tt));
-      });
-      return g;
-    }
+    if (m.length > 1) return bandGradient(...xExtent(o.x, o.y, dw, dh), m);
     return cityPrimary(o);
+  };
+  // Thin bottom strip = the city's secondary/backup trap colour(s).
+  const drawBackupStrip = (o: PlacedObject, dw: number, dh: number) => {
+    if (!opts.colorByPrimary || o.type !== 'city') return;
+    const bk = backupsOf(o);
+    if (!bk.length) return;
+    const sx = o.x + 0.18;
+    const sy = o.y + dh - 0.08 - 0.16;
+    const sw = dw - 0.36;
+    const sh = 0.16;
+    ctx.fillStyle = bk.length > 1 ? bandGradient(...xExtent(sx, sy, sw, sh), bk) : trapColor(bk[0]);
+    if (iso) {
+      quad(sx, sy, sw, sh, 0);
+      ctx.fill();
+    } else {
+      ctx.fillRect(gx(sx), gy(sy), sw * cell, sh * cell);
+    }
   };
 
   // Floor
@@ -325,6 +345,7 @@ export function renderHive(canvas: HTMLCanvasElement, objects: PlacedObject[], o
       ctx.fill();
       ctx.stroke();
     }
+    drawBackupStrip(o, d.w, d.h);
     // Bear-trap number — upright, at the projected footprint centre (both views).
     if (o.type === 'bearTrap') {
       const cx = SX(o.x + d.w / 2, o.y + d.h / 2);
