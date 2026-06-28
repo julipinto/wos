@@ -777,7 +777,8 @@
         "uid": "ID",
         "label": "rótulo",
         "type": "tipo"
-      }
+      },
+      "current": "Atual"
     }
   },
   "events": {

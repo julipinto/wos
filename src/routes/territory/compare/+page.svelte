@@ -9,12 +9,19 @@
   import CompareBoard from '$lib/tools/territory/CompareBoard.svelte';
   import {
     importLayout,
+    normalizeObject,
     OBJECT_DEFS,
     MODES,
     type PlacedObject
   } from '$lib/tools/territory/territory';
   import { savedMaps } from '$lib/tools/territory/maps.svelte';
+  import { readJson } from '$lib/utils/storage';
   import { diffLayouts, type ChangeKind, type FieldKey } from '$lib/tools/territory/compare';
+
+  // The planner's active layout per mode (so you can compare without first saving
+  // a named map). Mirrors the planner's storage key (hive keeps the legacy key).
+  const layoutKey = (m: string) => (m === 'hive' ? 'territory-layout-v1' : `territory-layout-${m}`);
+  let currentLayouts = $state<{ mode: string; label: string; objects: PlacedObject[] }[]>([]);
 
   const objName = (k: string) => (i18n.m.territory.obj as Record<string, string>)[k];
   // $derived so the page re-localises live when the language switches.
@@ -34,6 +41,18 @@
     // Re-read saved maps now that we're on the client (the module's init-time
     // read may have run during prerender, before localStorage existed).
     savedMaps.reload();
+    // Read the active layout of each mode so it's selectable even without a saved map.
+    currentLayouts = MODES.map((m) => {
+      const raw = readJson<PlacedObject[]>(layoutKey(m.id));
+      const objects = Array.isArray(raw)
+        ? raw.filter((o) => o && OBJECT_DEFS[o.type]).map(normalizeObject)
+        : [];
+      return {
+        mode: m.id,
+        label: (i18n.m.territory.modes as Record<string, string>)[m.i18n],
+        objects
+      };
+    }).filter((c) => c.objects.length > 0);
     const raw = sessionStorage.getItem('territory-compare-seed');
     if (!raw) return;
     sessionStorage.removeItem('territory-compare-seed');
@@ -84,9 +103,14 @@
     [beforeErr, afterErr] = [afterErr, beforeErr];
   }
 
-  // Saved maps across every mode → "<mode>|<id>" option values for the picker.
+  // Picker options: the active layout per mode ("current") + every saved map.
   const mapOptions = $derived.by(() => {
     const opts: { value: string; label: string }[] = [{ value: '', label: x.pickMap }];
+    for (const c of currentLayouts)
+      opts.push({
+        value: `current|${c.mode}`,
+        label: `${x.current} · ${c.label} (${c.objects.length})`
+      });
     for (const m of MODES) {
       for (const map of savedMaps.all(m.id)) {
         const prefix = MODES.length > 1 ? `${m.id} · ` : '';
@@ -102,8 +126,11 @@
 
   function pickMap(side: 'before' | 'after', value: string) {
     if (!value) return;
-    const [mode, id] = value.split('|');
-    const objs = savedMaps.objectsOf(mode, id);
+    const [kind, id] = value.split('|');
+    const objs =
+      kind === 'current'
+        ? (currentLayouts.find((c) => c.mode === id)?.objects.map((o) => ({ ...o })) ?? [])
+        : savedMaps.objectsOf(kind, id);
     if (side === 'before') {
       beforeObjs = objs;
       beforeText = '';

@@ -777,7 +777,8 @@
         "uid": "ID",
         "label": "label",
         "type": "type"
-      }
+      },
+      "current": "Current"
     }
   },
   "events": {

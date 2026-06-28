@@ -777,7 +777,8 @@
         "uid": "ID",
         "label": "etiqueta",
         "type": "tipo"
-      }
+      },
+      "current": "Actual"
     }
   },
   "events": {
