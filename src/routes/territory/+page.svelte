@@ -94,7 +94,13 @@
       bear: Array.isArray(o.bear) ? [...o.bear] : undefined,
       bearMain: Array.isArray(o.bearMain) ? [...o.bearMain] : undefined
     }));
-  const save = () => writeJson(layoutKey(mode), cloneLayout(objects));
+  // A GUEST (joined someone else's room) edits the host's shared map, but must
+  // NEVER persist it over their own saved hive — like joining an Excalidraw room.
+  // The host (room owner) persists normally; their map is the source of truth.
+  const save = () => {
+    if (collabGuest) return;
+    writeJson(layoutKey(mode), cloneLayout(objects));
+  };
 
   const undoRedo = createHistory<PlacedObject[]>({
     snapshot: () => cloneLayout(objects),
@@ -465,6 +471,11 @@
   // True for a JOINER until the room's shared layout first syncs in — lets us cover
   // the board with a "connecting" state instead of flashing this device's old hive.
   let collabJoining = $state(false);
+  // True for the whole session when we JOINED someone else's room (vs created our
+  // own). A guest's edits sync to the host but never persist over its own hive.
+  let collabGuest = $state(false);
+  // The guest's own layout, stashed on join and restored on leave.
+  let guestBackup: PlacedObject[] | null = null;
   let joinFallback: ReturnType<typeof setTimeout> | null = null;
   let collabSession: CollabSession | null = null;
   let applyingRemote = false; // guards the remote→local apply from echoing back
@@ -504,6 +515,9 @@
     // A joiner waits for the room's layout; show the overlay until it arrives, with
     // a safety timeout so an empty/slow room never leaves it stuck.
     collabJoining = !seed;
+    collabGuest = !seed;
+    // Stash the guest's own map so leaving restores it (its storage is left alone).
+    guestBackup = seed ? null : cloneLayout(objects);
     if (joinFallback) clearTimeout(joinFallback);
     if (!seed) joinFallback = setTimeout(() => (collabJoining = false), 12000);
     const { startCollab: createCollab } = await import('$lib/tools/territory/collab');
@@ -572,14 +586,26 @@
     });
   }
   function leaveCollab() {
+    const wasGuest = collabGuest;
+    const backup = guestBackup;
     collabSession?.destroy();
     collabSession = null;
     collabActive = false;
     collabPeers = [];
     collabStatus = 'disconnected';
     collabJoining = false;
+    collabGuest = false;
+    guestBackup = null;
     if (joinFallback) clearTimeout(joinFallback);
     history.replaceState(null, '', location.pathname + location.search);
+    // A guest returns to its own hive (the room's layout was never persisted).
+    if (wasGuest) {
+      objects.splice(0, objects.length, ...(backup ?? loadLayout(mode)));
+      selectedIds = [];
+      save();
+      clearHist();
+      autoFit();
+    }
   }
   // Broadcast this peer's selection (live highlight comes in the next phase).
   $effect(() => {
