@@ -11,6 +11,8 @@
     selected: PlacedObject;
     typeLabel: string;
     isCity: boolean;
+    /** False in View mode / for a read-only guest — fields are shown but locked. */
+    editable?: boolean;
     hasBears: boolean;
     bearCount: number;
     furnaceOptions: { value: string; label: string }[];
@@ -28,6 +30,7 @@
     selected,
     typeLabel,
     isCity,
+    editable = true,
     hasBears,
     bearCount,
     furnaceOptions,
@@ -53,6 +56,7 @@
       <span class="field-label">{i18n.m.territory.tag.name}</span>
       <TextInput
         value={selected.name ?? ''}
+        disabled={!editable}
         oninput={(e) => setTag('name', e.currentTarget.value)}
       />
     </label>
@@ -60,10 +64,11 @@
       <span class="field-label">{i18n.m.territory.tag.label}</span>
       <TextInput
         value={selected.label ?? ''}
+        disabled={!editable}
         oninput={(e) => setTag('label', e.currentTarget.value)}
       />
     </label>
-    {#if convertOptions.length > 0}
+    {#if convertOptions.length > 0 && editable}
       <label class="ed-field">
         <span class="field-label">{i18n.m.territory.convert}</span>
         <Select
@@ -79,6 +84,7 @@
         <span class="field-label">{i18n.m.territory.tag.id}</span>
         <TextInput
           value={selected.uid ?? ''}
+          disabled={!editable}
           oninput={(e) => setTag('uid', e.currentTarget.value)}
         />
       </label>
@@ -88,6 +94,7 @@
           type="button"
           class="farm-toggle"
           class:on={selected.farm}
+          disabled={!editable}
           aria-pressed={!!selected.farm}
           onclick={toggleFarm}
         >
@@ -99,6 +106,7 @@
         <Select
           value={selected.furnace ?? ''}
           options={furnaceOptions}
+          disabled={!editable}
           onChange={(v) => setTag('furnace', v)}
           ariaLabel={i18n.m.territory.tag.furnace}
         />
@@ -107,6 +115,7 @@
         <span class="field-label">{i18n.m.territory.tag.power}</span>
         <NumberInput
           value={selected.power ?? 0}
+          disabled={!editable}
           onChange={(n) => setTag('power', n)}
           ariaLabel={i18n.m.territory.tag.power}
         />
@@ -120,12 +129,17 @@
               {@const joined = selected.bear?.includes(n)}
               {@const primary = selected.bearMain?.includes(n)}
               <div class="bear-chip-wrap" class:on={joined}>
-                <button type="button" class="bear-chip" onclick={() => toggleBear(n)}>🐻 {n}</button
+                <button
+                  type="button"
+                  class="bear-chip"
+                  disabled={!editable}
+                  onclick={() => toggleBear(n)}>🐻 {n}</button
                 >
                 <button
                   type="button"
                   class="bear-star"
                   class:primary
+                  disabled={!editable}
                   title={i18n.m.territory.bearPrimary}
                   aria-label={i18n.m.territory.bearPrimary}
                   aria-pressed={primary}
@@ -139,12 +153,14 @@
       {/if}
     {/if}
   </div>
-  <div class="ed-actions">
-    <Button variant="secondary" size="sm" onclick={onDuplicate}
-      >⧉ {i18n.m.territory.duplicate}</Button
-    >
-    <Button variant="danger" size="sm" onclick={onRemove}>{i18n.m.territory.remove}</Button>
-  </div>
+  {#if editable}
+    <div class="ed-actions">
+      <Button variant="secondary" size="sm" onclick={onDuplicate}
+        >⧉ {i18n.m.territory.duplicate}</Button
+      >
+      <Button variant="danger" size="sm" onclick={onRemove}>{i18n.m.territory.remove}</Button>
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -205,6 +221,13 @@
     color: #fbbf24;
     border-color: rgba(251, 191, 36, 0.5);
     background: rgba(251, 191, 36, 0.12);
+  }
+  /* Read-only (View mode / read-only guest): fields are shown but locked. */
+  .farm-toggle:disabled,
+  .bear-chip:disabled,
+  .bear-star:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
   }
   .field-label {
     font-family: var(--font-mono);

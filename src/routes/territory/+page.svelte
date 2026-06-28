@@ -1049,6 +1049,7 @@
           {selected}
           typeLabel={objName(OBJECT_DEFS[selected.type].i18n)}
           isCity={!!OBJECT_DEFS[selected.type].city}
+          editable={boardMode === 'edit' && iAmEditor}
           {hasBears}
           {bearCount}
           {furnaceOptions}

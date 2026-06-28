@@ -27,6 +27,7 @@
     searchPlaceholder?: string;
     /** Which edge the popup anchors to — 'end' keeps a right-side trigger on screen. */
     align?: 'start' | 'end';
+    disabled?: boolean;
   }
 
   let {
@@ -35,7 +36,8 @@
     onChange,
     ariaLabel,
     searchPlaceholder = '',
-    align = 'start'
+    align = 'start',
+    disabled = false
   }: Props = $props();
 
   let open = $state(false);
@@ -138,6 +140,7 @@
     bind:this={triggerEl}
     class="trigger"
     type="button"
+    {disabled}
     aria-haspopup="listbox"
     aria-expanded={open}
     aria-label={ariaLabel}
@@ -219,10 +222,14 @@
       border-color 0.2s ease,
       background 0.2s ease;
   }
-  .trigger:hover,
+  .trigger:hover:not(:disabled),
   .trigger[aria-expanded='true'] {
     border-color: var(--border-accent);
     background: var(--surface-strong);
+  }
+  .trigger:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
   }
   .trigger:focus-visible {
     outline: none;
