@@ -79,6 +79,9 @@ export function toDrawio(objects: PlacedObject[]): string {
       }
       style = `whiteSpace=wrap;html=1;aspect=fixed;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=12;fillColor=${fill};strokeColor=${stroke};`;
       value = esc(o.name ?? '');
+      // Player ID below the name (smaller, dimmer) so the diagram carries it too.
+      if (o.uid)
+        value += `&lt;div style=&quot;font-size:9px;color:#777&quot;&gt;${esc(o.uid)}&lt;/div&gt;`;
     } else {
       // Banner / other types — a plain box in the object's own colour.
       const color = def?.color ?? '#000000';

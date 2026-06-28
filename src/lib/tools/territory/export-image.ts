@@ -1,7 +1,8 @@
 // Render a hive layout to a canvas (for PNG export + the export dialog preview).
 // A dedicated, configurable draw pass (NOT a screenshot of the live SVG) so we
 // control resolution and can include labels, legend, title and the balance table.
-// Flat view only — for a reference document, top-down reads best.
+// Supports a top-down (flat) view and an isometric (iso) projection; flat reads
+// best for a printable reference, iso matches how the planner looks on screen.
 import { OBJECT_DEFS, computeTerritory, coverageCells, type PlacedObject } from './territory';
 
 const N = 60;
@@ -19,6 +20,8 @@ export interface ImageOpts {
   title: string;
   background: 'dark' | 'light';
   crop: 'hive' | 'grid';
+  /** top-down (flat) or isometric (iso). Default flat. */
+  view?: 'flat' | 'iso';
   cellPx: number;
   connectivity: boolean;
   /** localised type name for the legend */
@@ -100,8 +103,17 @@ export function renderHive(canvas: HTMLCanvasElement, objects: PlacedObject[], o
   }
   const cols = Math.max(1, maxX - minX);
   const rows = Math.max(1, maxY - minY);
-  const boardW = cols * cell;
-  const boardH = rows * cell;
+  // Iso projection: a cell becomes a rhombus and the board a squashed diamond.
+  const iso = opts.view === 'iso';
+  const isoHW = cell * 0.5; // half-width per cell step
+  const isoHH = cell * 0.28; // half-height per cell step (vertical squash)
+  const boardW = iso ? (cols + rows) * isoHW : cols * cell;
+  const boardH = iso ? (cols + rows) * isoHH : rows * cell;
+  // Board-local projection of a grid point (relative to the board origin).
+  const projX = (x: number, y: number) =>
+    iso ? (x - minX - (y - minY)) * isoHW + rows * isoHW : (x - minX) * cell;
+  const projY = (x: number, y: number) =>
+    iso ? (x - minX + (y - minY)) * isoHH : (y - minY) * cell;
 
   // Bear traps numbered by placement order; balance tally per trap.
   const traps = objects.filter((o) => o.type === 'bearTrap');
@@ -172,10 +184,33 @@ export function renderHive(canvas: HTMLCanvasElement, objects: PlacedObject[], o
   const oy = pad + titleH;
   const gx = (x: number) => ox + (x - minX) * cell;
   const gy = (y: number) => oy + (y - minY) * cell;
+  // Absolute screen position of a grid point (works in both views).
+  const SX = (x: number, y: number) => ox + projX(x, y);
+  const SY = (x: number, y: number) => oy + projY(x, y);
+  // Footprint quad path (a rhombus in iso); used for iso fills.
+  const quad = (x: number, y: number, w: number, h: number, i = 0) => {
+    ctx.beginPath();
+    ctx.moveTo(SX(x + i, y + i), SY(x + i, y + i));
+    ctx.lineTo(SX(x + w - i, y + i), SY(x + w - i, y + i));
+    ctx.lineTo(SX(x + w - i, y + h - i), SY(x + w - i, y + h - i));
+    ctx.lineTo(SX(x + i, y + h - i), SY(x + i, y + h - i));
+    ctx.closePath();
+  };
+  const cellFill = (x: number, y: number) => {
+    if (iso) {
+      quad(x, y, 1, 1);
+      ctx.fill();
+    } else ctx.fillRect(gx(x), gy(y), cell, cell);
+  };
 
   // Floor
   ctx.fillStyle = opts.background === 'dark' ? '#0f172a' : '#f1f5f9';
-  ctx.fillRect(ox, oy, boardW, boardH);
+  if (iso) {
+    quad(minX, minY, cols, rows);
+    ctx.fill();
+  } else {
+    ctx.fillRect(ox, oy, boardW, boardH);
+  }
 
   // Coverage + connected territory tint
   if (opts.coverage && opts.connectivity) {
@@ -185,13 +220,13 @@ export function renderHive(canvas: HTMLCanvasElement, objects: PlacedObject[], o
     ctx.fillStyle = 'rgba(251,191,36,0.12)';
     for (const c of reach) {
       const [x, y] = c.split(',').map(Number);
-      ctx.fillRect(gx(x), gy(y), cell, cell);
+      cellFill(x, y);
     }
     const terr = computeTerritory(objects);
     ctx.fillStyle = 'rgba(147,212,255,0.18)';
     for (const c of terr.cells) {
       const [x, y] = c.split(',').map(Number);
-      ctx.fillRect(gx(x), gy(y), cell, cell);
+      cellFill(x, y);
     }
   }
 
@@ -200,55 +235,79 @@ export function renderHive(canvas: HTMLCanvasElement, objects: PlacedObject[], o
     ctx.strokeStyle = t.grid;
     ctx.lineWidth = 1;
     ctx.beginPath();
-    for (let x = minX; x <= maxX; x++) {
-      ctx.moveTo(gx(x), oy);
-      ctx.lineTo(gx(x), oy + boardH);
+    if (iso) {
+      for (let x = minX; x <= maxX; x++) {
+        ctx.moveTo(SX(x, minY), SY(x, minY));
+        ctx.lineTo(SX(x, maxY), SY(x, maxY));
+      }
+      for (let y = minY; y <= maxY; y++) {
+        ctx.moveTo(SX(minX, y), SY(minX, y));
+        ctx.lineTo(SX(maxX, y), SY(maxX, y));
+      }
+      ctx.stroke();
+    } else {
+      for (let x = minX; x <= maxX; x++) {
+        ctx.moveTo(gx(x), oy);
+        ctx.lineTo(gx(x), oy + boardH);
+      }
+      for (let y = minY; y <= maxY; y++) {
+        ctx.moveTo(ox, gy(y));
+        ctx.lineTo(ox + boardW, gy(y));
+      }
+      ctx.stroke();
+      // Coordinate ticks only make sense on the axis-aligned flat grid.
+      ctx.fillStyle = t.dim;
+      ctx.font = `${Math.round(cell * 0.32)}px sans-serif`;
+      ctx.textBaseline = 'bottom';
+      ctx.textAlign = 'center';
+      for (let x = minX; x <= maxX; x++) if (x % 5 === 0) ctx.fillText(String(x), gx(x), oy - 2);
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      for (let y = minY; y <= maxY; y++) if (y % 5 === 0) ctx.fillText(String(y), ox - 3, gy(y));
     }
-    for (let y = minY; y <= maxY; y++) {
-      ctx.moveTo(ox, gy(y));
-      ctx.lineTo(ox + boardW, gy(y));
-    }
-    ctx.stroke();
-    ctx.fillStyle = t.dim;
-    ctx.font = `${Math.round(cell * 0.32)}px sans-serif`;
-    ctx.textBaseline = 'bottom';
-    ctx.textAlign = 'center';
-    for (let x = minX; x <= maxX; x++) if (x % 5 === 0) ctx.fillText(String(x), gx(x), oy - 2);
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'middle';
-    for (let y = minY; y <= maxY; y++) if (y % 5 === 0) ctx.fillText(String(y), ox - 3, gy(y));
   }
 
   // Objects
   for (const o of objects) {
     const d = OBJECT_DEFS[o.type];
-    const x = gx(o.x) + cell * 0.08;
-    const y = gy(o.y) + cell * 0.08;
-    const w = d.w * cell - cell * 0.16;
     const fill = opts.colorByPrimary && o.type === 'city' ? cityPrimary(o) : d.color;
     ctx.fillStyle = fill;
     ctx.strokeStyle = 'rgba(0,0,0,0.35)';
     ctx.lineWidth = Math.max(1, cell * 0.04);
-    if (o.type === 'bearTrap') {
-      octagonPath(ctx, x, y, w);
+    if (iso) {
+      // Footprint rhombus (no rounding/octagon — the iso shape reads on its own).
+      quad(o.x, o.y, d.w, d.h, 0.06);
       ctx.fill();
       ctx.stroke();
-      // trap number
+    } else if (o.type === 'bearTrap') {
+      octagonPath(ctx, gx(o.x) + cell * 0.08, gy(o.y) + cell * 0.08, d.w * cell - cell * 0.16);
+      ctx.fill();
+      ctx.stroke();
+    } else {
+      roundRect(
+        ctx,
+        gx(o.x) + cell * 0.08,
+        gy(o.y) + cell * 0.08,
+        d.w * cell - cell * 0.16,
+        d.h * cell - cell * 0.16,
+        cell * 0.18
+      );
+      ctx.fill();
+      ctx.stroke();
+    }
+    // Bear-trap number — upright, at the projected footprint centre (both views).
+    if (o.type === 'bearTrap') {
+      const cx = SX(o.x + d.w / 2, o.y + d.h / 2);
+      const cy = SY(o.x + d.w / 2, o.y + d.h / 2);
       ctx.fillStyle = '#fff';
       ctx.strokeStyle = '#b91c1c';
       ctx.lineWidth = Math.max(2, cell * 0.06);
       ctx.font = `800 ${Math.round(cell * 1.1)}px sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      const cx = gx(o.x) + (d.w * cell) / 2;
-      const cy = gy(o.y) + (d.h * cell) / 2;
-      ctx.strokeText(String(trapNo.get(o.id) ?? ''), cx, cy);
-      ctx.fillText(String(trapNo.get(o.id) ?? ''), cx, cy);
-    } else {
-      const r = cell * 0.18;
-      roundRect(ctx, x, y, w, d.h * cell - cell * 0.16, r);
-      ctx.fill();
-      ctx.stroke();
+      const nstr = String(trapNo.get(o.id) ?? '');
+      ctx.strokeText(nstr, cx, cy);
+      ctx.fillText(nstr, cx, cy);
     }
   }
 
@@ -263,8 +322,8 @@ export function renderHive(canvas: HTMLCanvasElement, objects: PlacedObject[], o
       const id = opts.ids && o.type === 'city' ? o.uid || '' : '';
       if (!name && !id) continue;
       const d = OBJECT_DEFS[o.type];
-      const cx = gx(o.x) + (d.w * cell) / 2;
-      const cy = gy(o.y) + (d.h * cell) / 2;
+      const cx = SX(o.x + d.w / 2, o.y + d.h / 2);
+      const cy = SY(o.x + d.w / 2, o.y + d.h / 2);
       const both = !!name && !!id;
       if (name) {
         ctx.font = `700 ${Math.round(fs)}px sans-serif`;
