@@ -723,7 +723,13 @@
       "joinFailed": "Não conectou — senha errada ou sala vazia",
       "joining": "Conectando à hive compartilhada…",
       "hostLeft": "O host encerrou a sessão",
-      "host": "Host"
+      "host": "Host",
+      "manage": "Gerenciar",
+      "makeViewer": "Tornar só-leitura",
+      "makeEditor": "Permitir edição",
+      "remove": "Remover da sala",
+      "kicked": "O host removeu você da sala",
+      "readOnly": "Somente leitura — o host não te deu acesso de edição"
     },
     "shareProject": "Compartilhar projeto",
     "search": {
