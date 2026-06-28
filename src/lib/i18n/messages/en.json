@@ -729,7 +729,9 @@
       "makeEditor": "Allow editing",
       "remove": "Remove from room",
       "kicked": "The host removed you from the room",
-      "readOnly": "View only — the host hasn’t given you edit access"
+      "readOnly": "View only — the host hasn’t given you edit access",
+      "endSession": "End session",
+      "endSessionConfirm": "End the session? This closes the room for {n} guest(s)."
     },
     "shareProject": "Share project",
     "search": {
