@@ -56,6 +56,8 @@ export interface CollabOpts {
   onStatus: (s: CollabStatus) => void;
   /** Called once when the host marks THIS client as removed (kicked). */
   onKicked?: () => void;
+  /** Per-user undo availability changed (drives the toolbar buttons). */
+  onUndoState?: (canUndo: boolean, canRedo: boolean) => void;
 }
 
 export interface CollabSession {
@@ -71,6 +73,9 @@ export interface CollabSession {
   setViewers: (peerIds: string[]) => void;
   /** Host only: the peerIds removed from the room. */
   setKicked: (peerIds: string[]) => void;
+  /** Per-user undo/redo (only this client's own changes). */
+  undo: () => void;
+  redo: () => void;
   destroy: () => void;
 }
 
@@ -137,8 +142,18 @@ export function startCollab(opts: CollabOpts): CollabSession {
     }, LOCAL_ORIGIN);
   }
 
+  // Per-user undo: track only THIS client's transactions (LOCAL_ORIGIN), so undo
+  // reverts your own edits — not a peer's. Reverting fires observeDeep → applyRemote.
+  const undoManager = new Y.UndoManager(omap, { trackedOrigins: new Set([LOCAL_ORIGIN]) });
+  const emitUndoState = () => opts.onUndoState?.(undoManager.canUndo(), undoManager.canRedo());
+  undoManager.on('stack-item-added', emitUndoState);
+  undoManager.on('stack-item-popped', emitUndoState);
+  undoManager.on('stack-cleared', emitUndoState);
+
   // The creator seeds the room with the local board (joiners receive it on sync).
   if (opts.seed) pushLocal();
+  // Seeding shouldn't be undoable (it's the room's starting point).
+  undoManager.clear();
 
   // The 'status' event (signaling socket) proved unreliable across browsers, so we
   // also treat "a peer/awareness is present" or "doc synced" as connected — if data
@@ -231,9 +246,12 @@ export function startCollab(opts: CollabOpts): CollabSession {
     setUser: (user) => aw.setLocalStateField('user', user),
     setViewers: (peerIds: string[]) => aw.setLocalStateField('viewers', peerIds),
     setKicked: (peerIds: string[]) => aw.setLocalStateField('kicked', peerIds),
+    undo: () => undoManager.undo(),
+    redo: () => undoManager.redo(),
     destroy: () => {
       if (cursorTimer) clearTimeout(cursorTimer);
       aw.off('change', emitPeers);
+      undoManager.destroy();
       provider.destroy();
       doc.destroy();
     }
