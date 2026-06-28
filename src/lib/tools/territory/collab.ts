@@ -23,6 +23,7 @@ export interface PeerState {
   self: boolean; // this client
   name: string;
   color: string;
+  host: boolean; // the room creator (source of truth)
   selection?: string[];
   cursor?: { x: number; y: number } | null;
 }
@@ -85,6 +86,9 @@ export function startCollab(opts: CollabOpts): CollabSession {
   });
   const aw = provider.awareness;
   aw.setLocalStateField('user', opts.user);
+  // The creator advertises itself as the room's host so guests can show a crown
+  // and close the room when the host leaves.
+  if (opts.seed) aw.setLocalStateField('host', true);
 
   // A remote apply is in flight — don't bounce the resulting local change back.
   let applying = false;
@@ -136,6 +140,7 @@ export function startCollab(opts: CollabOpts): CollabSession {
         // name propagated (or an older client) must not crash avatar rendering.
         name: typeof u.name === 'string' && u.name.trim() ? u.name : 'anon',
         color: typeof u.color === 'string' && u.color ? u.color : '#94a3b8',
+        host: s.host === true,
         selection: s.selection as string[] | undefined,
         cursor: s.cursor as { x: number; y: number } | null | undefined
       });

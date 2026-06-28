@@ -721,7 +721,8 @@
       "passwordRequired": "Esta sala pede senha",
       "enter": "Entrar",
       "joinFailed": "Não conectou — senha errada ou sala vazia",
-      "joining": "Conectando à hive compartilhada…"
+      "joining": "Conectando à hive compartilhada…",
+      "hostLeft": "O host encerrou a sessão"
     },
     "shareProject": "Compartilhar projeto",
     "search": {

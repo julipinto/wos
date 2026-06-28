@@ -721,7 +721,8 @@
       "passwordRequired": "This room needs a password",
       "enter": "Join",
       "joinFailed": "Couldn't connect — wrong password or empty room",
-      "joining": "Connecting to the shared hive…"
+      "joining": "Connecting to the shared hive…",
+      "hostLeft": "The host ended the session"
     },
     "shareProject": "Share project",
     "search": {

@@ -721,7 +721,8 @@
       "passwordRequired": "Esta sala requiere contraseña",
       "enter": "Entrar",
       "joinFailed": "No se conectó — contraseña incorrecta o sala vacía",
-      "joining": "Conectando a la colmena compartida…"
+      "joining": "Conectando a la colmena compartida…",
+      "hostLeft": "El anfitrión terminó la sesión"
     },
     "shareProject": "Compartir proyecto",
     "search": {
