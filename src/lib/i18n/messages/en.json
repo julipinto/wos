@@ -720,7 +720,8 @@
       "createRoom": "Create room",
       "passwordRequired": "This room needs a password",
       "enter": "Join",
-      "joinFailed": "Couldn't connect — wrong password or empty room"
+      "joinFailed": "Couldn't connect — wrong password or empty room",
+      "joining": "Connecting to the shared hive…"
     },
     "shareProject": "Share project",
     "search": {

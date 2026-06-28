@@ -462,6 +462,10 @@
   let collabStatus = $state<CollabStatus>('disconnected');
   let collabPeers = $state<PeerState[]>([]);
   let collabCopied = $state(false);
+  // True for a JOINER until the room's shared layout first syncs in — lets us cover
+  // the board with a "connecting" state instead of flashing this device's old hive.
+  let collabJoining = $state(false);
+  let joinFallback: ReturnType<typeof setTimeout> | null = null;
   let collabSession: CollabSession | null = null;
   let applyingRemote = false; // guards the remote→local apply from echoing back
 
@@ -497,6 +501,11 @@
     if (collabSession) return;
     collabActive = true;
     collabStatus = 'connecting';
+    // A joiner waits for the room's layout; show the overlay until it arrives, with
+    // a safety timeout so an empty/slow room never leaves it stuck.
+    collabJoining = !seed;
+    if (joinFallback) clearTimeout(joinFallback);
+    if (!seed) joinFallback = setTimeout(() => (collabJoining = false), 12000);
     const { startCollab: createCollab } = await import('$lib/tools/territory/collab');
     collabSession = createCollab({
       room,
@@ -511,6 +520,7 @@
         save();
         undoRedo.rebase(); // keep the undo baseline aligned with the room
         applyingRemote = false;
+        collabJoining = false; // shared layout received → reveal the board
       },
       onPeers: (p) => (collabPeers = p),
       onStatus: (s) => (collabStatus = s)
@@ -567,6 +577,8 @@
     collabActive = false;
     collabPeers = [];
     collabStatus = 'disconnected';
+    collabJoining = false;
+    if (joinFallback) clearTimeout(joinFallback);
     history.replaceState(null, '', location.pathname + location.search);
   }
   // Broadcast this peer's selection (live highlight comes in the next phase).
@@ -810,6 +822,12 @@
     </div>
 
     <div class="stage-board">
+      {#if collabActive && collabJoining}
+        <div class="join-overlay" role="status" aria-live="polite">
+          <span class="join-spinner" aria-hidden="true"></span>
+          <span class="join-text">{i18n.m.territory.collab.joining}</span>
+        </div>
+      {/if}
       {#if objects.length > 0}
         <Search {objects} nameOf={objName} onPick={focusObject} onGoto={gotoCoord} />
         <p class="obj-count">
@@ -1091,6 +1109,41 @@
   }
   .stage-board {
     position: relative;
+  }
+  /* "Connecting" cover for a joiner — hides this device's old hive until the
+     room's shared layout syncs in. */
+  .join-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border-radius: var(--r-card);
+  }
+  .join-text {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--text-mid);
+  }
+  .join-spinner {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    animation: join-spin 0.8s linear infinite;
+  }
+  @keyframes join-spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
   /* Minimap floats over the board's bottom-right; desktop only (no hover/room on
      phones, where you pan the small board directly). */
