@@ -14,8 +14,16 @@
     ariaLabel?: string;
     min?: number;
     placeholder?: string;
+    disabled?: boolean;
   }
-  let { value, onChange, ariaLabel, min = 0, placeholder = '0' }: Props = $props();
+  let {
+    value,
+    onChange,
+    ariaLabel,
+    min = 0,
+    placeholder = '0',
+    disabled = false
+  }: Props = $props();
 
   let focused = $state(false);
   let text = $state('');
@@ -75,6 +83,7 @@
   aria-label={ariaLabel}
   title="2b · 550m · 1.46k"
   {placeholder}
+  {disabled}
 />
 
 <style>
@@ -93,5 +102,9 @@
   input:focus-visible {
     outline: none;
     border-color: var(--accent);
+  }
+  input:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
   }
 </style>
