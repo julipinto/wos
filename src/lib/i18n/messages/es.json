@@ -731,7 +731,9 @@
       "kicked": "El anfitrión te quitó de la sala",
       "readOnly": "Solo lectura — el anfitrión no te dio acceso de edición",
       "endSession": "Terminar sesión",
-      "endSessionConfirm": "¿Terminar la sesión? Esto cierra la sala para {n} invitado(s)."
+      "endSessionConfirm": "¿Terminar la sesión? Esto cierra la sala para {n} invitado(s).",
+      "follow": "Seguir",
+      "unfollow": "Dejar de seguir"
     },
     "shareProject": "Compartir proyecto",
     "search": {

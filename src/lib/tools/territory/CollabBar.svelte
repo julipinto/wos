@@ -15,6 +15,8 @@
     myColor: string;
     /** Whether this client is the room host (crown on its own avatar). */
     iAmHost: boolean;
+    /** peerId currently being followed (camera follows them), or null. */
+    followId: string | null;
     onStart: () => void;
     onCopy: () => void;
     onLeave: () => void;
@@ -23,6 +25,8 @@
     onToggleEditor: (peerId: string) => void;
     /** Host: remove a guest from the room. */
     onKick: (peerId: string) => void;
+    /** Follow (or unfollow) a peer's camera. */
+    onFollow: (peerId: string) => void;
   }
   let {
     active,
@@ -32,12 +36,14 @@
     myName,
     myColor,
     iAmHost,
+    followId,
     onStart,
     onCopy,
     onLeave,
     onRename,
     onToggleEditor,
-    onKick
+    onKick,
+    onFollow
   }: Props = $props();
 
   // Show only OTHER peers as avatars (you have the name input); cap the row.
@@ -78,10 +84,21 @@
     </label>
     <span class="peers" aria-label={i18n.m.territory.collab.online}>
       {#each others as p (p.id)}
-        <span class="avatar" class:host={p.host} style="background: {p.color}" title={p.name}>
+        <button
+          class="avatar avatar-btn"
+          class:host={p.host}
+          class:following={followId === p.peerId}
+          style="background: {p.color}"
+          type="button"
+          title={followId === p.peerId
+            ? i18n.m.territory.collab.unfollow
+            : `${i18n.m.territory.collab.follow} ${p.name}`}
+          onclick={() => onFollow(p.peerId)}
+        >
           {initials(p.name)}
           {#if p.host}<span class="crown" title={i18n.m.territory.collab.host}>👑</span>{/if}
-        </span>
+          {#if followId === p.peerId}<span class="follow-eye" aria-hidden="true">👁</span>{/if}
+        </button>
       {/each}
     </span>
     {#if iAmHost && others.length > 0}
@@ -197,6 +214,24 @@
   }
   .avatar.host {
     border-color: #fbbf24;
+  }
+  .avatar-btn {
+    cursor: pointer;
+    padding: 0;
+  }
+  .avatar-btn:hover {
+    filter: brightness(1.12);
+  }
+  .avatar.following {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+  .follow-eye {
+    position: absolute;
+    bottom: -8px;
+    inset-inline-end: -4px;
+    font-size: 9px;
+    line-height: 1;
   }
   .crown {
     position: absolute;

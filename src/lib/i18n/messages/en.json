@@ -731,7 +731,9 @@
       "kicked": "The host removed you from the room",
       "readOnly": "View only — the host hasn’t given you edit access",
       "endSession": "End session",
-      "endSessionConfirm": "End the session? This closes the room for {n} guest(s)."
+      "endSessionConfirm": "End the session? This closes the room for {n} guest(s).",
+      "follow": "Follow",
+      "unfollow": "Stop following"
     },
     "shareProject": "Share project",
     "search": {

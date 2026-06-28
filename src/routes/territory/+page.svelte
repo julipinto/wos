@@ -496,6 +496,8 @@
   // In a room, undo/redo is per-user (Yjs UndoManager); solo it's the local history.
   let collabCanUndo = $state(false);
   let collabCanRedo = $state(false);
+  // peerId of the peer whose viewport we're following (camera follows them).
+  let followId = $state<string | null>(null);
   const canUndo = $derived(collabActive ? collabCanUndo : undoRedo.canUndo);
   const canRedo = $derived(collabActive ? collabCanRedo : undoRedo.canRedo);
   // The guest's own layout, stashed on join and restored on leave.
@@ -616,6 +618,15 @@
     if (!collabKicked.includes(peerId)) collabKicked = [...collabKicked, peerId];
     collabSession?.setKicked(collabKicked);
   }
+  // Toggle following a peer's camera; jump to them immediately on enable.
+  function toggleFollow(peerId: string) {
+    followId = followId === peerId ? null : peerId;
+    if (followId) {
+      const p = collabPeers.find((x) => x.peerId === followId);
+      if (p?.viewport)
+        board?.focusCell(p.viewport.x + p.viewport.w / 2, p.viewport.y + p.viewport.h / 2);
+    }
+  }
   // Leaving: a host with guests confirms first (it ends the room for everyone);
   // a guest (or a host alone) just leaves.
   function requestLeave() {
@@ -689,6 +700,7 @@
     collabKicked = [];
     collabCanUndo = false;
     collabCanRedo = false;
+    followId = null;
     guestBackup = null;
     hostSeen = false;
     if (joinFallback) clearTimeout(joinFallback);
@@ -706,6 +718,17 @@
   // Broadcast this peer's selection (live highlight comes in the next phase).
   $effect(() => {
     if (collabSession) collabSession.setSelection(selectedIds);
+  });
+  // Broadcast our viewport so others can follow it.
+  $effect(() => {
+    if (collabSession) collabSession.setViewport(viewport);
+  });
+  // While following a peer, recentre on their viewport whenever it moves.
+  $effect(() => {
+    if (!followId) return;
+    const p = collabPeers.find((x) => x.peerId === followId && !x.self);
+    if (p?.viewport)
+      board?.focusCell(p.viewport.x + p.viewport.w / 2, p.viewport.y + p.viewport.h / 2);
   });
   // A read-only guest is forced into View (no editing).
   $effect(() => {
@@ -901,12 +924,14 @@
     myName={me.name}
     myColor={me.color}
     iAmHost={collabActive && !collabGuest}
+    {followId}
     onStart={openCreate}
     onCopy={copyCollabLink}
     onLeave={requestLeave}
     onRename={renamePeer}
     onToggleEditor={toggleEditor}
     onKick={kickPeer}
+    onFollow={toggleFollow}
   />
 
   <div class="topbar">

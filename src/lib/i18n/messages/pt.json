@@ -731,7 +731,9 @@
       "kicked": "O host removeu você da sala",
       "readOnly": "Somente leitura — o host não te deu acesso de edição",
       "endSession": "Encerrar sessão",
-      "endSessionConfirm": "Encerrar a sessão? Isso fecha a sala para {n} convidado(s)."
+      "endSessionConfirm": "Encerrar a sessão? Isso fecha a sala para {n} convidado(s).",
+      "follow": "Seguir",
+      "unfollow": "Parar de seguir"
     },
     "shareProject": "Compartilhar projeto",
     "search": {
