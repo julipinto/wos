@@ -704,6 +704,9 @@
     guestBackup = null;
     hostSeen = false;
     if (joinFallback) clearTimeout(joinFallback);
+    // Back to Edit after a session — so nobody is stranded in (now read-only) View,
+    // whether a guest was forced there or the host had switched to View to look around.
+    setBoardMode('edit');
     history.replaceState(null, '', location.pathname + location.search);
     // A guest returns to its own hive (the room's layout was never persisted).
     if (wasGuest) {
