@@ -477,6 +477,9 @@
   // The guest's own layout, stashed on join and restored on leave.
   let guestBackup: PlacedObject[] | null = null;
   let joinFallback: ReturnType<typeof setTimeout> | null = null;
+  // Whether a host peer has been seen this session — so we can close the room for
+  // guests once the host leaves (but not before they've ever connected).
+  let hostSeen = false;
   let collabSession: CollabSession | null = null;
   let applyingRemote = false; // guards the remote→local apply from echoing back
 
@@ -516,6 +519,7 @@
     // a safety timeout so an empty/slow room never leaves it stuck.
     collabJoining = !seed;
     collabGuest = !seed;
+    hostSeen = seed; // the host trivially "sees" itself; a guest waits for the host
     // Stash the guest's own map so leaving restores it (its storage is left alone).
     guestBackup = seed ? null : cloneLayout(objects);
     if (joinFallback) clearTimeout(joinFallback);
@@ -596,6 +600,7 @@
     collabJoining = false;
     collabGuest = false;
     guestBackup = null;
+    hostSeen = false;
     if (joinFallback) clearTimeout(joinFallback);
     history.replaceState(null, '', location.pathname + location.search);
     // A guest returns to its own hive (the room's layout was never persisted).
@@ -610,6 +615,18 @@
   // Broadcast this peer's selection (live highlight comes in the next phase).
   $effect(() => {
     if (collabSession) collabSession.setSelection(selectedIds);
+  });
+  // Close the room for a guest once the host leaves — the host owns the map, so
+  // without it there's no source of truth to keep editing.
+  $effect(() => {
+    if (!collabActive || !collabGuest) return;
+    if (collabPeers.some((p) => !p.self && p.host)) {
+      hostSeen = true;
+    } else if (hostSeen) {
+      hostSeen = false;
+      pushToast(i18n.m.territory.collab.hostLeft, '#fb7185');
+      setTimeout(leaveCollab, 0); // defer out of the reactive flush
+    }
   });
 
   // Precompute the share link (off the current page URL, so it follows the host)
