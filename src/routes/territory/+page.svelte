@@ -110,14 +110,15 @@
       save();
     }
   });
-  const undo = () => undoRedo.undo();
-  const redo = () => undoRedo.redo();
+  const undo = () => (collabActive ? collabSession?.undo() : undoRedo.undo());
+  const redo = () => (collabActive ? collabSession?.redo() : undoRedo.redo());
   // Loading a different layout (mode switch / load / import) is a new document.
   const clearHist = () => undoRedo.reset();
 
   function persist() {
     if (!iAmEditor) return; // a read-only guest can't mutate the shared map
-    undoRedo.record();
+    // In a room the Yjs UndoManager records (per-user); solo, the local history does.
+    if (!collabActive) undoRedo.record();
     save();
     // Mirror the change to the room (no-op when not collaborating).
     if (collabSession && !applyingRemote) collabSession.pushLocal();
@@ -492,6 +493,11 @@
   const iAmEditor = $derived(
     !collabActive || !collabGuest || (collabPeers.find((p) => p.self)?.editor ?? true)
   );
+  // In a room, undo/redo is per-user (Yjs UndoManager); solo it's the local history.
+  let collabCanUndo = $state(false);
+  let collabCanRedo = $state(false);
+  const canUndo = $derived(collabActive ? collabCanUndo : undoRedo.canUndo);
+  const canRedo = $derived(collabActive ? collabCanRedo : undoRedo.canRedo);
   // The guest's own layout, stashed on join and restored on leave.
   let guestBackup: PlacedObject[] | null = null;
   let joinFallback: ReturnType<typeof setTimeout> | null = null;
@@ -591,6 +597,10 @@
       onKicked: () => {
         pushToast(i18n.m.territory.collab.kicked, '#fb7185');
         setTimeout(leaveCollab, 0);
+      },
+      onUndoState: (u, r) => {
+        collabCanUndo = u;
+        collabCanRedo = r;
       }
     });
   }
@@ -677,6 +687,8 @@
     collabGuest = false;
     collabViewers = [];
     collabKicked = [];
+    collabCanUndo = false;
+    collabCanRedo = false;
     guestBackup = null;
     hostSeen = false;
     if (joinFallback) clearTimeout(joinFallback);
@@ -686,9 +698,10 @@
       objects.splice(0, objects.length, ...(backup ?? loadLayout(mode)));
       selectedIds = [];
       save();
-      clearHist();
       autoFit();
     }
+    // Reset the local history to the current board (the room used the Yjs undo).
+    clearHist();
   }
   // Broadcast this peer's selection (live highlight comes in the next phase).
   $effect(() => {
@@ -913,17 +926,11 @@
           onclick={() => firstBear && focusObject(firstBear)}>🐻</IconButton
         >
       {/if}
-      <IconButton
-        label={i18n.m.territory.undo}
-        size="sm"
-        onclick={undo}
-        disabled={!undoRedo.canUndo}>↶</IconButton
+      <IconButton label={i18n.m.territory.undo} size="sm" onclick={undo} disabled={!canUndo}
+        >↶</IconButton
       >
-      <IconButton
-        label={i18n.m.territory.redo}
-        size="sm"
-        onclick={redo}
-        disabled={!undoRedo.canRedo}>↷</IconButton
+      <IconButton label={i18n.m.territory.redo} size="sm" onclick={redo} disabled={!canRedo}
+        >↷</IconButton
       >
       <IconButton label={i18n.m.territory.help.title} size="sm" onclick={() => (helpOpen = true)}>
         <Icon name="circle-help" size={15} />
