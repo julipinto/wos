@@ -4,7 +4,7 @@
  * `territory-maps-<mode>`, separate from the active board.
  */
 import { readJson, writeJson } from '$lib/utils/storage';
-import { OBJECT_DEFS, MODES, type PlacedObject } from './territory';
+import { OBJECT_DEFS, MODES, normalizeObject, type PlacedObject } from './territory';
 
 export interface SavedMap {
   id: string;
@@ -24,7 +24,8 @@ function read(mode: string): SavedMap[] {
     .map((m) => ({
       id: m.id || `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       name: m.name,
-      objects: m.objects.filter((o) => OBJECT_DEFS[o.type]),
+      // normalizeObject heals legacy data (e.g. a numeric `bear`) on read.
+      objects: m.objects.filter((o) => OBJECT_DEFS[o.type]).map(normalizeObject),
       savedAt: m.savedAt || Date.now()
     }));
 }
@@ -51,7 +52,11 @@ export const savedMaps = {
    *  pages that loaded before localStorage was available — or were prerendered —
    *  pick up the persisted maps. */
   reload(): void {
-    for (const m of MODES) cache[m.id] = read(m.id);
+    for (const m of MODES) {
+      cache[m.id] = read(m.id);
+      // Persist the healed (normalized) maps so localStorage is corrected too.
+      if (cache[m.id].length) persist(m.id);
+    }
   },
   /** Save (or overwrite a same-named map) under `name` for a mode. */
   save(mode: string, name: string, objects: PlacedObject[]): void {

@@ -68,12 +68,22 @@
 
   function loadLayout(m: string): PlacedObject[] {
     const raw = readJson<PlacedObject[]>(layoutKey(m));
+    if (!Array.isArray(raw)) return [];
     const allowed = new Set(modeById(m).types);
+    const kept = raw.filter((o) => o && allowed.has(o.type));
     // normalizeObject sanitises legacy/odd bear tags (e.g. a raw number) that
     // would otherwise throw "bear is not iterable" when cloned/rendered.
-    return Array.isArray(raw)
-      ? raw.filter((o) => o && allowed.has(o.type)).map(normalizeObject)
-      : [];
+    const cleaned = kept.map(normalizeObject);
+    // Self-heal storage when legacy data was found, so localStorage is corrected.
+    const dirty =
+      kept.length !== raw.length ||
+      kept.some(
+        (o) =>
+          (o.bear !== undefined && !Array.isArray(o.bear as unknown)) ||
+          (o.bearMain !== undefined && !Array.isArray(o.bearMain as unknown))
+      );
+    if (dirty) writeJson(layoutKey(m), cleaned);
+    return cleaned;
   }
   const objects = $state<PlacedObject[]>(loadLayout(initialMode));
 
