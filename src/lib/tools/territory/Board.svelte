@@ -135,9 +135,24 @@
   // Per-trap colour palette (for the "colour by primary trap" display mode).
   const TRAP_COLORS = ['#60a5fa', '#f472b6', '#34d399', '#fbbf24', '#a78bfa', '#22d3ee'];
   const trapColor = (n: number) => TRAP_COLORS[(n - 1) % TRAP_COLORS.length];
-  // A city's colour by its primary trap (lowest, if several); slate if none set.
-  const cityColor = (o: PlacedObject) =>
-    o.bearMain?.length ? trapColor(o.bearMain[0]) : '#475569';
+  // A city's fill in "colour by primary trap" mode: a single trap colour, a
+  // multi-colour gradient when it favours several traps, or slate when none.
+  const cityColor = (o: PlacedObject) => {
+    const m = o.bearMain ?? [];
+    if (m.length > 1) return `url(#bgrad-${m.join('-')})`;
+    if (m.length === 1) return trapColor(m[0]);
+    return '#475569';
+  };
+  // Distinct multi-primary combos present → one SVG gradient def each (banded).
+  const multiCombos = $derived.by(() => {
+    if (!colorByPrimary) return [];
+    const seen = new Map<string, number[]>();
+    for (const o of objects) {
+      const m = o.bearMain;
+      if (o.type === 'city' && m && m.length > 1) seen.set(m.join('-'), m);
+    }
+    return [...seen.values()];
+  });
   // Relative to the focused trap: is this object its primary, a backup, or off?
   function bearRole(o: PlacedObject): 'on' | 'primary' | 'backup' | 'off' {
     if (bearFocus === 0) return 'on';
@@ -743,6 +758,15 @@
               stroke-width="0.03"
             />
           </pattern>
+          <!-- Banded gradients for cities that favour several traps (multicolour). -->
+          {#each multiCombos as combo (combo.join('-'))}
+            <linearGradient id="bgrad-{combo.join('-')}" x1="0" y1="0" x2="1" y2="0">
+              {#each combo as t, i (i)}
+                <stop offset="{(i / combo.length) * 100}%" stop-color={trapColor(t)} />
+                <stop offset="{((i + 1) / combo.length) * 100}%" stop-color={trapColor(t)} />
+              {/each}
+            </linearGradient>
+          {/each}
         </defs>
         <!-- panel backdrop, generously sized to cover both viewBoxes -->
         <rect x={-10} y={-10} width={N + 20} height={N + 20} fill="var(--bg)" />
@@ -770,9 +794,11 @@
             {@const fillC =
               colorByPrimary && o.type === 'city'
                 ? cityColor(o)
-                : heatmap
-                  ? heatColor(o.power)
-                  : def.color}
+                : colorByPrimary && o.type === 'bearTrap'
+                  ? trapColor(bearNum(o))
+                  : heatmap
+                    ? heatColor(o.power)
+                    : def.color}
             {@const fillO = !shown
               ? 0.12
               : backup
