@@ -779,7 +779,9 @@
         "type": "tipo"
       },
       "current": "Actual"
-    }
+    },
+    "imported": "Importado — {n} objetos",
+    "importFailed": "No se pudo leer ese enlace/código"
   },
   "events": {
     "title": "calendario de eventos",

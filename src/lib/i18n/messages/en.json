@@ -779,7 +779,9 @@
         "type": "type"
       },
       "current": "Current"
-    }
+    },
+    "imported": "Imported — {n} objects",
+    "importFailed": "Couldn't read that link/code"
   },
   "events": {
     "title": "event calendar",
