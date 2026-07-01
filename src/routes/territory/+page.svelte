@@ -811,6 +811,9 @@
     if (await parseAndApply(importText)) {
       importText = '';
       shareOpen = false;
+      pushToast(fmt(i18n.m.territory.imported, { n: objects.length }), '#34d399');
+    } else {
+      pushToast(i18n.m.territory.importFailed, '#fb7185');
     }
   }
   // Download the layout as a .txt file — the no-length-limit way to share a big hive.
@@ -830,7 +833,12 @@
     if (!file) return;
     const text = await file.text();
     input.value = ''; // let the same file be picked again later
-    if (await parseAndApply(text)) shareOpen = false;
+    if (await parseAndApply(text)) {
+      shareOpen = false;
+      pushToast(fmt(i18n.m.territory.imported, { n: objects.length }), '#34d399');
+    } else {
+      pushToast(i18n.m.territory.importFailed, '#fb7185');
+    }
   }
 
   function closeHelp() {
