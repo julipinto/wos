@@ -12,7 +12,7 @@
   }
   let { objects, onPick }: Props = $props();
 
-  let open = $state(false);
+  let open = $state(true); // start expanded — it lives in the otherwise-empty right panel
   const members = $derived(
     objects.filter((o) => o.type === 'city').sort((a, b) => (b.power ?? 0) - (a.power ?? 0))
   );
