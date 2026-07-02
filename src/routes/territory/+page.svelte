@@ -1111,6 +1111,7 @@
         />
       {:else}
         <p class="side-hint">{i18n.m.territory.selectHint}</p>
+        <RosterPanel {objects} onPick={focusObject} />
       {/if}
     </div>
   </div>
@@ -1150,8 +1151,6 @@
     onLoad={loadMap}
     onCompare={compareMap}
   />
-
-  <RosterPanel {objects} onPick={focusObject} />
 
   <Modal
     open={collabCreateOpen || !!joinPrompt}
