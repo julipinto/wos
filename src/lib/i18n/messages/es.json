@@ -781,7 +781,11 @@
       "current": "Actual"
     },
     "imported": "Importado — {n} objetos",
-    "importFailed": "No se pudo leer ese enlace/código"
+    "importFailed": "No se pudo leer ese enlace/código",
+    "roster": {
+      "title": "miembros",
+      "empty": "Aún no hay ciudades."
+    }
   },
   "events": {
     "title": "calendario de eventos",

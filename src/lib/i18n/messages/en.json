@@ -781,7 +781,11 @@
       "current": "Current"
     },
     "imported": "Imported — {n} objects",
-    "importFailed": "Couldn't read that link/code"
+    "importFailed": "Couldn't read that link/code",
+    "roster": {
+      "title": "members",
+      "empty": "No cities yet."
+    }
   },
   "events": {
     "title": "event calendar",
