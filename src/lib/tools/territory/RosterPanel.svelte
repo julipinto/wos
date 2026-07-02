@@ -17,17 +17,45 @@
     objects.filter((o) => o.type === 'city').sort((a, b) => (b.power ?? 0) - (a.power ?? 0))
   );
   const totalPower = $derived(members.reduce((s, o) => s + (o.power ?? 0), 0));
+
+  // Copy the roster as tab-separated rows (paste straight into a spreadsheet).
+  let copied = $state(false);
+  function copyList() {
+    const text = members
+      .map(
+        (o, i) =>
+          `${i + 1}\t${o.name || '—'}\t${o.furnace || '—'}\t${o.power ? fmtPower(o.power) : '—'}`
+      )
+      .join('\n');
+    navigator.clipboard.writeText(text).then(() => {
+      copied = true;
+      setTimeout(() => (copied = false), 1800);
+    });
+  }
 </script>
 
 <div class="roster" class:open>
-  <button class="roster-head" type="button" aria-expanded={open} onclick={() => (open = !open)}>
-    <span class="roster-icon" aria-hidden="true">👥</span>
-    <span class="roster-title">{i18n.m.territory.roster.title}</span>
+  <div class="roster-head">
+    <button class="roster-toggle" type="button" aria-expanded={open} onclick={() => (open = !open)}>
+      <span class="roster-icon" aria-hidden="true">👥</span>
+      <span class="roster-title">{i18n.m.territory.roster.title}</span>
+      {#if members.length > 0}
+        <span class="roster-count">{members.length} · Σ {fmtPower(totalPower)}</span>
+      {/if}
+      <Icon name="chevron-down" size={14} class="caret {open ? 'up' : ''}" />
+    </button>
     {#if members.length > 0}
-      <span class="roster-count">{members.length} · Σ {fmtPower(totalPower)}</span>
+      <button
+        class="roster-copy"
+        type="button"
+        title={i18n.m.territory.export.copy}
+        aria-label={i18n.m.territory.export.copy}
+        onclick={copyList}
+      >
+        {copied ? '✓' : '⧉'}
+      </button>
     {/if}
-    <Icon name="chevron-down" size={14} class="caret {open ? 'up' : ''}" />
-  </button>
+  </div>
   {#if open}
     <div class="roster-body">
       {#if members.length === 0}
@@ -69,14 +97,38 @@
   .roster-head {
     display: flex;
     align-items: center;
+  }
+  .roster-toggle {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
     gap: 10px;
-    width: 100%;
     background: transparent;
     border: 0;
     color: var(--text);
     padding: 14px 16px;
     cursor: pointer;
     font-family: var(--font-mono);
+  }
+  .roster-copy {
+    flex: none;
+    margin-inline-end: 10px;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-mid);
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .roster-copy:hover {
+    color: var(--accent);
+    border-color: var(--border-accent);
   }
   .roster-icon {
     font-size: 14px;
