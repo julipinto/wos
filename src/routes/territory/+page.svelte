@@ -16,6 +16,7 @@
   import Search from '$lib/tools/territory/Search.svelte';
   import Editor from '$lib/tools/territory/Editor.svelte';
   import MapsPanel from '$lib/tools/territory/MapsPanel.svelte';
+  import RosterPanel from '$lib/tools/territory/RosterPanel.svelte';
   import Select from '$lib/components/Select.svelte';
   import NumberInput from '$lib/components/NumberInput.svelte';
   import Modal from '$lib/components/Modal.svelte';
@@ -1149,6 +1150,8 @@
     onLoad={loadMap}
     onCompare={compareMap}
   />
+
+  <RosterPanel {objects} onPick={focusObject} />
 
   <Modal
     open={collabCreateOpen || !!joinPrompt}
