@@ -347,9 +347,16 @@
     scroller.scrollTop = beforeY * ratio - ay;
   }
   function onWheel(e: WheelEvent) {
-    if (zoomLocked) return; // zoom locked → let the wheel scroll the board
+    // Trackpad pinch and Ctrl/⌘+wheel arrive as a wheel event with ctrlKey set →
+    // zoom. A plain two-finger drag (or mouse wheel) has no ctrlKey → fall through
+    // so the browser scrolls the board (pan), like Figma / map apps.
+    if (!(e.ctrlKey || e.metaKey)) return;
+    if (zoomLocked) return; // locked → even pinch just scrolls
     e.preventDefault();
-    zoomAt(zoom * (e.deltaY < 0 ? 1.15 : 1 / 1.15), e.clientX, e.clientY);
+    // Proportional to the gesture so trackpad pinch is smooth; clamp so a single
+    // mouse notch (deltaY ≈ ±100) doesn't jump too far.
+    const dy = Math.max(-60, Math.min(60, e.deltaY));
+    zoomAt(zoom * Math.exp(-dy * 0.01), e.clientX, e.clientY);
   }
   /** Two-finger gesture: zoom by the finger-distance ratio (anchored at the
    *  midpoint) and pan by the midpoint's travel, in one combined step. Guarded
