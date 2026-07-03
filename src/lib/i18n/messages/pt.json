@@ -785,7 +785,9 @@
     "roster": {
       "title": "membros",
       "empty": "Nenhuma cidade ainda."
-    }
+    },
+    "zoomLock": "Travar zoom",
+    "zoomUnlock": "Destravar zoom"
   },
   "events": {
     "title": "calendário de eventos",

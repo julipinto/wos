@@ -6,9 +6,11 @@
   // filter toggles now live in the left Rail; this stays minimal in the top bar.
   interface Props {
     zoom: number;
+    /** When locked, wheel/pinch/± don't change zoom (Fit still works). */
+    locked: boolean;
     onFit: () => void;
   }
-  let { zoom = $bindable(), onFit }: Props = $props();
+  let { zoom = $bindable(), locked = $bindable(), onFit }: Props = $props();
 
   // Keep in sync with Board.svelte's MINZ / MAXZ.
   const MINZ = 0.35;
@@ -21,14 +23,19 @@
     label="zoom out"
     size="sm"
     onclick={() => (zoom = Math.max(MINZ, +(zoom - STEP).toFixed(2)))}
-    disabled={zoom <= MINZ}>−</IconButton
+    disabled={locked || zoom <= MINZ}>−</IconButton
   >
   <span class="zoom-val">{Math.round(zoom * 100)}%</span>
   <IconButton
     label="zoom in"
     size="sm"
     onclick={() => (zoom = Math.min(MAXZ, +(zoom + STEP).toFixed(2)))}
-    disabled={zoom >= MAXZ}>+</IconButton
+    disabled={locked || zoom >= MAXZ}>+</IconButton
+  >
+  <IconButton
+    label={locked ? i18n.m.territory.zoomUnlock : i18n.m.territory.zoomLock}
+    size="sm"
+    onclick={() => (locked = !locked)}>{locked ? '🔒' : '🔓'}</IconButton
   >
   <IconButton label={i18n.m.territory.fit} size="sm" onclick={onFit}>⊡</IconButton>
 </div>

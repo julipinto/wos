@@ -29,6 +29,8 @@
     view: 'flat' | 'iso';
     zoom: number;
     boardMode: 'edit' | 'view';
+    /** When true, wheel + pinch don't zoom (wheel scrolls instead). */
+    zoomLocked?: boolean;
     tool: string;
     showLabels: boolean;
     labelField: 'furnace' | 'name';
@@ -50,6 +52,7 @@
     view,
     zoom = $bindable(),
     boardMode,
+    zoomLocked = false,
     tool,
     showLabels,
     labelField,
@@ -276,6 +279,10 @@
   // (distance ratio, anchored at the midpoint) and pans (midpoint travel) at once.
   let twoPan: { dist: number; mx: number; my: number } | null = null;
   let pinchBusy = false;
+  // Two-finger gesture classification: straight two-finger drags pan; only a real
+  // pinch (finger spread changing past a threshold) engages zoom.
+  let pinchStartDist = 0;
+  let pinchZooming = false;
   const midpoint = () => {
     const p = [...pointers.values()];
     return { x: (p[0].x + p[1].x) / 2, y: (p[0].y + p[1].y) / 2 };
@@ -340,6 +347,7 @@
     scroller.scrollTop = beforeY * ratio - ay;
   }
   function onWheel(e: WheelEvent) {
+    if (zoomLocked) return; // zoom locked → let the wheel scroll the board
     e.preventDefault();
     zoomAt(zoom * (e.deltaY < 0 ? 1.15 : 1 / 1.15), e.clientX, e.clientY);
   }
@@ -352,7 +360,16 @@
     const m = midpoint();
     const dist = pointDist();
     const rect = scroller.getBoundingClientRect();
-    const target = Math.min(MAXZ, Math.max(MINZ, +(zoom * (dist / (twoPan.dist || 1))).toFixed(3)));
+    // Classify: engage zoom only once the finger spread changes past a threshold
+    // (a pinch). A straight two-finger drag keeps the spread ~constant → pure pan.
+    if (!pinchZooming && pinchStartDist && Math.abs(dist / pinchStartDist - 1) > 0.08) {
+      pinchZooming = true;
+    }
+    // Locked or still-panning → keep zoom fixed (r = 1): two fingers pan, don't zoom.
+    const target =
+      zoomLocked || !pinchZooming
+        ? zoom
+        : Math.min(MAXZ, Math.max(MINZ, +(zoom * (dist / (twoPan.dist || 1))).toFixed(3)));
     const r = target / zoom;
     const ax = m.x - rect.left;
     const ay = m.y - rect.top;
@@ -496,7 +513,10 @@
       moved = true;
       if (scroller) {
         const m = midpoint();
-        twoPan = { dist: pointDist(), mx: m.x, my: m.y };
+        const d0 = pointDist();
+        twoPan = { dist: d0, mx: m.x, my: m.y };
+        pinchStartDist = d0;
+        pinchZooming = false;
       }
       e.preventDefault();
       return;
@@ -635,7 +655,11 @@
   function onPointerUp(e: PointerEvent) {
     const wasPan = !!twoPan;
     pointers.delete(e.pointerId);
-    if (pointers.size < 2) twoPan = null;
+    if (pointers.size < 2) {
+      twoPan = null;
+      pinchZooming = false;
+      pinchStartDist = 0;
+    }
     if (wasPan) {
       moved = pointers.size > 0; // keep suppressing taps until all fingers lift
       return;

@@ -158,6 +158,10 @@
     if (b === 'view') selectedIds = [];
   }
   let zoom = $state(1);
+  // Zoom lock: wheel + pinch don't zoom (Fit still works). Persisted per browser.
+  const ZOOMLOCK_KEY = 'territory-zoomlock-v1';
+  let zoomLocked = $state(readJson<boolean>(ZOOMLOCK_KEY) === true);
+  $effect(() => writeJson(ZOOMLOCK_KEY, zoomLocked));
   let showLabels = $state(false);
   const LABELBY_KEY = 'territory-labelby-v1';
   let labelField = $state<'furnace' | 'name'>(
@@ -947,7 +951,7 @@
   />
 
   <div class="topbar">
-    <Controls bind:zoom onFit={() => board?.fit()} />
+    <Controls bind:zoom bind:locked={zoomLocked} onFit={() => board?.fit()} />
     <div class="tb-actions">
       {#if seedObj}
         <IconButton
@@ -1028,6 +1032,7 @@
         {view}
         bind:zoom
         {boardMode}
+        {zoomLocked}
         {tool}
         {showLabels}
         {labelField}
