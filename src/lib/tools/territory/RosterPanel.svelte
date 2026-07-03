@@ -24,7 +24,7 @@
     const text = members
       .map(
         (o, i) =>
-          `${i + 1}\t${o.name || '—'}\t${o.furnace || '—'}\t${o.power ? fmtPower(o.power) : '—'}`
+          `${i + 1}\t${o.name || '—'}\t${o.power ? fmtPower(o.power) : '—'}\t${o.furnace || '—'}`
       )
       .join('\n');
     navigator.clipboard.writeText(text).then(() => {
@@ -64,8 +64,8 @@
         <div class="roster-cols">
           <span>#</span>
           <span>{i18n.m.territory.tag.name}</span>
-          <span class="r-fc">{i18n.m.territory.tag.furnace}</span>
           <span class="r-pw">{i18n.m.territory.tag.power}</span>
+          <span class="r-fc">{i18n.m.territory.tag.furnace}</span>
         </div>
         <ul class="roster-list">
           {#each members as o, i (o.id)}
@@ -73,8 +73,8 @@
               <button class="roster-row" type="button" onclick={() => onPick(o)}>
                 <span class="r-rank">{i + 1}</span>
                 <span class="r-name">{o.name || '—'}</span>
-                <span class="r-fc">{o.furnace || '—'}</span>
                 <span class="r-pw">{o.power ? fmtPower(o.power) : '—'}</span>
+                <span class="r-fc">{o.furnace || '—'}</span>
               </button>
             </li>
           {/each}
@@ -163,7 +163,7 @@
   .roster-cols,
   .roster-row {
     display: grid;
-    grid-template-columns: 2ch 1fr 5ch 6ch;
+    grid-template-columns: 2ch 1fr 6ch 5ch;
     gap: 10px;
     align-items: center;
   }
@@ -207,11 +207,12 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .r-fc {
-    color: var(--text-mid);
-  }
   .r-pw {
-    text-align: end;
+    text-align: start;
     color: var(--accent);
+  }
+  .r-fc {
+    text-align: end;
+    color: var(--text-mid);
   }
 </style>
