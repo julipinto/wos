@@ -7,7 +7,7 @@
   import Icon from '$lib/components/Icon.svelte';
   import ResourceIcon from '$lib/components/ResourceIcon.svelte';
   import NumberInput from '$lib/components/NumberInput.svelte';
-  import { i18n, fmt } from '$lib/i18n/index.svelte';
+  import { i18n } from '$lib/i18n/index.svelte';
   import { formatQty, presentResources } from './engine';
   import { type ResourceBag } from './types';
   import { readJson, writeJson } from '$lib/utils/storage';
@@ -18,10 +18,10 @@
     /** Estimated FC to refine into the RFC the plan needs — folded into the
      *  Fire Crystal need so "what's left" reflects the full FC bill. */
     fcRefine?: number;
-    /** Refinement pace for the selected intensity, shown under the FC row. */
-    rhythm?: { refines: number; fcPerWeek: number; weeks: number };
+    /** Selected refinement intensity name (e.g. "Economic"), shown under the FC row. */
+    intensity?: string;
   }
-  let { needed, fcRefine = 0, rhythm }: Props = $props();
+  let { needed, fcRefine = 0, intensity }: Props = $props();
 
   const STORAGE = 'upgrade-stock-v1';
   const stock = $state<Record<string, number>>(readJson<Record<string, number>>(STORAGE) ?? {});
@@ -72,18 +72,9 @@
                 {#if isFc(k)}
                   <span class="sub"
                     >{rd.rowDirect}
-                    {formatQty(needed.fireCrystal ?? 0)} · {rd.rowRefine} ~{formatQty(
-                      fcRefine
-                    )}</span
+                    {formatQty(needed.fireCrystal ?? 0)} · {rd.rowRefine} ~{formatQty(fcRefine)}
+                    {#if intensity}· {intensity}{/if}</span
                   >
-                  {#if rhythm}
-                    <span class="sub"
-                      >{fmt(rd.rhythm, {
-                        refines: rhythm.refines,
-                        fc: formatQty(rhythm.fcPerWeek)
-                      })} · {fmt(rd.weeks, { n: rhythm.weeks })}</span
-                    >
-                  {/if}
                 {/if}
               </span>
               <span class="num">

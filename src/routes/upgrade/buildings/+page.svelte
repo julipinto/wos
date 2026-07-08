@@ -288,8 +288,8 @@
   <DeficitPanel
     needed={result.totals}
     fcRefine={refineRfc > 0 ? refineFc : 0}
-    rhythm={refineRfc > 0
-      ? { refines: refinePlan.refines, fcPerWeek: refinePlan.fcPerWeek, weeks: refineEst.weeks }
+    intensity={refineRfc > 0
+      ? (i18n.m.upgrade.refinement as Record<string, string>)[refinementStore.intensity]
       : undefined}
   />
 </div>
