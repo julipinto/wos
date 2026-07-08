@@ -7,7 +7,7 @@
   import Icon from '$lib/components/Icon.svelte';
   import ResourceIcon from '$lib/components/ResourceIcon.svelte';
   import NumberInput from '$lib/components/NumberInput.svelte';
-  import { i18n } from '$lib/i18n/index.svelte';
+  import { i18n, fmt } from '$lib/i18n/index.svelte';
   import { formatQty, presentResources } from './engine';
   import { type ResourceBag } from './types';
   import { readJson, writeJson } from '$lib/utils/storage';
@@ -15,8 +15,13 @@
   interface Props {
     /** The plan's needed totals (already booster/Zinman-adjusted). */
     needed: ResourceBag;
+    /** Estimated FC to refine into the RFC the plan needs — folded into the
+     *  Fire Crystal need so "what's left" reflects the full FC bill. */
+    fcRefine?: number;
+    /** Refinement pace for the selected intensity, shown under the FC row. */
+    rhythm?: { refines: number; fcPerWeek: number; weeks: number };
   }
-  let { needed }: Props = $props();
+  let { needed, fcRefine = 0, rhythm }: Props = $props();
 
   const STORAGE = 'upgrade-stock-v1';
   const stock = $state<Record<string, number>>(readJson<Record<string, number>>(STORAGE) ?? {});
@@ -31,10 +36,18 @@
   // Refined Fire Crystals aren't gathered, they're refined — the Refinement
   // section owns "how many you have" (needed → saved → still to refine), so we
   // keep it out of here to avoid a second, conflicting RFC stock input.
-  const keys = $derived(presentResources(needed).filter((k) => k !== 'refinedFireCrystal'));
-  const deficit = (k: string) =>
-    Math.max(0, (needed[k as keyof ResourceBag] ?? 0) - (stock[k] ?? 0));
+  // Fold the refinement FC into the Fire Crystal need so the deficit reflects the
+  // FULL FC bill (construction + refining), matching the shopping list.
+  const adjNeeded = $derived({
+    ...needed,
+    fireCrystal: (needed.fireCrystal ?? 0) + fcRefine
+  } as ResourceBag);
+  const keys = $derived(presentResources(adjNeeded).filter((k) => k !== 'refinedFireCrystal'));
+  const need = (k: string) => adjNeeded[k as keyof ResourceBag] ?? 0;
+  const deficit = (k: string) => Math.max(0, need(k) - (stock[k] ?? 0));
   const shortCount = $derived(keys.filter((k) => deficit(k) > 0).length);
+  const isFc = (k: string) => k === 'fireCrystal' && fcRefine > 0;
+  const rd = $derived(i18n.m.upgrade.refinement);
 </script>
 
 {#if keys.length > 0}
@@ -54,9 +67,25 @@
             {@const d = deficit(k)}
             <div class="row" class:covered={d === 0}>
               <span class="ic"><ResourceIcon resource={k} size={16} /></span>
-              <span class="name"
-                >{resName(k)}<span class="need">/ {formatQty(needed[k] ?? 0)}</span></span
-              >
+              <span class="name">
+                {resName(k)}<span class="need">/ {isFc(k) ? '~' : ''}{formatQty(need(k))}</span>
+                {#if isFc(k)}
+                  <span class="sub"
+                    >{rd.rowDirect}
+                    {formatQty(needed.fireCrystal ?? 0)} · {rd.rowRefine} ~{formatQty(
+                      fcRefine
+                    )}</span
+                  >
+                  {#if rhythm}
+                    <span class="sub"
+                      >{fmt(rd.rhythm, {
+                        refines: rhythm.refines,
+                        fc: formatQty(rhythm.fcPerWeek)
+                      })} · {fmt(rd.weeks, { n: rhythm.weeks })}</span
+                    >
+                  {/if}
+                {/if}
+              </span>
               <span class="num">
                 <NumberInput
                   value={stock[k] ?? 0}
@@ -65,7 +94,7 @@
                 />
               </span>
               <span class="left" class:ok={d === 0}>
-                {d > 0 ? formatQty(d) : '✓'}
+                {d > 0 ? `${isFc(k) ? '~' : ''}${formatQty(d)}` : '✓'}
               </span>
             </div>
           {/each}
@@ -159,6 +188,11 @@
   .need {
     font-size: 10px;
     color: var(--text-dim);
+  }
+  .sub {
+    font-size: 10px;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
   }
   .num {
     width: 116px;

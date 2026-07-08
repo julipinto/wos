@@ -51,9 +51,10 @@
   const refinePlan = $derived(
     planById(PRESETS.find((p) => p.key === refinementStore.intensity)?.plan ?? 'L3')
   );
-  const refineFc = $derived(
-    estimate(Math.max(0, refineRfc - refinementStore.stockRfc), refinePlan).fcTotal
+  const refineEst = $derived(
+    estimate(Math.max(0, refineRfc - refinementStore.stockRfc), refinePlan)
   );
+  const refineFc = $derived(refineEst.fcTotal);
   const buildingItems = $derived(
     rows.map((r) => {
       const t = buildingsCalc.tableOf(r.buildingId);
@@ -284,7 +285,13 @@
     {/if}
   {/if}
 
-  <DeficitPanel needed={result.totals} />
+  <DeficitPanel
+    needed={result.totals}
+    fcRefine={refineRfc > 0 ? refineFc : 0}
+    rhythm={refineRfc > 0
+      ? { refines: refinePlan.refines, fcPerWeek: refinePlan.fcPerWeek, weeks: refineEst.weeks }
+      : undefined}
+  />
 </div>
 
 <style>
