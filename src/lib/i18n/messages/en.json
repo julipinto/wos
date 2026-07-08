@@ -506,7 +506,10 @@
       "thMean": "avg (μ)",
       "superEconomic": "Super eco",
       "methodTableNote": "FC/RFC = cost ÷ avg (e.g. T1 = 20 ÷ 1.45 = 13.8) — the tier's raw price, before the daily discount (which is applied in the result above).",
-      "methodMean": "The avg (μ) column is the mean RFC per refine: μ = Σ p·x. E.g. T1 = 1×0.65 + 2×0.25 + 3×0.10 = 1.45. The variance is σ² = Σ p·x² − μ²; for T1: (1×0.65 + 4×0.25 + 9×0.10) − 1.45² = 2.55 − 2.10 = 0.45."
+      "methodMean": "The avg (μ) column is the mean RFC per refine: μ = Σ p·x. E.g. T1 = 1×0.65 + 2×0.25 + 3×0.10 = 1.45. The variance is σ² = Σ p·x² − μ²; for T1: (1×0.65 + 4×0.25 + 9×0.10) − 1.45² = 2.55 − 2.10 = 0.45.",
+      "rowDirect": "construction",
+      "rowRefine": "refining → RFC",
+      "rowTotal": "total"
     },
     "materials": {
       "sub": "Where to get each upgrade material.",

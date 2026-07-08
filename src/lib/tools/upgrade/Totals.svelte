@@ -6,11 +6,12 @@
    * page (it varies with boosters/speedups). `adjust` lets a page tweak a
    * displayed amount (e.g. the buildings Zinman cut).
    */
-  import { i18n, fmt } from '$lib/i18n/index.svelte';
+  import { i18n } from '$lib/i18n/index.svelte';
   import { addBags, presentResources, formatQty } from './engine';
   import { type ResourceBag } from './types';
   import ResourceIcon from '$lib/components/ResourceIcon.svelte';
   import EmojiIcon from '$lib/components/EmojiIcon.svelte';
+  import Breakdown from './Breakdown.svelte';
   import { totalsMode } from './totals-mode.svelte';
 
   interface Item {
@@ -79,20 +80,39 @@
 {:else}
   <div class="totals">
     {#each summedRows as k (k)}
-      <div class="res">
-        <span class="res-icon"><ResourceIcon resource={k} /></span>
-        <span class="res-name">{resName(k)}</span>
-        <span class="res-val-wrap">
+      {#if k === 'fireCrystal' && fcRefine > 0}
+        {@const direct = amt(summed, k)}
+        <!-- Fire Crystal isn't just the FC1–5 construction cost: the FC6+ tiers
+             need Refined FC, and those RFC are themselves refined FROM Fire
+             Crystals. So we break the FC row into construction + refining + the
+             true total. The refine/total figures are estimates (they depend on
+             the chosen intensity and RFC stock), hence the ~ marker. -->
+        <div class="fc-card">
+          <div class="res-main">
+            <span class="res-icon"><ResourceIcon resource={k} /></span>
+            <span class="res-name">{resName(k)}</span>
+            <span class="res-val">{formatQty(direct)}</span>
+          </div>
+          <Breakdown
+            lines={[
+              { label: i18n.m.upgrade.refinement.rowDirect, value: direct },
+              { label: i18n.m.upgrade.refinement.rowRefine, value: fcRefine, estimate: true },
+              {
+                label: i18n.m.upgrade.refinement.rowTotal,
+                value: direct + fcRefine,
+                estimate: true,
+                total: true
+              }
+            ]}
+          />
+        </div>
+      {:else}
+        <div class="res">
+          <span class="res-icon"><ResourceIcon resource={k} /></span>
+          <span class="res-name">{resName(k)}</span>
           <span class="res-val">{formatQty(amt(summed, k))}</span>
-          {#if k === 'fireCrystal' && fcRefine > 0}
-            <span class="res-sub"
-              >{fmt(i18n.m.upgrade.refinement.totalLabel, {
-                n: formatQty(amt(summed, k) + fcRefine)
-              })}</span
-            >
-          {/if}
-        </span>
-      </div>
+        </div>
+      {/if}
     {/each}
   </div>
 {/if}
@@ -189,21 +209,24 @@
     color: var(--text-mid);
     flex: 1;
   }
-  .res-val-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-  }
   .res-val {
     font-family: var(--font-display);
     font-weight: 700;
     font-size: 22px;
     letter-spacing: -0.01em;
   }
-  .res-sub {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-dim);
+  /* Fire Crystal breakdown card: the main row + a construction/refining/total
+     ledger. Reuses the .res chrome on the wrapper; the inner row drops its own. */
+  .fc-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-card);
+    overflow: hidden;
+  }
+  .res-main {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
   }
 </style>

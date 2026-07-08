@@ -506,7 +506,10 @@
       "thMean": "media (μ)",
       "superEconomic": "Súper eco",
       "methodTableNote": "FC/RFC = coste ÷ media (ej.: T1 = 20 ÷ 1,45 = 13,8) — el precio crudo del nivel, antes del descuento diario (aplicado en el resultado de arriba).",
-      "methodMean": "La columna media (μ) es la media de RFC por refinado: μ = Σ p·x. Ej.: T1 = 1×0,65 + 2×0,25 + 3×0,10 = 1,45. La varianza es σ² = Σ p·x² − μ²; para T1: (1×0,65 + 4×0,25 + 9×0,10) − 1,45² = 2,55 − 2,10 = 0,45."
+      "methodMean": "La columna media (μ) es la media de RFC por refinado: μ = Σ p·x. Ej.: T1 = 1×0,65 + 2×0,25 + 3×0,10 = 1,45. La varianza es σ² = Σ p·x² − μ²; para T1: (1×0,65 + 4×0,25 + 9×0,10) − 1,45² = 2,55 − 2,10 = 0,45.",
+      "rowDirect": "construcción",
+      "rowRefine": "refinado → RFC",
+      "rowTotal": "total"
     },
     "materials": {
       "sub": "Dónde conseguir cada material de mejora.",
