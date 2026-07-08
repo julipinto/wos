@@ -120,6 +120,20 @@
   let scrollerW = $state(0);
   const cellPx = $derived(((scrollerW || 600) * zoom * (view === 'iso' ? 0.62 : 1)) / N);
   const labelFont = $derived(Math.max(7, Math.min(16, 0.45 * cellPx)));
+  // Adaptive label sizing WITHOUT measuring the DOM (measuring 95 labels on every
+  // zoom event = layout thrashing). The labels use a MONOSPACE font, so char count
+  // is an exact width proxy: chars-per-line = boxWidthPx / (charAdvance·font).
+  // We let a name wrap to MAXLINES first, then shrink the font (down to a
+  // readability floor) if it still won't fit — keeping text inside the footprint.
+  const CHAR_ADV = 0.6; // monospace char width in em
+  const WRAP_LINES = 2; // wrap up to N lines before we start shrinking
+  const MIN_SCALE = 0.62; // never render smaller than this fraction of labelFont
+  function fitScale(len: number, boxWpx: number, baseFont: number): number {
+    if (len <= 0 || baseFont <= 0) return 1;
+    const capPerLine = boxWpx / (CHAR_ADV * baseFont); // chars per line at base size
+    const needPerLine = Math.ceil(len / WRAP_LINES);
+    return Math.max(MIN_SCALE, Math.min(1, capPerLine / needPerLine));
+  }
   // Which objects get a label, precomputed (name/furnace + optional sub-label).
   const labelled = $derived.by(() => {
     if (!showLabels) return [];
@@ -979,7 +993,16 @@
           {#each labelled as l (l.o.id)}
             {@const pos = labelPos(l.o)}
             {@const bear = l.o.type === 'bearTrap'}
-            <div class="tile-label" class:bear style="left: {pos.left}%; top: {pos.top}%">
+            {@const def = OBJECT_DEFS[l.o.type]}
+            {@const boxW = cellPx * def.w}
+            {@const len = Math.max(l.primary?.length ?? 0, l.sub?.length ?? 0)}
+            {@const fs = labelFont * fitScale(len, boxW * 0.96, labelFont)}
+            <div
+              class="tile-label"
+              class:bear
+              style="left: {pos.left}%; top: {pos.top}%; max-width: {boxW *
+                0.96}px; max-height: {cellPx * def.h * 0.96}px; font-size: {fs}px"
+            >
               {#if l.primary}<span class="tl-name">{l.primary}</span>{/if}
               {#if l.sub}<span class="tl-sub">{l.sub}</span>{/if}
             </div>
@@ -1239,9 +1262,20 @@
     align-items: center;
     gap: 1px;
     line-height: 1.1;
-    white-space: nowrap;
+    /* Contain the label within the city footprint: wrap instead of bleeding into
+       neighbours, and clip anything that still overflows after wrap + shrink. */
+    text-align: center;
+    overflow: hidden;
     font-family: var(--font-mono);
     font-weight: 700;
+  }
+  .tile-label .tl-name,
+  .tile-label .tl-sub {
+    max-width: 100%;
+    /* break-word breaks long single-token names (DarlinOfDarkness) only when
+       needed; word-break: normal keeps CJK line-break rules intact. */
+    overflow-wrap: break-word;
+    word-break: normal;
   }
   /* bears centre a number, so push their text below it */
   .tile-label.bear {
