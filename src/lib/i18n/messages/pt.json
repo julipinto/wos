@@ -509,7 +509,14 @@
       "methodMean": "A coluna avg (μ) é a média de RFC por refino: μ = Σ p·x. Ex.: T1 = 1×0,65 + 2×0,25 + 3×0,10 = 1,45. A variância é σ² = Σ p·x² − μ²; pro T1: (1×0,65 + 4×0,25 + 9×0,10) − 1,45² = 2,55 − 2,10 = 0,45.",
       "rowDirect": "construção",
       "rowRefine": "refino → RFC",
-      "rowTotal": "total"
+      "rowTotal": "total",
+      "withRhythm": "Com ritmo",
+      "dry": "No seco",
+      "doneThisWeek": "Refinos feitos nesta semana",
+      "refinesLabel": "Refinos",
+      "tierAt": "começa no T{tier}",
+      "leftThisWeek": "{n} refinos restantes nesta semana",
+      "dryNote": "Refinos + FC pra atingir o alvo, do mais barato primeiro a partir de onde você está na semana. FC antes do −50% diário."
     },
     "materials": {
       "sub": "Onde conseguir cada material de upgrade.",

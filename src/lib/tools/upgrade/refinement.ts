@@ -149,7 +149,77 @@ export const TIER_TABLE: TierInfo[] = TIER_DATA.map((t) => ({
 }));
 
 const TIER_CAP = 20; // refines available per tier per week
+const TIERS_PER_WEEK = TIER_DATA.length; // 5 tiers → 100 refines/week
+const WEEK_REFINES = TIER_CAP * TIERS_PER_WEEK; // 100
 const DAYS_PER_WEEK = 7; // also the max daily 50%-off discounts per week
+
+/** A rhythm-free ("dry") estimate: how many refines + FC to reach the target. */
+export interface RawEstimate {
+  /** Refines to reach the target (each is one super-refine action). */
+  refines: number;
+  /** Fire Crystals spent — raw, BEFORE the daily 50%-off (that depends on how
+   *  you spread refines across days, i.e. rhythm). */
+  fcTotal: number;
+  /** FC per RFC actually produced (efficiency). */
+  fcPerRfc: number;
+  /** Expected RFC produced by those refines (≥ target; refines are whole). */
+  rfcProduced: number;
+  /** 1-based tier you're currently in, from refines already done this week. */
+  startTier: number;
+  /** Refines still available this week (100 − done). */
+  refinesLeftThisWeek: number;
+  /** Calendar weeks the job spans (1 if it fits the current week's slots). */
+  weeks: number;
+}
+
+/**
+ * "Dry" estimate — no weekly rhythm/intensity. You say how many refines you've
+ * already done THIS week; since tiers fill cheapest-first (0–19 = T1, 20–39 = T2,
+ * …) that pins which tier you're in now. To reach `rfcTarget` more RFC we just
+ * keep refining cheapest-first from that position, spilling into next week (tiers
+ * reset) when the 100 weekly refines run out. FC is raw (pre daily discount).
+ */
+export function estimateRaw(rfcTarget: number, doneThisWeek: number): RawEstimate {
+  const done = Math.max(0, Math.min(WEEK_REFINES, Math.floor(doneThisWeek || 0)));
+  const startTier = Math.min(TIERS_PER_WEEK, Math.floor(done / TIER_CAP) + 1);
+  const refinesLeftThisWeek = WEEK_REFINES - done;
+  if (rfcTarget <= 0) {
+    return {
+      refines: 0,
+      fcTotal: 0,
+      fcPerRfc: 0,
+      rfcProduced: 0,
+      startTier,
+      refinesLeftThisWeek,
+      weeks: 0
+    };
+  }
+  let rfc = 0;
+  let fc = 0;
+  let refines = 0;
+  let pos = done; // refines used this week so far
+  let weeks = 1;
+  while (rfc < rfcTarget && refines < 100000) {
+    if (pos >= WEEK_REFINES) {
+      weeks++;
+      pos = 0; // new week: tiers reset, back to the cheapest
+    }
+    const tier = Math.floor(pos / TIER_CAP); // 0..4
+    rfc += TIERS[tier].mu;
+    fc += TIER_COST[tier];
+    refines++;
+    pos++;
+  }
+  return {
+    refines,
+    fcTotal: Math.round(fc),
+    fcPerRfc: rfc > 0 ? +(fc / rfc).toFixed(1) : 0,
+    rfcProduced: +rfc.toFixed(1),
+    startTier,
+    refinesLeftThisWeek,
+    weeks
+  };
+}
 
 /** z for an ~85% two-sided band (7.5% each tail). */
 const Z_85 = 1.44;

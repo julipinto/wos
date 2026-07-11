@@ -509,7 +509,14 @@
       "methodMean": "The avg (μ) column is the mean RFC per refine: μ = Σ p·x. E.g. T1 = 1×0.65 + 2×0.25 + 3×0.10 = 1.45. The variance is σ² = Σ p·x² − μ²; for T1: (1×0.65 + 4×0.25 + 9×0.10) − 1.45² = 2.55 − 2.10 = 0.45.",
       "rowDirect": "construction",
       "rowRefine": "refining → RFC",
-      "rowTotal": "total"
+      "rowTotal": "total",
+      "withRhythm": "With rhythm",
+      "dry": "Dry",
+      "doneThisWeek": "Refines done this week",
+      "refinesLabel": "Refines",
+      "tierAt": "starts at T{tier}",
+      "leftThisWeek": "{n} refines left this week",
+      "dryNote": "Refines + FC to reach the target, cheapest-first from where you are this week. FC is before the daily −50%."
     },
     "materials": {
       "sub": "Where to get each upgrade material.",

@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { PLANS, PRESETS, planById, estimate } from '../../src/lib/tools/upgrade/refinement';
+import {
+  PLANS,
+  PRESETS,
+  planById,
+  estimate,
+  estimateRaw
+} from '../../src/lib/tools/upgrade/refinement';
 
 describe('refinement plans', () => {
   it('has the L1–L10 ladder, ascending in throughput', () => {
@@ -99,6 +105,40 @@ describe('tier-by-tier cost (rush fills one week cheap-first)', () => {
     // Each fresh week repeats the cheap→expensive cycle, so the rate stays steady
     // instead of climbing forever — proof the weekly reset is applied.
     expect(Math.abs(big.fcPerRfc - oneWeek.fcPerRfc)).toBeLessThan(2);
+  });
+});
+
+describe('estimateRaw (dry, no rhythm)', () => {
+  it("the user's example: 20 done → +5 RFC lands in tier 2, ~3 refines", () => {
+    const r = estimateRaw(5, 20);
+    expect(r.startTier).toBe(2); // 20 done → entering T2
+    expect(r.refines).toBe(3); // T2 gives ~2.15 RFC each → 3 refines clear 5
+    expect(r.rfcProduced).toBeGreaterThanOrEqual(5);
+    expect(r.fcTotal).toBe(150); // 3 × 50 FC (T2), pre-discount
+    expect(r.refinesLeftThisWeek).toBe(80);
+    expect(r.weeks).toBe(1);
+  });
+  it('from a fresh week starts in tier 1 (cheapest)', () => {
+    const r = estimateRaw(10, 0);
+    expect(r.startTier).toBe(1);
+    expect(r.fcTotal).toBeLessThan(estimateRaw(10, 20).fcTotal); // T1 cheaper than T2
+  });
+  it('more refines already done this week → pricier remaining (higher tier)', () => {
+    const early = estimateRaw(10, 0); // T1
+    const late = estimateRaw(10, 60); // T4
+    expect(late.fcPerRfc).toBeGreaterThan(early.fcPerRfc);
+  });
+  it('a target beyond the weekly quota spills into the next week', () => {
+    const r = estimateRaw(400, 90); // only 10 slots left this week
+    expect(r.weeks).toBeGreaterThan(1);
+  });
+  it('zero target needs nothing but still reports the current tier', () => {
+    const r = estimateRaw(0, 40);
+    expect(r).toMatchObject({ refines: 0, fcTotal: 0, weeks: 0, startTier: 3 });
+  });
+  it('clamps refines-done to the 0–100 weekly range', () => {
+    expect(estimateRaw(5, -10).startTier).toBe(1);
+    expect(estimateRaw(5, 999).refinesLeftThisWeek).toBe(0);
   });
 });
 

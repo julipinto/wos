@@ -2,7 +2,7 @@
   import { i18n, fmt, groupNumber } from '$lib/i18n/index.svelte';
   import Icon from '$lib/components/Icon.svelte';
   import ResourceIcon from '$lib/components/ResourceIcon.svelte';
-  import { PRESETS, planById, estimate, TIER_TABLE } from './refinement';
+  import { PRESETS, planById, estimate, estimateRaw, TIER_TABLE } from './refinement';
   import { refinementStore } from './refinement-store.svelte';
 
   // Refinement view, shared by the Buildings tool and My Plan. What matters near
@@ -22,9 +22,15 @@
   // summary so the key number is visible without expanding.
   let open = $state(false);
   // "From plan" vs "Type" (what-if): in manual mode the typed number IS what's
-  // left to refine — no stockpile subtracted.
+  // left to refine — no stockpile subtracted. Type has two sub-modes: "with
+  // rhythm" (the intensity comparison) and "dry" (rhythm-free: refines + FC to
+  // reach the target, cheapest-first from where you are this week).
   let manual = $state(false);
   let manualRfc = $state(0);
+  let dryMode = $state(false);
+  let refinesThisWeek = $state(0);
+  const raw = $derived(estimateRaw(Math.max(0, manualRfc), refinesThisWeek));
+  const isDry = $derived(manual && dryMode);
 
   const netRfc = $derived(
     manual ? Math.max(0, manualRfc) : Math.max(0, rfc - refinementStore.stockRfc)
@@ -88,86 +94,160 @@
         </button>
       </div>
 
-      <!-- hero: the answer for the selected intensity -->
-      <div class="kpi">
-        <div class="kpi-cell">
-          <span class="kpi-lbl"><ResourceIcon resource="fireCrystal" size={13} /> {t.fcLabel}</span>
-          <span class="kpi-num">~{groupNumber(cur.est.fcTotal)}</span>
-          {#if cur.est.fcHigh > cur.est.fcLow}
-            <span class="kpi-band"
-              >{fmt(t.band, {
-                low: groupNumber(cur.est.fcLow),
-                high: groupNumber(cur.est.fcHigh),
-                perRfc: cur.est.fcPerRfc.toFixed(1)
-              })}</span
-            >
-          {/if}
-        </div>
-        <div class="kpi-div"></div>
-        <div class="kpi-cell">
-          <span class="kpi-lbl">⏱ {t.daysLabel}</span>
-          <span class="kpi-num">~{cur.est.days}</span>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
       {#if manual}
-        <label class="field">
-          <span class="field-label">{t.manualLabel}</span>
-          <input
-            type="number"
-            min="0"
-            inputmode="numeric"
-            value={manualRfc || ''}
-            oninput={(e) => (manualRfc = num(e))}
-            placeholder="0"
-          />
-        </label>
-      {:else}
-        <span class="setup">
-          {fmt(t.stillOf, { n: groupNumber(netRfc), total: groupNumber(rfc) })} · −
-          <input
-            class="saved-in"
-            type="number"
-            min="0"
-            inputmode="numeric"
-            value={refinementStore.stockRfc || ''}
-            oninput={(e) => (refinementStore.stockRfc = num(e))}
-            placeholder="0"
-          />
-          {t.savedShort} · {fmt(t.ready, { n: pctDone })}
-        </span>
-        <div class="bar" role="presentation"><div class="fill" style="width:{pctDone}%"></div></div>
+        <!-- Type has two sub-modes: the intensity comparison, or the dry calc. -->
+        <div class="src sub">
+          <button
+            class="src-btn"
+            class:on={!dryMode}
+            type="button"
+            onclick={() => (dryMode = false)}
+          >
+            {t.withRhythm}
+          </button>
+          <button class="src-btn" class:on={dryMode} type="button" onclick={() => (dryMode = true)}>
+            {t.dry}
+          </button>
+        </div>
       {/if}
 
-      <span class="rhythm-lbl">{t.rhythmHint}</span>
-      <div class="cards">
-        {#each rows as r (r.key)}
-          <button
-            class="rcard"
-            class:on={r.key === refinementStore.intensity}
-            type="button"
-            onclick={() => (refinementStore.intensity = r.key)}
-          >
-            <div class="rcard-top">
-              <span class="r-name">{r.name}</span>
-              <span class="r-fc"
-                ><ResourceIcon resource="fireCrystal" size={12} /> ~{groupNumber(
-                  r.est.fcTotal
-                )}</span
-              >
-              <span class="r-days">⏱ ~{r.est.days} {t.daysLabel}</span>
+      {#if isDry}
+        <!-- Dry / no-rhythm: refines + FC to reach the target, cheapest-first
+             from wherever you are this week (refines already done pins the tier). -->
+        <div class="dry-inputs">
+          <label class="field">
+            <span class="field-label">{t.manualLabel}</span>
+            <input
+              type="number"
+              min="0"
+              inputmode="numeric"
+              value={manualRfc || ''}
+              oninput={(e) => (manualRfc = num(e))}
+              placeholder="0"
+            />
+          </label>
+          <label class="field">
+            <span class="field-label">{t.doneThisWeek}</span>
+            <input
+              type="number"
+              min="0"
+              max="100"
+              inputmode="numeric"
+              value={refinesThisWeek || ''}
+              oninput={(e) => (refinesThisWeek = num(e))}
+              placeholder="0"
+            />
+          </label>
+        </div>
+
+        {#if manualRfc > 0}
+          <div class="kpi">
+            <div class="kpi-cell">
+              <span class="kpi-lbl">🔁 {t.refinesLabel}</span>
+              <span class="kpi-num">≈{raw.refines}</span>
+              <span class="kpi-band">{fmt(t.tierAt, { tier: raw.startTier })}</span>
             </div>
-            {#if r.key === refinementStore.intensity}
-              <div class="rcard-detail">
-                <span>{fmt(t.weekly, { n: r.refines, tier: r.tier })}</span>
-                <span class="rec">💡 {fmt(t.play, { bulk: r.bulk })}</span>
-              </div>
+            <div class="kpi-div"></div>
+            <div class="kpi-cell">
+              <span class="kpi-lbl"
+                ><ResourceIcon resource="fireCrystal" size={13} /> {t.fcLabel}</span
+              >
+              <span class="kpi-num">~{groupNumber(raw.fcTotal)}</span>
+              <span class="kpi-band">{fmt(t.perRfc, { n: raw.fcPerRfc })}</span>
+            </div>
+          </div>
+          <span class="setup"
+            >{fmt(t.leftThisWeek, { n: raw.refinesLeftThisWeek })}{#if raw.weeks > 1}
+              · {fmt(t.weeks, { n: raw.weeks })}{/if}</span
+          >
+        {/if}
+        <p class="dry-note">{t.dryNote}</p>
+      {:else}
+        <!-- hero: the answer for the selected intensity -->
+        <div class="kpi">
+          <div class="kpi-cell">
+            <span class="kpi-lbl"
+              ><ResourceIcon resource="fireCrystal" size={13} /> {t.fcLabel}</span
+            >
+            <span class="kpi-num">~{groupNumber(cur.est.fcTotal)}</span>
+            {#if cur.est.fcHigh > cur.est.fcLow}
+              <span class="kpi-band"
+                >{fmt(t.band, {
+                  low: groupNumber(cur.est.fcLow),
+                  high: groupNumber(cur.est.fcHigh),
+                  perRfc: cur.est.fcPerRfc.toFixed(1)
+                })}</span
+              >
             {/if}
-          </button>
-        {/each}
-      </div>
+          </div>
+          <div class="kpi-div"></div>
+          <div class="kpi-cell">
+            <span class="kpi-lbl">⏱ {t.daysLabel}</span>
+            <span class="kpi-num">~{cur.est.days}</span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        {#if manual}
+          <label class="field">
+            <span class="field-label">{t.manualLabel}</span>
+            <input
+              type="number"
+              min="0"
+              inputmode="numeric"
+              value={manualRfc || ''}
+              oninput={(e) => (manualRfc = num(e))}
+              placeholder="0"
+            />
+          </label>
+        {:else}
+          <span class="setup">
+            {fmt(t.stillOf, { n: groupNumber(netRfc), total: groupNumber(rfc) })} · −
+            <input
+              class="saved-in"
+              type="number"
+              min="0"
+              inputmode="numeric"
+              value={refinementStore.stockRfc || ''}
+              oninput={(e) => (refinementStore.stockRfc = num(e))}
+              placeholder="0"
+            />
+            {t.savedShort} · {fmt(t.ready, { n: pctDone })}
+          </span>
+          <div class="bar" role="presentation">
+            <div class="fill" style="width:{pctDone}%"></div>
+          </div>
+        {/if}
+
+        <span class="rhythm-lbl">{t.rhythmHint}</span>
+        <div class="cards">
+          {#each rows as r (r.key)}
+            <button
+              class="rcard"
+              class:on={r.key === refinementStore.intensity}
+              type="button"
+              onclick={() => (refinementStore.intensity = r.key)}
+            >
+              <div class="rcard-top">
+                <span class="r-name">{r.name}</span>
+                <span class="r-fc"
+                  ><ResourceIcon resource="fireCrystal" size={12} /> ~{groupNumber(
+                    r.est.fcTotal
+                  )}</span
+                >
+                <span class="r-days">⏱ ~{r.est.days} {t.daysLabel}</span>
+              </div>
+              {#if r.key === refinementStore.intensity}
+                <div class="rcard-detail">
+                  <span>{fmt(t.weekly, { n: r.refines, tier: r.tier })}</span>
+                  <span class="rec">💡 {fmt(t.play, { bulk: r.bulk })}</span>
+                </div>
+              {/if}
+            </button>
+          {/each}
+        </div>
+      {/if}
 
       <details class="method">
         <summary>ⓘ {t.methodTitle}</summary>
@@ -383,6 +463,25 @@
     font-size: 13px;
     color: var(--text);
     text-align: right;
+  }
+
+  /* Dry mode: the two inputs side by side, then a small explanatory note. */
+  .src.sub {
+    margin-bottom: 14px;
+  }
+  .dry-inputs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 4px;
+  }
+  .dry-note {
+    margin: 12px 0 0;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    line-height: 1.5;
+    color: var(--text-dim);
+    opacity: 0.85;
   }
 
   .rhythm-lbl {

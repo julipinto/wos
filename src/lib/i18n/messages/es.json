@@ -509,7 +509,14 @@
       "methodMean": "La columna media (μ) es la media de RFC por refinado: μ = Σ p·x. Ej.: T1 = 1×0,65 + 2×0,25 + 3×0,10 = 1,45. La varianza es σ² = Σ p·x² − μ²; para T1: (1×0,65 + 4×0,25 + 9×0,10) − 1,45² = 2,55 − 2,10 = 0,45.",
       "rowDirect": "construcción",
       "rowRefine": "refinado → RFC",
-      "rowTotal": "total"
+      "rowTotal": "total",
+      "withRhythm": "Con ritmo",
+      "dry": "En seco",
+      "doneThisWeek": "Refinados hechos esta semana",
+      "refinesLabel": "Refinados",
+      "tierAt": "empieza en T{tier}",
+      "leftThisWeek": "{n} refinados restantes esta semana",
+      "dryNote": "Refinados + FC para alcanzar el objetivo, del más barato primero desde donde estás esta semana. FC antes del −50% diario."
     },
     "materials": {
       "sub": "Dónde conseguir cada material de mejora.",
