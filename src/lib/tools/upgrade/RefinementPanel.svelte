@@ -361,6 +361,17 @@
     background: var(--surface-2, rgba(192, 132, 252, 0.15));
     color: var(--text);
   }
+  /* Sub-mode toggle: a child of "Type", so it reads one level down — indented,
+     smaller, and quieter than the primary source toggle. */
+  .src.sub {
+    margin: -2px 0 14px 18px;
+    border-color: var(--border);
+    opacity: 0.9;
+  }
+  .src.sub .src-btn {
+    padding: 3px 11px;
+    font-size: 9px;
+  }
 
   /* hero */
   .kpi {
