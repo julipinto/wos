@@ -517,7 +517,8 @@
       "tierAt": "empieza en T{tier}",
       "leftThisWeek": "{n} refinados restantes esta semana",
       "dryNote": "Refinados + FC para alcanzar el objetivo, del más barato primero desde donde estás esta semana. FC antes del −50% diario.",
-      "refinesTotal": "{n} refinados en total"
+      "refinesTotal": "{n} refinados en total",
+      "doPerDay": "≈{n} refinados/día durante {days} días — aprovecha el −50% diario"
     },
     "materials": {
       "sub": "Dónde conseguir cada material de mejora.",

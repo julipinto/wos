@@ -40,21 +40,13 @@
   );
 
   // One estimate per intensity — drives the comparison cards; the selected one
-  // is the hero. Each tier holds 20 refines (cheap-first), so the top tier is
-  // ceil(refines/20) and the discount-optimal play does (refines−6) in one day.
+  // is the hero.
   const rows = $derived(
-    PRESETS.map((p) => {
-      const plan = planById(p.plan);
-      return {
-        key: p.key,
-        name: tx[p.key],
-        est: estimate(netRfc, plan),
-        refines: plan.refines,
-        tier: Math.min(5, Math.ceil(plan.refines / 20)),
-        bulk: Math.max(0, plan.refines - 6)
-      };
-    })
+    PRESETS.map((p) => ({ key: p.key, name: tx[p.key], est: estimate(netRfc, planById(p.plan)) }))
   );
+  // How to spread THIS job: refines per day across the days it takes.
+  const perDay = (e: { refines: number; days: number }) =>
+    Math.ceil(e.refines / Math.max(1, e.days));
   const cur = $derived(rows.find((r) => r.key === refinementStore.intensity) ?? rows[0]);
 
   const num = (e: Event) => {
@@ -246,12 +238,12 @@
               {#if r.key === refinementStore.intensity}
                 <div class="rcard-detail">
                   <span>🔁 {fmt(t.refinesTotal, { n: r.est.refines })}</span>
-                  <!-- Only surface the weekly pace when the job actually spans more
-                       than one week's worth of refines — otherwise "94 in one day"
-                       is misleading for a small target that finishes in a day. -->
-                  {#if r.est.refines > r.refines}
-                    <span>{fmt(t.weekly, { n: r.refines, tier: r.tier })}</span>
-                    <span class="rec">💡 {fmt(t.play, { bulk: r.bulk })}</span>
+                  <!-- How to spread the job — shown whenever it takes more than a
+                       day. If it all fits in one day there's nothing to distribute. -->
+                  {#if r.est.days > 1}
+                    <span class="rec"
+                      >💡 {fmt(t.doPerDay, { n: perDay(r.est), days: r.est.days })}</span
+                    >
                   {/if}
                 </div>
               {/if}
