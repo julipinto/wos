@@ -166,6 +166,11 @@
         <!-- hero: the answer for the selected intensity -->
         <div class="kpi">
           <div class="kpi-cell">
+            <span class="kpi-lbl">🔁 {t.refinesLabel}</span>
+            <span class="kpi-num">≈{cur.est.refines}</span>
+          </div>
+          <div class="kpi-div"></div>
+          <div class="kpi-cell">
             <span class="kpi-lbl"
               ><ResourceIcon resource="fireCrystal" size={13} /> {t.fcLabel}</span
             >
@@ -240,8 +245,14 @@
               </div>
               {#if r.key === refinementStore.intensity}
                 <div class="rcard-detail">
-                  <span>{fmt(t.weekly, { n: r.refines, tier: r.tier })}</span>
-                  <span class="rec">💡 {fmt(t.play, { bulk: r.bulk })}</span>
+                  <span>🔁 {fmt(t.refinesTotal, { n: r.est.refines })}</span>
+                  <!-- Only surface the weekly pace when the job actually spans more
+                       than one week's worth of refines — otherwise "94 in one day"
+                       is misleading for a small target that finishes in a day. -->
+                  {#if r.est.refines > r.refines}
+                    <span>{fmt(t.weekly, { n: r.refines, tier: r.tier })}</span>
+                    <span class="rec">💡 {fmt(t.play, { bulk: r.bulk })}</span>
+                  {/if}
                 </div>
               {/if}
             </button>
@@ -377,10 +388,13 @@
   .kpi {
     display: flex;
     align-items: flex-start;
+    flex-wrap: wrap;
+    row-gap: 12px;
     padding: 2px 0 4px;
   }
   .kpi-cell {
     flex: 1;
+    min-width: 90px;
     display: flex;
     flex-direction: column;
     align-items: flex-start;

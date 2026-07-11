@@ -516,7 +516,8 @@
       "refinesLabel": "Refines",
       "tierAt": "starts at T{tier}",
       "leftThisWeek": "{n} refines left this week",
-      "dryNote": "Refines + FC to reach the target, cheapest-first from where you are this week. FC is before the daily −50%."
+      "dryNote": "Refines + FC to reach the target, cheapest-first from where you are this week. FC is before the daily −50%.",
+      "refinesTotal": "{n} refines total"
     },
     "materials": {
       "sub": "Where to get each upgrade material.",

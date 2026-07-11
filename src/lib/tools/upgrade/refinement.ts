@@ -236,6 +236,8 @@ export interface RefineEstimate {
   weeks: number;
   /** FC spent per RFC at this plan (efficiency). */
   fcPerRfc: number;
+  /** Total refines to reach the target under this plan. */
+  refines: number;
 }
 
 /**
@@ -257,7 +259,8 @@ export interface RefineEstimate {
  * per-refine RFC variance over the tiers actually used (law of total variance).
  */
 export function estimate(rfcNeeded: number, plan: RefinePlan): RefineEstimate {
-  if (rfcNeeded <= 0) return { fcTotal: 0, fcLow: 0, fcHigh: 0, days: 0, weeks: 0, fcPerRfc: 0 };
+  if (rfcNeeded <= 0)
+    return { fcTotal: 0, fcLow: 0, fcHigh: 0, days: 0, weeks: 0, fcPerRfc: 0, refines: 0 };
 
   const R = plan.refines;
   const perDay = Math.max(1, Math.ceil(R / DAYS_PER_WEEK));
@@ -295,7 +298,8 @@ export function estimate(rfcNeeded: number, plan: RefinePlan): RefineEstimate {
   const fcPerRfc = fcTotal / rfcNeeded;
 
   // Typical band from the per-refine RFC variance over the tiers actually used.
-  const totalRef = used.reduce((s, n) => s + n, 0) || 1;
+  const refines = used.reduce((s, n) => s + n, 0);
+  const totalRef = refines || 1;
   const muBar = used.reduce((s, n, i) => s + n * TIERS[i].mu, 0) / totalRef;
   const eX2 =
     used.reduce((s, n, i) => s + n * (TIERS[i].variance + TIERS[i].mu ** 2), 0) / totalRef;
@@ -309,6 +313,7 @@ export function estimate(rfcNeeded: number, plan: RefinePlan): RefineEstimate {
     fcHigh: Math.round(fcTotal + Z_85 * sd),
     days,
     weeks,
-    fcPerRfc
+    fcPerRfc,
+    refines
   };
 }

@@ -516,7 +516,8 @@
       "refinesLabel": "Refinos",
       "tierAt": "começa no T{tier}",
       "leftThisWeek": "{n} refinos restantes nesta semana",
-      "dryNote": "Refinos + FC pra atingir o alvo, do mais barato primeiro a partir de onde você está na semana. FC antes do −50% diário."
+      "dryNote": "Refinos + FC pra atingir o alvo, do mais barato primeiro a partir de onde você está na semana. FC antes do −50% diário.",
+      "refinesTotal": "{n} refinos no total"
     },
     "materials": {
       "sub": "Onde conseguir cada material de upgrade.",

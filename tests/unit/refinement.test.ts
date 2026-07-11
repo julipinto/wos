@@ -42,6 +42,12 @@ describe('estimate', () => {
     expect(rush.fcTotal).toBeGreaterThan(eco.fcTotal);
     expect(rush.weeks).toBe(1); // 270 / 278.6 → ceil = 1
   });
+  it('reports the total refines to reach the target', () => {
+    const e = estimate(270, planById('L3'));
+    expect(e.refines).toBeGreaterThan(100); // ~270 RFC at ~1.5–2 RFC/refine
+    // Rush reaches deeper (higher-yield) tiers, so it needs FEWER refines than eco.
+    expect(estimate(270, planById('L10')).refines).toBeLessThan(e.refines);
+  });
   it('zero RFC needs nothing', () => {
     expect(estimate(0, planById('L5'))).toMatchObject({
       fcTotal: 0,
