@@ -518,7 +518,9 @@
       "leftThisWeek": "{n} refines left this week",
       "dryNote": "Refines + FC to reach the target, cheapest-first from where you are this week. FC is before the daily −50%.",
       "refinesTotal": "{n} refines total",
-      "doPerDay": "≈{n} refines/day for {days} days — catches the daily −50%"
+      "rhythmNote": "Resets Monday · one −50% refine/day → more active days = cheaper",
+      "dripPlay": "Monday (reset): the bulk, then 1/day for {days} days — catches each −50%",
+      "cramPlay": "≈{n}/day over {days} days — trades the −50%s for speed"
     },
     "materials": {
       "sub": "Where to get each upgrade material.",

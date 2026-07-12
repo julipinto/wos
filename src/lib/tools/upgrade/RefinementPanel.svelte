@@ -40,11 +40,21 @@
   );
 
   // One estimate per intensity — drives the comparison cards; the selected one
-  // is the hero.
+  // is the hero. `drips`: a rhythm slow enough (≲7/day) to stay active all week,
+  // catching every daily −50% (Super eco/Economic/Balanced). Faster ones cram it
+  // into fewer days and trade discounts for speed.
   const rows = $derived(
-    PRESETS.map((p) => ({ key: p.key, name: tx[p.key], est: estimate(netRfc, planById(p.plan)) }))
+    PRESETS.map((p) => {
+      const plan = planById(p.plan);
+      return {
+        key: p.key,
+        name: tx[p.key],
+        est: estimate(netRfc, plan),
+        drips: plan.refines <= 49
+      };
+    })
   );
-  // How to spread THIS job: refines per day across the days it takes.
+  // Cram pace: refines per day across the days it takes.
   const perDay = (e: { refines: number; days: number }) =>
     Math.ceil(e.refines / Math.max(1, e.days));
   const cur = $derived(rows.find((r) => r.key === refinementStore.intensity) ?? rows[0]);
@@ -218,6 +228,7 @@
         {/if}
 
         <span class="rhythm-lbl">{t.rhythmHint}</span>
+        <p class="rhythm-note">{t.rhythmNote}</p>
         <div class="cards">
           {#each rows as r (r.key)}
             <button
@@ -238,12 +249,17 @@
               {#if r.key === refinementStore.intensity}
                 <div class="rcard-detail">
                   <span>🔁 {fmt(t.refinesTotal, { n: r.est.refines })}</span>
-                  <!-- How to spread the job — shown whenever it takes more than a
-                       day. If it all fits in one day there's nothing to distribute. -->
+                  <!-- How to play this rhythm — only when it spans >1 day. Dripping
+                       rhythms get the Monday-reset + 1/day play (max discounts); fast
+                       ones show the cram pace (speed over discounts). -->
                   {#if r.est.days > 1}
-                    <span class="rec"
-                      >💡 {fmt(t.doPerDay, { n: perDay(r.est), days: r.est.days })}</span
-                    >
+                    {#if r.drips}
+                      <span class="rec">💡 {fmt(t.dripPlay, { days: r.est.days - 1 })}</span>
+                    {:else}
+                      <span class="rec"
+                        >💡 {fmt(t.cramPlay, { n: perDay(r.est), days: r.est.days })}</span
+                      >
+                    {/if}
                   {/if}
                 </div>
               {/if}
@@ -503,6 +519,14 @@
 
   .rhythm-lbl {
     margin: 16px 0 8px;
+  }
+  .rhythm-note {
+    margin: 0 0 10px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    line-height: 1.5;
+    color: var(--text-dim);
+    opacity: 0.9;
   }
   .cards {
     display: grid;
