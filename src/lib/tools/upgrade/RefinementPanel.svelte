@@ -40,23 +40,26 @@
   );
 
   // One estimate per intensity — drives the comparison cards; the selected one
-  // is the hero. `drips`: a rhythm slow enough (≲7/day) to stay active all week,
-  // catching every daily −50% (Super eco/Economic/Balanced). Faster ones cram it
-  // into fewer days and trade discounts for speed.
+  // is the hero. The rhythm's "signature" (weekly pace, tiers, how to play) is
+  // fixed per intensity, independent of the target: `drips` (Super eco/Economic/
+  // Balanced) stay ≲7/day so you spread over the week — Monday bulk (week−6) then
+  // 1/day to catch every daily −50%. Faster ones cram it in and trade discounts.
   const rows = $derived(
     PRESETS.map((p) => {
       const plan = planById(p.plan);
+      const week = plan.refines;
       return {
         key: p.key,
         name: tx[p.key],
         est: estimate(netRfc, plan),
-        drips: plan.refines <= 49
+        week,
+        tiers: Math.min(5, Math.ceil(week / 20)),
+        drips: week <= 49,
+        bulk: week - 6,
+        perDay: Math.ceil(week / 7)
       };
     })
   );
-  // Cram pace: refines per day across the days it takes.
-  const perDay = (e: { refines: number; days: number }) =>
-    Math.ceil(e.refines / Math.max(1, e.days));
   const cur = $derived(rows.find((r) => r.key === refinementStore.intensity) ?? rows[0]);
 
   const num = (e: Event) => {
@@ -249,15 +252,18 @@
               {#if r.key === refinementStore.intensity}
                 <div class="rcard-detail">
                   <span>🔁 {fmt(t.refinesTotal, { n: r.est.refines })}</span>
-                  <!-- How to play this rhythm — only when it spans >1 day. Dripping
-                       rhythms get the Monday-reset + 1/day play (max discounts); fast
-                       ones show the cram pace (speed over discounts). -->
+                  <!-- The rhythm's fixed signature (pace · tiers · how to play) —
+                       shown when the job spans >1 day. Dripping rhythms get the
+                       Monday-reset + 1/day play; fast ones show the cram pace. -->
                   {#if r.est.days > 1}
+                    {@const tiers = r.tiers === 1 ? 'T1' : `T1–T${r.tiers}`}
                     {#if r.drips}
-                      <span class="rec">💡 {fmt(t.dripPlay, { days: r.est.days - 1 })}</span>
+                      <span class="rec"
+                        >💡 {fmt(t.dripPlay, { week: r.week, tiers, bulk: r.bulk })}</span
+                      >
                     {:else}
                       <span class="rec"
-                        >💡 {fmt(t.cramPlay, { n: perDay(r.est), days: r.est.days })}</span
+                        >💡 {fmt(t.cramPlay, { week: r.week, tiers, perDay: r.perDay })}</span
                       >
                     {/if}
                   {/if}

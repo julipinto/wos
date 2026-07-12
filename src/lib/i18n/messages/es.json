@@ -519,8 +519,8 @@
       "dryNote": "Refinados + FC para alcanzar el objetivo, del más barato primero desde donde estás esta semana. FC antes del −50% diario.",
       "refinesTotal": "{n} refinados en total",
       "rhythmNote": "Reinicia el lunes · 1 refinado/día a −50% → más días activos = más barato",
-      "dripPlay": "Lunes (reinicio): el grueso, luego 1/día durante {days} días — aprovecha cada −50%",
-      "cramPlay": "≈{n}/día en {days} días — cambia los −50% por velocidad"
+      "dripPlay": "≈{week}/sem · {tiers} · lun {bulk} + 1/día",
+      "cramPlay": "≈{week}/sem · {tiers} · a saco ~{perDay}/día · menos −50%"
     },
     "materials": {
       "sub": "Dónde conseguir cada material de mejora.",

@@ -519,8 +519,8 @@
       "dryNote": "Refinos + FC pra atingir o alvo, do mais barato primeiro a partir de onde você está na semana. FC antes do −50% diário.",
       "refinesTotal": "{n} refinos no total",
       "rhythmNote": "Reset toda segunda · 1 refino/dia sai −50% → mais dias ativos = mais barato",
-      "dripPlay": "Segunda (reset): o grosso, depois 1/dia por {days} dias — pega cada −50%",
-      "cramPlay": "≈{n}/dia em {days} dias — troca os −50% por velocidade"
+      "dripPlay": "≈{week}/sem · {tiers} · segunda {bulk} + 1/dia",
+      "cramPlay": "≈{week}/sem · {tiers} · socado ~{perDay}/dia · menos −50%"
     },
     "materials": {
       "sub": "Onde conseguir cada material de upgrade.",
